@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/HL7Workbench.Core/HL7Workbench.Core.csproj" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+</Project>

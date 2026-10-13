@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="HL7Workbench.Desktop.MainWindow"
+        Title="HL7 Workbench" Width="900" Height="600"
+        MinWidth="480" MinHeight="320">
+  <StackPanel Margin="32" Spacing="12">
+    <TextBlock Text="HL7 Workbench" FontSize="28" FontWeight="SemiBold" />
+    <TextBlock Text="A local workspace for HL7 development." TextWrapping="Wrap" />
+  </StackPanel>
+</Window>
