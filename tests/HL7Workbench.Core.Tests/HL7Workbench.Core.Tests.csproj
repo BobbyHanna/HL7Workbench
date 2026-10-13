@@ -8,4 +8,7 @@
     <ProjectReference Include="../../src/HL7Workbench.Core/HL7Workbench.Core.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../samples/synthetic-only/*.hl7" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

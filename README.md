@@ -1,8 +1,9 @@
 # HL7 Workbench
 
 A local-first C#/.NET 10 desktop workbench for HL7 v2 development.
-Milestone 0 provides an application shell and build/test foundation only.
-Message parsing, editing, generation, scripting, and transport are not implemented.
+Milestone 1 provides an in-memory HL7 v2 parser and editing API alongside the
+Milestone 0 application shell. Desktop message viewing/editing, generation,
+scripting, and transport are not implemented.
 
 ## Windows setup
 
@@ -29,9 +30,11 @@ also documented here and configured in CI.
 
 ## Projects
 
-- `HL7Workbench.Core`: empty, UI-independent library reserved for the HL7 model.
+- `HL7Workbench.Core`: UI-independent parser, message model, paths, editing, escapes,
+  diagnostics, and lossless serialization. No file I/O or NuGet dependencies.
 - `HL7Workbench.Desktop`: Avalonia application shell referencing Core.
-- `HL7Workbench.Core.Tests`: xUnit smoke test for Core loading and UI independence.
+- `HL7Workbench.Core.Tests`: synthetic parser/editing/encoding/limit tests and the
+  foundation smoke test for UI independence.
 
 Versions are centralized in `Directory.Packages.props`; dependency lock files
 record the resolved graph. To intentionally update dependencies, change the
@@ -45,5 +48,6 @@ Never commit real patient data, secrets, or proprietary HL7Spy material.
 See [architecture](docs/architecture.md), the [foundation decision](docs/decisions/0001-foundation.md),
 and [dependency notes](docs/dependencies.md).
 
-Milestone 1 requires separate approval; its proposed design and tests are recorded
-in the architecture document.
+See [parser API](docs/parser-api.md) and [path grammar](docs/hl7-paths.md) for usage,
+preservation guarantees, configurable limits, and unsupported cases.
+Milestone 2 requires separate approval; the desktop remains a static shell.

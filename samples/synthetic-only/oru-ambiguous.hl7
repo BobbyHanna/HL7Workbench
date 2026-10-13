@@ -1,0 +1,5 @@
+MSH|^~\&|SYN-LAB|LAB|SYN-APP|APP|20261013120200||ORU^R01^ORU_R01|SYN-AMBIG1|T|2.5.1
+PID|1||SYN-MRN1^^^SYN^MR||Example^Avery
+OBR|1|SYN-ORD1^APP|SYN-FILL1^LAB|SYN-TEXT^Synthetic report^L
+OBX|1|TX|SYN-TEXT^Synthetic report^L||prefix\F|middle\F\|tail
+OBX|2|ST|SYN-SAFE^Synthetic safe value^L||unchanged||||||F

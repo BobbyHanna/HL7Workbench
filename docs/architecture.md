@@ -1,9 +1,11 @@
 # Architecture
 
-Milestone 0 establishes three projects targeting `net10.0`:
+The solution has three projects targeting `net10.0`:
 Desktop -> Core, and Core.Tests -> Core. Core has no NuGet dependencies.
-The desktop currently contains only application startup, a theme, and a static
-window. There are no view models, service containers, parser types, or domain APIs.
+The desktop contains only application startup, a theme, and a static window.
+Milestone 1 adds the parser/model, paths, editing, escapes, diagnostics, and
+serialization to Core, with synthetic tests in Core.Tests. No desktop integration
+or other milestone functionality has been added.
 
 Future desktop behavior will use MVVM. Introduce interfaces and dependency
 injection when a concrete testing or substitution need exists. Generation,
@@ -14,22 +16,32 @@ The application has no telemetry, cloud integration, or runtime network features
 No logging of message contents is configured. Samples and tests must be synthetic.
 Git ignore rules are a convenience, not proof that data is safe to commit.
 
-## Proposed Milestone 1 (not implemented)
+## Milestone 1: Parser and round-trip
 
-Retain original message bytes, encoding information, and segment terminators
-separately from delimiter-driven parsed structure and validation diagnostics.
-Define an explicit supported encoding policy before promising byte preservation.
-Handle MSH-1/MSH-2 and MSH field indexing explicitly. Preserve empty and trailing
-values, unknown segments, repetitions, and unsupported escapes. Parsing should
-tolerate unexpected content; validation reports it separately.
+`Hl7Parser` accepts an in-memory string or byte span representing one message.
+There is no file I/O, transport framing, or multi-message reader. Future readers
+can supply one bounded message at a time. The parser is delimiter-driven and has
+no version dictionary or external dependencies.
 
-Define canonical paths such as `PID[1]-3[2].1.1`, with documented occurrence and
-repetition indexing and friendly aliases. Unmodified serialization returns the
-original bytes; edits must preserve unaffected content. Normalization is opt-in.
+Raw segment/element spelling and exact segment terminators are retained alongside
+the hierarchy. Missing values, present empty values, and the explicit null marker
+remain distinct. MSH-1/MSH-2 are special literal fields. Unknown segments have
+ordinary structure; malformed lines are retained as opaque content. Parsing
+diagnostics describe recovery/ambiguity; `Hl7Validator` performs separate minimal
+header checks without rewriting anything.
 
-Synthetic tests should cover CR/LF/CRLF and mixed terminators, BOM/encoding policy,
-custom separators, MSH indexing, repeated fields/components/subcomponents,
-empty/trailing fields, unknown/Z-segments, missing segments, supported and
-unsupported escapes, path reads/writes, and exact unmodified byte round trips.
-Document unsupported cases and use failing tests to resolve ambiguous behavior.
-No parser or fixtures for these cases are included in Milestone 0.
+`Hl7Message` owns original bytes, the selected encoding/BOM, read-only model
+snapshots, and controlled path edits. Edits build and parse a candidate before
+publishing it; failed edits leave the previous message intact. The serializer
+returns retained bytes when unchanged. Supported edited byte messages splice
+only the changed span while preserving untouched bytes. There is no normalization.
+
+Resource limits bound message bytes/characters, segment count/length, total and
+per-container elements, diagnostics, and edit padding. Size/structure/expansion
+violations throw `Hl7LimitException`; diagnostic storage instead saturates with
+a suppression notice. Edits preflight all size budgets before materializing
+replacement strings. Ambiguous escapes lock only the affected segment, with
+editability tracked independently of diagnostic storage.
+
+See [parser API and limits](parser-api.md), [path grammar](hl7-paths.md), and
+[ADR 0002](decisions/0002-lossless-parser.md) for contracts and limitations.
