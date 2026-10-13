@@ -1,0 +1,35 @@
+# .NET build output
+bin/
+obj/
+artifacts/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# VS Code
+.vscode/
+
+# Test results
+TestResults/
+coverage/
+
+# NuGet packages
+*.nupkg
+
+# Windows
+Thumbs.db
+.DS_Store
+
+# Local configuration and secrets
+.env
+.env.*
+appsettings.Local.json
+secrets.json
+
+# Private HL7 messages and generated data
+test-data/private/
+test-data/generated/
+*.hl7
+*.HL7
