@@ -1,10 +1,22 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="HL7Workbench.Desktop.MainWindow"
-        Title="HL7 Workbench" Width="900" Height="600"
-        MinWidth="480" MinHeight="320">
-  <StackPanel Margin="32" Spacing="12">
-    <TextBlock Text="HL7 Workbench" FontSize="28" FontWeight="SemiBold" />
-    <TextBlock Text="A local workspace for HL7 development." TextWrapping="Wrap" />
-  </StackPanel>
+        xmlns:dock="using:Dock.Avalonia.Controls"
+        Title="HL7 Workbench — Docking Review" Width="1200" Height="800"
+        MinWidth="720" MinHeight="480">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Menu>
+      <MenuItem Header="_View">
+        <MenuItem Header="Message _Browser" Click="ShowBrowser" />
+        <MenuItem Header="_Diagnostics" Click="ShowDiagnostics" />
+      </MenuItem>
+      <MenuItem Header="_Window">
+        <MenuItem Header="_Save Layout" Click="SaveLayout" />
+        <MenuItem Header="_Restore Layout" Click="RestoreLayout" />
+        <MenuItem Header="_Reset Layout / Recover Windows" Click="ResetLayout" />
+      </MenuItem>
+    </Menu>
+    <dock:DockControl x:Name="WorkspaceDock" Grid.Row="1" />
+    <TextBlock x:Name="Status" Grid.Row="2" Margin="8,4" Text="Synthetic docking foundation • read-only" />
+  </Grid>
 </Window>

@@ -2,8 +2,10 @@
 
 A local-first C#/.NET 10 desktop workbench for HL7 v2 development.
 Milestone 1 provides an in-memory HL7 v2 parser and editing API alongside the
-Milestone 0 application shell. Desktop message viewing/editing, generation,
-scripting, and transport are not implemented.
+Milestone 2 docking foundation. Desktop currently opens synthetic placeholder tabs
+with functional Message Browser and Diagnostics tools. The full read-only message
+viewer awaits explicit continuation approval; editing, generation, scripting, and transport
+are not implemented.
 
 ## Windows setup
 
@@ -23,7 +25,7 @@ dotnet test HL7Workbench.sln --configuration Release --no-build --no-restore
 dotnet run --project src/HL7Workbench.Desktop
 ```
 
-The final command opens a static HL7 Workbench window. Dependency restore needs
+The final command opens the synthetic docking review workspace. Dependency restore needs
 NuGet access; the application itself has no network functionality. Avalonia's
 transitive build telemetry assets are excluded, with the environment opt-out
 also documented here and configured in CI.
@@ -32,9 +34,13 @@ also documented here and configured in CI.
 
 - `HL7Workbench.Core`: UI-independent parser, message model, paths, editing, escapes,
   diagnostics, and lossless serialization. No file I/O or NuGet dependencies.
-- `HL7Workbench.Desktop`: Avalonia application shell referencing Core.
+- `HL7Workbench.Workspace`: UI-independent documents/active context, tool registry,
+  bounded layout metadata, and screen recovery policy.
+- `HL7Workbench.Desktop`: Avalonia/Dock shell; Dock wrappers are isolated in Docking.
 - `HL7Workbench.Core.Tests`: synthetic parser/editing/encoding/limit tests and the
   foundation smoke test for UI independence.
+- `HL7Workbench.Workspace.Tests` and `HL7Workbench.Desktop.Tests`: workspace and Dock
+  model integration checks; native gestures and monitor/DPI behavior need manual review.
 
 Versions are centralized in `Directory.Packages.props`; dependency lock files
 record the resolved graph. To intentionally update dependencies, change the
@@ -50,4 +56,6 @@ and [dependency notes](docs/dependencies.md).
 
 See [parser API](docs/parser-api.md) and [path grammar](docs/hl7-paths.md) for usage,
 preservation guarantees, configurable limits, and unsupported cases.
-Milestone 2 requires separate approval; the desktop remains a static shell.
+Milestone 2 is read-only. The docking foundation is complete; the full viewer awaits
+explicit continuation approval. See [acceptance checklist](docs/docking-acceptance.md) and
+[project context](docs/PROJECT_CONTEXT.md). No message editing or save commands exist.

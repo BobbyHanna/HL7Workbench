@@ -12,6 +12,9 @@ or optional Avalonia commercial tooling are included.
 | Avalonia.Themes.Fluent | 12.1.4 | Window theme | MIT |
 | Avalonia.BuildServices | 11.3.2 | Exclude transitive build telemetry assets | MIT |
 | xunit.v3 | 4.0.2 | Test framework | Apache-2.0 |
+| Dock.Avalonia | 12.1.0.7 | Docking controls and native hosts | MIT |
+| Dock.Model.Mvvm | 12.1.0.7 | Desktop adapter model | MIT |
+| Dock.Avalonia.Themes.Fluent | 12.1.0.7 | Docking theme | MIT |
 
 xUnit supplies Microsoft Testing Platform transitively (MIT); `global.json`
 selects that runner for .NET 10. The initially proposed VSTest adapter and test
@@ -21,6 +24,13 @@ Package lock files contain the complete transitive inventory, including native
 rendering dependencies. NuGet package metadata and bundled notices are the
 authoritative license records; review them when updating or distributing builds.
 No HL7 dictionary or terminology dependency is included.
+
+Milestone 2 Dock packages require Avalonia >=12.1.3 and include net10.0 assets;
+the lock graph retains Avalonia 12.1.4. Dock brings DeferredContentControl,
+ProportionalStackPanel, Recycling, Recycling.Model, MarkupExtension, Model, Settings (all 12.1.0.7),
+and CommunityToolkit.Mvvm 8.4.0 transitively. Their restored nuspec metadata declares
+MIT. No Dock serializer, ReactiveUI, Prism, or DI container is added. AvaloniaEdit
+is reserved for the viewer phase after explicit continuation approval.
 
 The restored `.nuspec` metadata was inspected for every resolved package.
 Transitive Avalonia packages, MicroCom.Runtime, Tmds.DBus.Protocol, SkiaSharp,

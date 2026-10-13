@@ -5,6 +5,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
+    <ProjectReference Include="../HL7Workbench.Workspace/HL7Workbench.Workspace.csproj" />
+    <PackageReference Include="Dock.Avalonia" />
+    <PackageReference Include="Dock.Model.Mvvm" />
+    <PackageReference Include="Dock.Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.Themes.Fluent" />

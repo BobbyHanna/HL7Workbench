@@ -148,8 +148,15 @@ Use interfaces and dependency injection only where they improve testability. Pre
 - **Gate:** Synthetic fixture tests pass; unmodified messages round-trip byte-for-byte where supported; unsupported cases documented.
 
 ### Milestone 2 — Basic desktop viewer
-- Open, navigate, inspect, edit, and save HL7 messages.
-- **Gate:** User can load a synthetic multi-message file, inspect PID-3 and MSH-10, edit a field, save, and reopen without losing other content.
+- **Approved scope amendment:** read-only viewing; first establish Dock.Avalonia
+  workspace. Its manual docking integration gate passed on 2026-10-13.
+- After explicit continuation approval: open multiple message tabs, full-width raw pane above segment
+  and hierarchy inspection, reliable selection synchronization, structural diagnostics,
+  and safely bounded concatenated-file navigation preserving bytes/framing.
+- **Gate:** User can load synthetic messages, inspect PID-3/MSH-10 and repetitions,
+  navigate diagnostics, and customize/recover docked and floating tool layouts.
+- Editing, undo/redo, Save/Save As, dirty state, and destructive operations move to
+  Milestone 3. Its original scripting/generation scope below requires later replanning.
 
 ### Milestone 3 — Scriptable generator (highest-value milestone)
 - Add template cloning, from-scratch ADT generation, seeded synthetic demographics, script editor/runner, streaming output, progress, and cancellation.

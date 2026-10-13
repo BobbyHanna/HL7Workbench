@@ -1,11 +1,12 @@
 # Architecture
 
-The solution has three projects targeting `net10.0`:
-Desktop -> Core, and Core.Tests -> Core. Core has no NuGet dependencies.
-The desktop contains only application startup, a theme, and a static window.
+The solution targets `net10.0`: Desktop -> Workspace -> Core (Desktop also directly
+references Core). Core, Workspace, and Desktop each have corresponding test projects.
+Core has no NuGet dependencies. Workspace has no UI or docking dependencies.
+Desktop now contains the Milestone 2 docking foundation with synthetic documents.
 Milestone 1 adds the parser/model, paths, editing, escapes, diagnostics, and
 serialization to Core, with synthetic tests in Core.Tests. No desktop integration
-or other milestone functionality has been added.
+or other milestone functionality was added during Milestone 1.
 
 Future desktop behavior will use MVVM. Introduce interfaces and dependency
 injection when a concrete testing or substitution need exists. Generation,
@@ -45,3 +46,24 @@ editability tracked independently of diagnostic storage.
 
 See [parser API and limits](parser-api.md), [path grammar](hl7-paths.md), and
 [ADR 0002](decisions/0002-lossless-parser.md) for contracts and limitations.
+
+## Milestone 2: Docking foundation (review gate)
+
+Dock.Avalonia wrappers live in Desktop/Docking, with ordinary feature content in
+their Context. Workspace provides document lifecycle and active-message context,
+the lazy tool registry, metadata-only layout schema, limits, and recovery policy.
+Feature view models do not inherit Dock classes. Tool focus retains the selected
+document; closing its tab switches to another open document or clears context.
+
+Message Browser selects the synthetic tabs; Diagnostics follows their real parser
+and minimal header diagnostics. Dock supplies draggable/resizable/floating tools.
+Layout persistence and View menu reopening are application-coordinated. See
+[ADR 0003](decisions/0003-dockable-workspace.md) and the
+[desktop checklist](docking-acceptance.md). Native UI/monitor checks are pending.
+
+Milestone 2 remains read-only. After explicit continuation approval the document view will have a
+full-width raw pane above segment navigation and hierarchy inspection. Future file
+sessions preserve source bytes/framing, with bounded concatenated-message navigation.
+Editing, history, message saving, and dirty state are deferred to Milestone 3.
+Reusable script storage and Script Editor/Library tools are future services; search,
+comparison, generation, de-identification, MLLP, Synthea, and IRIS remain deferred.
