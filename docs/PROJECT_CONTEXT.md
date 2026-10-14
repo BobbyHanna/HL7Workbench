@@ -11,8 +11,14 @@ Milestone 2's docking foundation is complete: synthetic placeholder documents,
 Message Browser, Diagnostics, persistence, and floating tools. The user passed the
 manual acceptance gate on 2026-10-13, including rapid tab switching, closing inactive,
 active, and final documents, floating both tools, docking/refloating, main-window
-shutdown with floating tools, layout restoration, and Reset Layout. **Stop here; do
-not begin the HL7 viewer until the user explicitly approves continuing Milestone 2.**
+shutdown with floating tools, layout restoration, and Reset Layout.
+The user authorized Stage 1 of the read-only viewer. Implementation now opens
+bounded local files in AvaloniaEdit document tabs with Core-based highlighting.
+Stage 1 passed user manual acceptance on 2026-10-14 in all eight categories:
+file opening, document tabs, syntax highlighting, read-only behavior, scrolling,
+malformed messages, docking, and persistence and shutdown. Stage 2 has not started
+and requires separate explicit authorization.
+See `docs/viewer-stage1-acceptance.md` for architecture, limits, and exact steps.
 Dock model tests use a fake host for native-window operations; supplemental monitor,
 mixed-DPI, and OS-level behavior still benefit from platform-specific verification.
 No editing, undo/redo, message saves, dirty-state tracking, or destructive operations
@@ -36,6 +42,16 @@ Closing a document selects another open document or clears context. Feature view
 unsubscribe on disposal. Future Script Editor/Library are tools with independent script
 storage; generation, scripting, transport, Synthea, and IRIS services remain UI-free.
 Layout files contain IDs/geometry only, never messages, filenames, or scripts.
+
+## Future viewer requirements (not implemented)
+
+- Raw HL7 viewer above a lower-left Segment Navigator and lower-right Field
+  Inspector, with adjustable splitters.
+- Combined multi-message files use a fixed toolbar at the bottom of the raw-message
+  pane: first, previous, next, last, and message position/count.
+- Prioritize combined single-file batches over directory-wide processing.
+- Keep structural parsing version-independent and preserve future version/profile
+  extensibility, with semantic definitions separate from parsing and rendering.
 
 ## Conventions and validation
 

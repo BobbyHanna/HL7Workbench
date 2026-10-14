@@ -4,6 +4,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Avalonia.AvaloniaEdit" />
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
     <ProjectReference Include="../HL7Workbench.Workspace/HL7Workbench.Workspace.csproj" />
     <PackageReference Include="Dock.Avalonia" />

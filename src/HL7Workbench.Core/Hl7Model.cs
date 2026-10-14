@@ -7,6 +7,8 @@ public abstract class Hl7Element
     public string Raw { get; }
     public Hl7Value Value => new(Raw);
     internal int Start { get; }
+    /// <summary>Zero-based UTF-16 offset in the retained decoded message, excluding its BOM.</summary>
+    public int CharacterOffset => Start;
     internal Hl7Element(string raw, int start) { Raw = raw; Start = start; }
 }
 

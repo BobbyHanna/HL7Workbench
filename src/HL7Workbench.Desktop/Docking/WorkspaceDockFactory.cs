@@ -31,7 +31,12 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private void ActiveDockableChangedHandler(object? sender, Dock.Model.Core.Events.ActiveDockableChangedEventArgs e) => TrackDocument(e.Dockable);
     private void DockableClosedHandler(object? sender, Dock.Model.Core.Events.DockableClosedEventArgs e)
     {
-        if (e.Dockable?.Context is MessageDocument && e.Dockable.Id is { } id) documents.Close(id);
+        if (e.Dockable?.Context is MessageDocument && e.Dockable.Id is { } id)
+        {
+            documents.Close(id);
+            items.Remove(id);
+            DockableLocator?.Remove(id);
+        }
     }
 
     private void TrackDocument(IDockable? item)
@@ -75,6 +80,19 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public void OpenDocument(string id)
     {
         if (!documents.Documents.Any(d => d.Id == id)) return;
+        if (!items.ContainsKey(id))
+        {
+            // Insert into the live document group so opening a file retains tool geometry
+            // and native floating hosts, rather than reconstructing the accepted layout.
+            var document = documents.Documents.Single(d => d.Id == id);
+            var item = new Document { Id = id, Title = document.Title, Context = document,
+                CanFloat = false, CanClose = true, CanPin = false };
+            var dock = FindDockable(Root, d => d is IDocumentDock) as IDocumentDock
+                ?? throw new InvalidOperationException("Missing document workspace.");
+            items.Add(id, item);
+            DockableLocator![id] = () => item;
+            AddDockable(dock, item);
+        }
         SetActiveDockable(items[id]);
         documents.Activate(id);
     }

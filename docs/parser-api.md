@@ -131,6 +131,11 @@ structure, diagnostics, and dirty state unchanged. Extreme paths are safe for
 reads (missing) and rejected on expansion. Escape codec output/storage limits
 also apply when it is used independently.
 
+`Hl7Element.CharacterOffset` exposes the retained model's decoded UTF-16 start
+coordinate for presentation consumers. It excludes the BOM. Coordinates remain
+provisional for malformed/ambiguous recovery; consumers must not infer semantic
+validity from them. Reacquire snapshots after any Core edit.
+
 ## Current limitations
 
 This is a bounded, eager, in-memory parser, suitable as the per-message component

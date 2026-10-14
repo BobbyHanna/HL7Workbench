@@ -6,6 +6,7 @@
              RequestedThemeVariant="Default">
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
     <dockTheme:DockFluentTheme />
   </Application.Styles>
   <Application.DataTemplates>

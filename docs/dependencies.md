@@ -10,6 +10,8 @@ or optional Avalonia commercial tooling are included.
 | Avalonia | 12.1.4 | UI framework | MIT |
 | Avalonia.Desktop | 12.1.4 | Desktop platform integration | MIT |
 | Avalonia.Themes.Fluent | 12.1.4 | Window theme | MIT |
+| Avalonia.AvaloniaEdit | 12.0.0 | Read-only raw message editor | MIT |
+| Avalonia.Headless | 12.1.4 | Actual editor input tests without native windows (tests only) | MIT |
 | Avalonia.BuildServices | 11.3.2 | Exclude transitive build telemetry assets | MIT |
 | xunit.v3 | 4.0.2 | Test framework | Apache-2.0 |
 | Dock.Avalonia | 12.1.0.7 | Docking controls and native hosts | MIT |
@@ -30,7 +32,9 @@ the lock graph retains Avalonia 12.1.4. Dock brings DeferredContentControl,
 ProportionalStackPanel, Recycling, Recycling.Model, MarkupExtension, Model, Settings (all 12.1.0.7),
 and CommunityToolkit.Mvvm 8.4.0 transitively. Their restored nuspec metadata declares
 MIT. No Dock serializer, ReactiveUI, Prism, or DI container is added. AvaloniaEdit
-is reserved for the viewer phase after explicit continuation approval.
+12.0.0 is now integrated for the authorized Stage 1 viewer. Headless is confined
+to Desktop.Tests to verify actual editor read-only behavior without native hosts.
+No TextMate package is needed; highlighting uses Core coordinates.
 
 The restored `.nuspec` metadata was inspected for every resolved package.
 Transitive Avalonia packages, MicroCom.Runtime, Tmds.DBus.Protocol, SkiaSharp,
@@ -49,4 +53,6 @@ Sources: [Avalonia](https://www.nuget.org/packages/Avalonia/12.1.4),
 [Desktop](https://www.nuget.org/packages/Avalonia.Desktop/12.1.4),
 [Fluent](https://www.nuget.org/packages/Avalonia.Themes.Fluent/12.1.4),
 [BuildServices](https://www.nuget.org/packages/Avalonia.BuildServices/11.3.2),
+[AvaloniaEdit](https://www.nuget.org/packages/Avalonia.AvaloniaEdit/12.0.0),
+[Headless](https://www.nuget.org/packages/Avalonia.Headless/12.1.4),
 [xUnit](https://www.nuget.org/packages/xunit.v3/4.0.2).

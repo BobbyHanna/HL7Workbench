@@ -2,10 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="HL7Workbench.Desktop.MainWindow"
         xmlns:dock="using:Dock.Avalonia.Controls"
-        Title="HL7 Workbench — Docking Review" Width="1200" Height="800"
+        Title="HL7 Workbench" Width="1200" Height="800"
         MinWidth="720" MinHeight="480">
   <Grid RowDefinitions="Auto,*,Auto">
     <Menu>
+      <MenuItem Header="_File">
+        <MenuItem Header="_Open File…" Click="OpenFile" />
+      </MenuItem>
       <MenuItem Header="_View">
         <MenuItem Header="Message _Browser" Click="ShowBrowser" />
         <MenuItem Header="_Diagnostics" Click="ShowDiagnostics" />
@@ -17,6 +20,6 @@
       </MenuItem>
     </Menu>
     <dock:DockControl x:Name="WorkspaceDock" Grid.Row="1" />
-    <TextBlock x:Name="Status" Grid.Row="2" Margin="8,4" Text="Synthetic docking foundation • read-only" />
+    <TextBlock x:Name="Status" Grid.Row="2" Margin="8,4" Text="Read-only HL7 viewer • use File → Open File" />
   </Grid>
 </Window>

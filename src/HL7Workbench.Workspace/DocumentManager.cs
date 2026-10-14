@@ -4,7 +4,11 @@ using HL7Workbench.Core;
 
 namespace HL7Workbench.Workspace;
 
-public sealed record MessageDocument(string Id, string Title, Hl7Message Message);
+public sealed record MessageDocument(string Id, string Title, Hl7Message Message)
+{
+    /// <summary>Raw MSH-12 declaration. Future definition/profile resolvers may interpret this independently of structural parsing.</summary>
+    public string? DeclaredVersion => Message.Get("MSH-12").Raw;
+}
 
 public sealed class DocumentManager : INotifyPropertyChanged
 {

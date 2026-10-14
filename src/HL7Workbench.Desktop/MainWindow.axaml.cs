@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using HL7Workbench.Core;
 using HL7Workbench.Desktop.Docking;
 using HL7Workbench.Desktop.ViewModels;
@@ -13,15 +14,14 @@ public partial class MainWindow : Window
     private readonly WorkspaceDockFactory factory;
     private readonly DiagnosticsViewModel diagnostics;
     private readonly MessageBrowserViewModel browser;
+    private readonly CancellationTokenSource lifetime = new();
+    private bool opening;
     private readonly string layoutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "HL7Workbench", "workspace-layout.json");
 
     public MainWindow()
     {
         InitializeComponent();
-        documents.Open(new("synthetic.adt", "Synthetic ADT", Hl7Parser.Parse("MSH|^~\\&|SYN|TEST|||20261013120000||ADT^A01|SYN-1|T|2.5\rPID|1||SYN-001\r")));
-        documents.Open(new("synthetic.oru", "Synthetic ORU", Hl7Parser.Parse("MSH|^~\\&|SYN|TEST|||||ORU^R01||T|2.5\rOBX|1|TX|||Synthetic\\Q\\\r")));
-        documents.Activate("synthetic.adt");
         browser = new MessageBrowserViewModel(documents);
         diagnostics = new(documents);
         var registry = new ToolWindowRegistry();
@@ -34,10 +34,53 @@ public partial class MainWindow : Window
         Closing += (_, _) => SaveLayout(this, new());
         Closed += (_, _) =>
         {
+            lifetime.Cancel();
+            lifetime.Dispose();
             factory.Dispose();
             browser.Dispose();
             diagnostics.Dispose();
         };
+    }
+
+    private async void OpenFile(object? sender, RoutedEventArgs e)
+    {
+        if (opening || lifetime.IsCancellationRequested) return;
+        opening = true;
+        var cancellationToken = lifetime.Token;
+        try
+        {
+            if (!StorageProvider.CanOpen) { Status.Text = "File picking is unavailable on this platform."; return; }
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Open HL7 files", AllowMultiple = true,
+                FileTypeFilter = [new("HL7 and text files") { Patterns = ["*.hl7", "*.txt", "*.dat"] }, FilePickerFileTypes.All]
+            });
+            var opened = 0;
+            var failed = 0;
+            foreach (var file in files)
+            {
+                using (file)
+                {
+                    try
+                    {
+                        await using var source = await file.OpenReadAsync();
+                        var message = await MessageFileReader.ReadAsync(source, cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var document = MessageFileReader.Open(documents, file.Name, message);
+                        factory.OpenDocument(document.Id);
+                        opened++;
+                    }
+                    catch (Exception error) when (error is IOException or UnauthorizedAccessException or Hl7LimitException or NotSupportedException)
+                    { failed++; }
+                }
+            }
+            if (files.Count > 0)
+                Status.Text = $"Opened {opened} file(s) read-only; {failed} failed (unavailable, unreadable, or beyond parser limits). See Diagnostics for retained input warnings.";
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or NotSupportedException)
+        { if (!cancellationToken.IsCancellationRequested) Status.Text = "Unable to open the file picker. Try again."; }
+        finally { opening = false; }
     }
 
     private void ShowBrowser(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.BrowserId);

@@ -17,11 +17,7 @@ public sealed class DockContentTemplate : IDataTemplate
 
         var context = dockable.Context;
         if (context is MessageDocument document)
-            return new StackPanel { Margin = new(24), Spacing = 16, Children = {
-                new TextBlock { Text = document.Title, FontSize = 24 },
-                new TextBlock { Text = "Synthetic document • docking integration review" },
-                new TextBlock { Text = "Select tabs or use Message Browser. Move and float tools using their title bars.\nThe full read-only HL7 viewer will follow after this gate is approved.", TextWrapping = Avalonia.Media.TextWrapping.Wrap }
-            }};
+            return Viewer.MessageViewer.Create(document);
         if (context is MessageBrowserViewModel browser)
         {
             var list = new ListBox { ItemsSource = browser.Documents, DataContext = browser,
