@@ -25,7 +25,7 @@ public static class MessageViewer
         // Both the control and its editing pipeline refuse writes; the retained Core message
         // is never connected to editor changes. Selection and clipboard copy remain available.
         editor.TextArea.TextView.LineTransformers.Add(new Hl7Colorizer(new(document.Message)));
-        return editor;
+        return new MessageInspectionView(document.Inspection, editor);
     }
 }
 

@@ -73,3 +73,22 @@ Stage 1 file reading and session document creation live in Workspace; Avalonia
 file picking, editor configuration, and Core-coordinate highlighting live in
 Desktop. No version dictionary is required to render a structurally compatible
 message. See [Stage 1 acceptance](viewer-stage1-acceptance.md).
+
+Stage 2 adds `MessageInspection` on each Workspace document: UI-independent segment
+entries, lazy field/repetition/component/subcomponent projections, raw ranges, and
+session-only selection. Desktop renders these in document-internal Avalonia grids
+with splitters, not Dock tool windows. Selection requests raw navigation; raw caret
+changes update structural context without replacing user text selections. Attached
+views subscribe and detached views unsubscribe, allowing Dock content reconstruction
+without leaking views or losing document selection. No Core parser or dependency
+changes are needed. See [Stage 2 acceptance](viewer-stage2-acceptance.md).
+
+Stage 2 UX refinements preserve the full canonical hierarchy alongside lazy
+`VisibleChildren` projections of meaningful delimiter splits. Canonical parent
+chains map suppressed selections onto visible ancestors without losing identity.
+Workspace resolves raw offsets into deepest meaningful structural ranges, reusing
+lazy cached projections without changing selection for hover. Double-click requests
+selection explicitly. Desktop owns AvaloniaEdit glyph-floor hover hit-testing,
+scroll-offset mapping, ancestor reveal and conventional raw-editor ToolTips.
+Tooltips consume `InspectionPathInfo` and display only canonical coordinates, allowing
+future independent version/profile metadata without a hardcoded standards catalog.

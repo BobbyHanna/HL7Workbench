@@ -1,8 +1,9 @@
 # Milestone 2, Stage 1: read-only raw viewer
 
-Stage 1 passed user manual acceptance on 2026-10-14. Stage 2 requires separate
-authorization and has not started. No editing, saving messages, navigation, inspector, scripting,
-or transport is included.
+Stage 1 passed user manual acceptance on 2026-10-14. At this gate, Stage 2 had not
+started and required separate authorization. Stage 1 includes no editing, saving
+messages, navigation, inspector, scripting, or transport. Stage 2 was subsequently
+authorized; see [Stage 2 acceptance](viewer-stage2-acceptance.md) for current work.
 
 ## Manual acceptance passed (2026-10-14)
 

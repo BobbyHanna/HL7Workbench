@@ -4,8 +4,14 @@ A local-first C#/.NET 10 desktop workbench for HL7 v2 development.
 Milestone 1 provides an in-memory HL7 v2 parser and editing API alongside the
 Milestone 2 docking foundation. Desktop opens local files in read-only AvaloniaEdit
 tabs with delimiter-aware HL7 highlighting, Message Browser, and Diagnostics.
-Stage 1 passed manual acceptance on 2026-10-14; segment navigation, field inspection, editing,
-generation, scripting, and transport are not implemented.
+Stage 1 passed manual acceptance on 2026-10-14. Stage 2 adds synchronized Segment
+Navigator and Field Inspector panes and passed final native Windows acceptance on
+October 14, 2026. Editing,
+generation, scripting, batch navigation, and transport are not implemented.
+
+Stage 2 acceptance includes hierarchy simplification, raw double-click reveal and
+raw-editor structural path tooltips. All six final native checks passed; see the
+Stage 2 acceptance document for the recorded results and regression procedure.
 
 ## Windows setup
 
@@ -58,7 +64,8 @@ and [dependency notes](docs/dependencies.md).
 See [parser API](docs/parser-api.md) and [path grammar](docs/hl7-paths.md) for usage,
 preservation guarantees, configurable limits, and unsupported cases.
 Milestone 2 is read-only. The docking foundation is accepted; raw viewer Stage 1
-passed manual acceptance on 2026-10-14. Stage 2 requires separate authorization.
+passed manual acceptance on 2026-10-14. Stage 2 passed final acceptance on the same date.
+See [Stage 2 acceptance](docs/viewer-stage2-acceptance.md).
 See [Stage 1 acceptance](docs/viewer-stage1-acceptance.md),
 [docking acceptance](docs/docking-acceptance.md), and
 [project context](docs/PROJECT_CONTEXT.md). No message editing or save commands exist.

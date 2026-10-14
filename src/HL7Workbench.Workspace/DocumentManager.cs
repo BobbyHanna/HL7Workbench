@@ -6,6 +6,9 @@ namespace HL7Workbench.Workspace;
 
 public sealed record MessageDocument(string Id, string Title, Hl7Message Message)
 {
+    private MessageInspection? inspection;
+    /// <summary>Session-only structural selection, retained when document views are detached or rebuilt.</summary>
+    public MessageInspection Inspection => inspection ??= new(Message);
     /// <summary>Raw MSH-12 declaration. Future definition/profile resolvers may interpret this independently of structural parsing.</summary>
     public string? DeclaredVersion => Message.Get("MSH-12").Raw;
 }

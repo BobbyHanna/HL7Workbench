@@ -28,8 +28,8 @@ public sealed class ViewerTests
         await session.Dispatch(() =>
         {
             var message = Hl7Parser.Parse(text);
-            var editor = Assert.IsType<TextEditor>(new DockContentTemplate().Build(
-                new Dock.Model.Mvvm.Controls.Document { Context = new MessageDocument("synthetic", "Synthetic", message) }));
+            var editor = Assert.IsType<MessageInspectionView>(new DockContentTemplate().Build(
+                new Dock.Model.Mvvm.Controls.Document { Context = new MessageDocument("synthetic", "Synthetic", message) })).Editor;
             Assert.True(editor.IsReadOnly);
             Assert.Equal(text, editor.Document.Text);
             editor.Select(0, text.Length);
@@ -40,7 +40,7 @@ public sealed class ViewerTests
             Assert.Equal(text, editor.Document.Text);
             Assert.Equal(text, message.RawText);
             Assert.False(message.IsModified);
-            Assert.Single(editor.TextArea.TextView.LineTransformers.OfType<AvaloniaEdit.Rendering.DocumentColorizingTransformer>());
+            Assert.Equal(2, editor.TextArea.TextView.LineTransformers.OfType<AvaloniaEdit.Rendering.DocumentColorizingTransformer>().Count());
         }, TestContext.Current.CancellationToken);
     }
 
@@ -122,5 +122,11 @@ public sealed class ViewerTests
 
 public sealed class ViewerTestApplication : Application
 {
+    public override void Initialize()
+    {
+        Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
+        Styles.Add(new Avalonia.Markup.Xaml.Styling.StyleInclude(new Uri("avares://HL7Workbench.Desktop.Tests/"))
+        { Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml") });
+    }
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<ViewerTestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
 }

@@ -16,9 +16,27 @@ The user authorized Stage 1 of the read-only viewer. Implementation now opens
 bounded local files in AvaloniaEdit document tabs with Core-based highlighting.
 Stage 1 passed user manual acceptance on 2026-10-14 in all eight categories:
 file opening, document tabs, syntax highlighting, read-only behavior, scrolling,
-malformed messages, docking, and persistence and shutdown. Stage 2 has not started
-and requires separate explicit authorization.
+malformed messages, docking, and persistence and shutdown. The user authorized
+Stage 2: Segment Navigator and Field Inspector. The user confirmed all 10 original
+manual acceptance categories passed on 2026-10-14. Viewer Stage 2 is completed and
+formally accepted on October 14, 2026, including delimiter-driven visible hierarchy,
+raw double-click reverse navigation and RAW editor structural path tooltips.
+All six final native Windows checks passed: raw hover; structural paths including
+repetitions/subcomponents/custom delimiters; MSH numbering/edge cases; tooltip
+dismissal and selection/caret preservation; double-click navigation; and copying,
+tabs and docking regressions. The user authorized final verification and commit/push
+of the accepted Stage 2 changes to main. No further stage is authorized.
+The clarified hover target is the upper RAW HL7 editor. Earlier inspector tooltip
+investigations resulted from testing over raw text and did not establish an inspector bug.
+Raw editor hover now uses AvaloniaEdit's hover events and glyph-floor coordinates
+with scroll offsets, then Workspace's non-mutating ResolveOffset over cached Core
+structural projections. A standard Avalonia tooltip shows only canonical path and
+structural indices, without selection/caret changes, raw values, or semantic names.
+Inspector tooltips, obsolete tooltip tests, the diagnostic Button/panel/probe and
+F8 handling have been removed. Native Windows RAW editor hover acceptance is complete.
+Do not start multi-message navigation or Viewer Stage 3 without new authorization.
 See `docs/viewer-stage1-acceptance.md` for architecture, limits, and exact steps.
+See `docs/viewer-stage2-acceptance.md` for current changes and manual acceptance.
 Dock model tests use a fake host for native-window operations; supplemental monitor,
 mixed-DPI, and OS-level behavior still benefit from platform-specific verification.
 No editing, undo/redo, message saves, dirty-state tracking, or destructive operations
@@ -43,10 +61,14 @@ unsubscribe on disposal. Future Script Editor/Library are tools with independent
 storage; generation, scripting, transport, Synthea, and IRIS services remain UI-free.
 Layout files contain IDs/geometry only, never messages, filenames, or scripts.
 
-## Future viewer requirements (not implemented)
+## Viewer layout and future requirements
 
-- Raw HL7 viewer above a lower-left Segment Navigator and lower-right Field
-  Inspector, with adjustable splitters.
+- Stage 2 implements the raw HL7 viewer above a lower-left Segment Navigator and
+  lower-right Field Inspector, with adjustable internal splitters. Document-owned
+  structural selection survives tab/view changes; it is not serialized in layouts.
+- Inspection keeps canonical paths while suppressing implicit visual wrappers.
+  Double-click raw text to reveal the deepest visible structural node. Hover RAW
+  editor values for canonical coordinates only; inspector rows have no tooltips.
 - Combined multi-message files use a fixed toolbar at the bottom of the raw-message
   pane: first, previous, next, last, and message position/count.
 - Prioritize combined single-file batches over directory-wide processing.
