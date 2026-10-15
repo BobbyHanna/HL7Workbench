@@ -17,6 +17,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string FullRawId = "tool.full-raw-inspector";
     public const string NavigatorId = "tool.segment-navigator";
     public const string FieldInspectorId = "tool.field-inspector";
+    public const string ScriptEditorId = "tool.script-editor";
     private readonly DocumentManager documents;
     private readonly ToolWindowRegistry tools;
     private readonly Dictionary<string, IDockable> items = [];
@@ -30,6 +31,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private readonly HashSet<string> closingDocuments = [];
     private readonly HashSet<string> approvedCloses = [];
     public Func<MessageDocument, Task<bool>>? ConfirmDocumentCloseAsync { get; set; }
+    public Func<Task<bool>>? ConfirmScriptCloseAsync { get; set; }
 
     public WorkspaceDockFactory(DocumentManager documents, ToolWindowRegistry tools)
     {
@@ -46,11 +48,31 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private void DockableClosingHandler(object? sender, Dock.Model.Core.Events.DockableClosingEventArgs e)
     {
         if (e.Dockable is ITool tool) Remember(tool);
+        if (e.Dockable is ITool { Id: ScriptEditorId } scriptTool && !approvedCloses.Contains(ScriptEditorId) && ConfirmScriptCloseAsync is not null)
+        {
+            e.Cancel = true;
+            if (closingDocuments.Add(ScriptEditorId)) _ = ConfirmScriptCloseAsyncCore(scriptTool);
+            return;
+        }
         if (e.Dockable?.Context is not MessageDocument document || approvedCloses.Contains(document.Id)) return;
         if (document.IsSaving) { e.Cancel = true; return; }
         if (!document.IsDirty) return;
         e.Cancel = true;
         if (ConfirmDocumentCloseAsync is not null && closingDocuments.Add(document.Id)) _ = ConfirmCloseAsync(document, e.Dockable);
+    }
+    private async Task ConfirmScriptCloseAsyncCore(ITool tool)
+    {
+        try
+        {
+            if (ConfirmScriptCloseAsync is not null && await ConfirmScriptCloseAsync() && !disposed &&
+                items.TryGetValue(ScriptEditorId, out var current) && ReferenceEquals(tool, current))
+            {
+                approvedCloses.Add(ScriptEditorId);
+                try { CloseDockable(tool); }
+                finally { approvedCloses.Remove(ScriptEditorId); }
+            }
+        }
+        finally { closingDocuments.Remove(ScriptEditorId); }
     }
     private async Task ConfirmCloseAsync(MessageDocument document, IDockable item)
     {
@@ -178,7 +200,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
         if (disposed) return;
         disposed = true;
         foreach (var document in observedDocuments) document.PropertyChanged -= DocumentTitleChanged;
-        observedDocuments.Clear(); ConfirmDocumentCloseAsync = null;
+        observedDocuments.Clear(); ConfirmDocumentCloseAsync = null; ConfirmScriptCloseAsync = null;
         ActiveDockableChanged -= ActiveDockableChangedHandler;
         DockableClosed -= DockableClosedHandler;
         DockableClosing -= DockableClosingHandler;

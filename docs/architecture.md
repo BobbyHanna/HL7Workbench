@@ -1,5 +1,14 @@
 # Architecture
 
+Stage 5A adds Workspace -> Scripting -> Core and a separate ScriptHost -> Scripting
+worker executable. ScriptHost alone references Roslyn's scripting/execution packages;
+Desktop references the matching compiler-only package for background editor symbol
+colors. Core remains dependency-free and no UI/Dock types enter Workspace/Scripting.
+The Message-script implementation is
+accepted on native Windows, including the final Script Editor UX refinements.
+See ADR 0005 and `stage5a-script-editor-visual-acceptance.md`.
+Batch/Generate are reserved mode values and rejected in this milestone.
+
 The solution targets `net10.0`: Desktop -> Workspace -> Core (Desktop also directly
 references Core). Core, Workspace, and Desktop each have corresponding test projects.
 Core has no NuGet dependencies. Workspace has no UI or docking dependencies.
@@ -14,7 +23,8 @@ or other milestone functionality was added during Milestone 1.
 
 Feature view models remain independent of Dock classes. Introduce interfaces and
 dependency injection when a concrete testing or substitution need exists. Generation,
-scripting, transport, Synthea, and CLI projects remain deferred.
+transport, Synthea, and CLI projects remain deferred; Stage 5A's scripting projects
+are described in ADR 0005.
 Core libraries must remain UI-independent and cross-platform.
 
 The application has no telemetry, cloud integration, or runtime network features.

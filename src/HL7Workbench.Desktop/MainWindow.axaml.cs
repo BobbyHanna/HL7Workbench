@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly ToolWindowRegistry registry = new();
     private readonly InspectionToolViewModel navigator;
     private readonly InspectionToolViewModel fields;
+    private readonly ScriptEditorViewModel scripts;
     private readonly CancellationTokenSource lifetime = new();
     private bool opening;
     private CancellationTokenSource? openingCancellation;
@@ -27,12 +28,18 @@ public partial class MainWindow : Window
         InitializeComponent();
         browser = new MessageBrowserViewModel(documents);
         navigator = new(documents, true); fields = new(documents, false);
+        scripts = new(documents, new ScriptLibrary(ScriptLibrary.DefaultDirectory), preferencesPath: ScriptEditorPreferences.DefaultPath);
+        scripts.PromptUnsavedAsync = PromptUnsavedScriptAsync;
         registry.Register(new(WorkspaceDockFactory.BrowserId, "Message Browser", () => browser));
         registry.Register(new(WorkspaceDockFactory.ActivityLogId, "Activity Log", () => new ActivityLogViewModel(documents.Activity), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.NavigatorId, "Segment Navigator", () => navigator));
         registry.Register(new(WorkspaceDockFactory.FieldInspectorId, "Field Inspector", () => fields));
+        // Retain the draft model when the tool closes or Dock reconstructs its view.
+        registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
         factory = new(documents, registry);
         factory.ConfirmDocumentCloseAsync = ConfirmDocumentCloseAsync;
+        factory.ConfirmScriptCloseAsync = () => scripts.ConfirmCloseAsync(PromptUnsavedScriptAsync);
+        scripts.ReviewRequested += factory.OpenDocument;
         LoadEditPreferences();
         KeyDown += async (_, e) =>
         {
@@ -64,6 +71,7 @@ public partial class MainWindow : Window
             factory.Dispose();
             browser.Dispose();
             navigator.Dispose(); fields.Dispose();
+            scripts.Dispose();
             documents.Dispose();
         };
     }
@@ -129,6 +137,7 @@ public partial class MainWindow : Window
     private void ShowActivity(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.ActivityLogId);
     private void ShowNavigator(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.NavigatorId);
     private void ShowFields(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.FieldInspectorId);
+    private void ShowScripts(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.ScriptEditorId);
     private void ShowRaw(object? sender, RoutedEventArgs e)
     {
         if (documents.ActiveDocument is not { IsLoading: false } document || document.Source is null && document.MaterializedMessage?.HasDecodedText != true)

@@ -50,10 +50,20 @@ message requires reopening the saved file. See the
 for supported encodings, budgets, and save guarantees. Structural inspection and
 basic diagnostics do not provide HL7 version/profile conformance validation.
 
+## C# message scripting (Stage 5A)
+
+Stage 5A adds trusted local C# Message scripts through a fresh Roslyn worker process,
+an independent unsaved output document, a persistent Script Library and a dockable/
+floating Script Editor. Native Windows functional and visual acceptance is complete; the
+[Script Editor visual checklist](docs/stage5a-script-editor-visual-acceptance.md)
+covers the accepted UX refinements. See the [Stage 5A checklist](docs/stage5a-scripting-acceptance.md)
+for execution scope and limits.
+The worker is not a security sandbox and runs with the user's permissions.
+
 ## Planned capabilities
 
-Scripting, SQL-style querying, and TCP/MLLP sending, receiving, and transport testing
-are planned and are not implemented. File-based MLLP framing support is available
+Batch analysis, CSV reports, synthetic identities, message generation, template cloning,
+SQL-style querying, and TCP/MLLP transport remain planned. File-based MLLP framing support is available
 for inspection and preservation; it does not provide network transport. Synthetic
 message generation and additional analysis tools also remain future work.
 

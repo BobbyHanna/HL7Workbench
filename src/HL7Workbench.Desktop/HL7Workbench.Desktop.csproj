@@ -4,6 +4,8 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Compiler-only symbol binding for editor colors; execution stays in ScriptHost. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
     <ProjectReference Include="../HL7Workbench.Workspace/HL7Workbench.Workspace.csproj" />
@@ -16,4 +18,6 @@
     <!-- Suppress the transitive build-time telemetry task. -->
     <PackageReference Include="Avalonia.BuildServices" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
+  <Import Project="../../build/ScriptHost.targets" />
+  <ItemGroup><InternalsVisibleTo Include="HL7Workbench.Desktop.Tests" /></ItemGroup>
 </Project>

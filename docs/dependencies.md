@@ -7,6 +7,8 @@ or optional Avalonia commercial tooling are included.
 
 | Package | Version | Purpose | License |
 | --- | --- | --- | --- |
+| Microsoft.CodeAnalysis.CSharp.Scripting | 5.9.0 | C# compilation/execution in ScriptHost only | MIT |
+| Microsoft.CodeAnalysis.CSharp | 5.9.0 | Compiler-only background symbol binding in Desktop's Script Editor | MIT |
 | Avalonia | 12.1.4 | UI framework | MIT |
 | Avalonia.Desktop | 12.1.4 | Desktop platform integration | MIT |
 | Avalonia.Themes.Fluent | 12.1.4 | Window theme | MIT |
@@ -26,6 +28,18 @@ Package lock files contain the complete transitive inventory, including native
 rendering dependencies. NuGet package metadata and bundled notices are the
 authoritative license records; review them when updating or distributing builds.
 No HL7 dictionary or terminology dependency is included.
+
+Stage 5A's ScriptHost lock graph additionally includes Microsoft.CodeAnalysis.Common,
+Microsoft.CodeAnalysis.CSharp and Microsoft.CodeAnalysis.Scripting.Common 5.9.0, and
+Microsoft.CodeAnalysis.Analyzers 5.9.0-1.26328.17. All five restored nuspecs declare
+MIT; preserve notices when distributing. Execution/scripting assemblies deploy in
+the worker directory. The final editor refinement also uses CSharp/Common compiler
+assemblies in Desktop, with the same pinned version and analyzer dependency. This
+is an explicit amendment to the initial worker-only Roslyn loading policy: Desktop
+binds symbols without emit/execution; the scripting runtime stays in ScriptHost.
+No Workspaces/Features/LSP packages are needed. Core/Workspace/Scripting remain free
+of Roslyn references; Scripting itself depends only on Core. No external HL7 library
+was added.
 
 Milestone 2 Dock packages require Avalonia >=12.1.3 and include net10.0 assets;
 the lock graph retains Avalonia 12.1.4. Dock brings DeferredContentControl,

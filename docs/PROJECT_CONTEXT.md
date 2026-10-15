@@ -6,6 +6,83 @@ All committed examples and tests must be synthetic.
 
 ## Current milestone and review boundary
 
+The user authorized Stage 5A implementation only, following the revised Message/
+Batch/Generate architecture. Stage 5A implements Message scripts: fresh Roslyn worker
+per job, narrow Core facade, current/whole-document execution, captured unsaved edits,
+bounded transactional independent output, local Script Library and dockable Script
+Editor. The user has completed native Windows functional and visual acceptance,
+including the final Script Editor refinements and tooltip discovery/dismissal fixes.
+On 2026-10-15 the user authorized one Stage 5A milestone commit on `main` and a
+normal push to `origin/main` in the existing private BobbyHanna/HL7Workbench repository.
+No history rewrite, tag, release or Stage 5B implementation is authorized.
+Subsequent native testing found stationary-pointer tooltip reopening in the normal
+RAW editor. A shared dismissal guard prevented reopening, but subsequent native
+testing found poor hover discoverability: exact matching of retained event pixels
+conflicted with AvaloniaEdit's hover tolerance, and its timer restarted inside fields.
+The current Desktop controller separates rendered-row acquisition, one normal 400 ms
+deadline per structural field, and screen-coordinate click/scroll dismissal. It uses
+the latest structural hit for the precise path and ignores obsolete AvaloniaEdit hover
+events. Normal RAW, presentation and Full Source Viewer share this behavior. The user
+confirmed native Windows acceptance; see `stage5a-native-tooltip-dismissal.md`.
+The complete automated suite passes 636 tests (211 Core, 272 Workspace,
+125 Desktop, 28 Scripting), with locked restore and a zero-warning/error Release build.
+Workspace stress passes 274 cases. Folder publish, published-worker smoke,
+Release/publish hash and dependency-isolation checks, and `git diff --check` pass.
+Batch callbacks/state, synthetic identities, CSV, generation/templates, structural
+insertion/removal, cross-document analysis, working-state application, IDE/debugging
+and untrusted-code sandboxing remain deferred. See ADR 0005 and the Stage 5A checklist.
+The worker executes trusted code with user permissions; it is not a security sandbox.
+
+Stage 5A final automated verification on 2026-10-15: locked restore passed; Release
+build passed with zero warnings/errors; all 594 tests passed (211 Core, 262 Workspace,
+93 Desktop, 28 Scripting), including 67 new cases. Workspace stress passed all 264
+cases with `HL7WORKBENCH_STRESS=1`, including the existing 256/512 MiB fixtures and
+4,096-message scripting stream. Framework-dependent folder publish and its worker
+compile/transform/finish/clean-exit smoke check passed. `git diff --check` passed.
+The user subsequently confirmed completion of the native Windows functional
+checklist in `docs/stage5a-scripting-acceptance.md`, identifying cramped Script
+Editor layout and dark method names for this authorized UX polish pass.
+
+Script Editor refinements keep runtime/Core/protocol/output transactions unchanged.
+The centralized VS Dark-inspired palette now has a bounded compiler-only Roslyn
+symbol overlay over the immediate AvaloniaEdit lexical fallback. Desktop gains
+CSharp/Common 5.9.0 for background symbol binding (explicit amendment to worker-only
+Roslyn loading); only ScriptHost uses the scripting runtime/executes code. Analysis
+is debounced, cancellable, serialized, revision/document guarded and view-owned.
+Resolved methods are light yellow, types teal; unresolved names/properties/delegate
+variables stay neutral. No Workspaces/LSP/IDE infrastructure or source cache is added.
+Font state uses integer points: new default/reset 12 pt, 1 pt steps, 9–24 pt limits.
+V1 DIP preferences retain the nearest whole-point choice without rewriting on load;
+subsequent changes atomically save V2 FontSizePoints. Footer displays e.g. `12 pt`.
+Ctrl+wheel, Ctrl++/−, numpad Add/Subtract and Ctrl+0 work in code only. Two compact
+scrollable toolbar rows and collapsed/absent diagnostics reserve code space. Existing
+dock placement is retained. See `docs/stage5a-script-editor-visual-acceptance.md`.
+
+Polish verification: locked restore and Release build passed with zero warnings/errors;
+all 606 tests passed (211 Core, 267 Workspace, 100 Desktop, 28 Scripting), with 12 new
+cases. Workspace stress passed all 269 cases. `git diff --check` passed. The complete
+suite exposed an existing cleanup metadata race under concurrent snapshot disposal;
+moving the lookup into its existing best-effort I/O guard fixes it without changing
+snapshot ownership/publication. A concurrent-capture regression reproduced the original
+failure and passes with the fix. Native visual acceptance was pending at that checkpoint.
+
+Final point-size/contextual-color refinement verification: all 619 tests passed
+(211 Core, 272 Workspace, 108 Desktop, 28 Scripting), including 13 new cases beyond
+the 606-test polish pass. Workspace stress passed all 274 cases. Locked restore,
+zero-warning/zero-error Release build, folder publish/dependency isolation checks
+and `git diff --check` passed. Compiler-only CSharp/Common assemblies now ship/load
+with Desktop for the requested symbol colors; scripting/execution assemblies remain
+in ScriptHost. The user subsequently confirmed final native Windows acceptance.
+Git actions were unauthorized at that checkpoint. The current authorization is recorded
+above. See `stage5a-final-ci-investigation.md` for
+the historical tooltip failure investigation, final verification and pending-file inventory.
+That final pass reproduced a late-hover/click-dismissal defect in PresentationView
+and added a view-local guard with two deterministic regressions. All 621 tests pass
+(211 Core, 272 Workspace, 110 Desktop, 28 Scripting); Workspace stress passes 274.
+Locked restore, zero-warning/error Release build, folder publish, deployed-worker
+smoke/dependency-isolation checks and `git diff --check` pass. Historical attribution
+remains qualified because the CI logs contain no pointer/timer trace.
+
 Milestone 1 is complete: lossless, bounded Core parser with 211 regression tests.
 Milestone 2's docking foundation is complete: synthetic placeholder documents,
 Message Browser, Diagnostics, persistence, and floating tools. The user passed the

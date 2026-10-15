@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
+    <ProjectReference Include="../HL7Workbench.Scripting/HL7Workbench.Scripting.csproj" />
   </ItemGroup>
 </Project>

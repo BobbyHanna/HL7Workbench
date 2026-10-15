@@ -11,6 +11,7 @@ public sealed class FileDocumentView : ContentControl
 {
     private readonly MessageDocument document;
     private readonly bool dockedInspection;
+    private readonly Func<Action, TimeSpan, IDisposable>? scheduleHover;
     private readonly WrapPanel toolbar = new() { Orientation = Orientation.Horizontal, Margin = new(4) };
     private readonly StackPanel navigation = new() { Spacing = 4 };
     private readonly List<Button> directions = [];
@@ -26,7 +27,10 @@ public sealed class FileDocumentView : ContentControl
     public TextBox MessageNumberInput { get; } = new() { Width = 90 };
     public MessageInspectionView? ActiveView { get; private set; }
     public FileDocumentView(MessageDocument document, bool dockedInspection = false)
+        : this(document, dockedInspection, null) { }
+    internal FileDocumentView(MessageDocument document, bool dockedInspection, Func<Action, TimeSpan, IDisposable>? scheduleHover)
     {
+        this.scheduleHover = scheduleHover;
         this.document = document;
         this.dockedInspection = dockedInspection;
         void Button(string title, string tip, Func<int> position)
@@ -106,7 +110,7 @@ public sealed class FileDocumentView : ContentControl
         displayedNumber = document.MessageNumber;
         if (!document.IsLoading && (document.EditableText is not null || document.Source is not null))
         {
-            ActiveView = (MessageInspectionView)MessageViewer.CreateActive(document, dockedInspection);
+            ActiveView = (MessageInspectionView)MessageViewer.CreateActive(document, dockedInspection, scheduleHover);
             Grid.SetRow(navigation, 2); ActiveView.RawPane.Children.Add(navigation); Content = ActiveView;
         }
         else

@@ -7,6 +7,28 @@ namespace HL7Workbench.Workspace.Tests;
 
 public sealed class Stage3LifecycleTests
 {
+    [Fact]
+    public async Task ConcurrentSnapshotCreationAndDisposalToleratesDisappearingCleanupEntries()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "hl7-cleanup-race-" + Guid.NewGuid().ToString("N"));
+        var bytes = System.Text.Encoding.UTF8.GetBytes("MSH|^~\\&|SYN\rPID|1||SYN-1\r");
+        try
+        {
+            using var anchor = await SourceSnapshot.CaptureAsync(new MemoryStream(bytes), storageRoot: root, token: TestContext.Current.CancellationToken);
+            await Task.WhenAll(Enumerable.Range(0, 6).Select(_ => Task.Run(async () =>
+            {
+                for (var i = 0; i < 32; i++)
+                {
+                    using var input = new MemoryStream(bytes);
+                    using var snapshot = await SourceSnapshot.CaptureAsync(input, storageRoot: root, token: TestContext.Current.CancellationToken);
+                    Assert.Equal(bytes, snapshot.ReadBytes(new(0, bytes.Length)));
+                }
+            }, TestContext.Current.CancellationToken)));
+            Assert.Equal(bytes, anchor.ReadBytes(new(0, bytes.Length)));
+            Assert.Single(Directory.GetDirectories(root));
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
     [Theory]
     [InlineData(65001)] [InlineData(1200)] [InlineData(1201)] [InlineData(12000)] [InlineData(12001)]
     public async Task SplitUnicodeSequencesAndSurrogateCacheBoundariesRemainExact(int codePage)

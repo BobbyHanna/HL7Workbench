@@ -220,6 +220,19 @@
         "resolved": "6.0.0",
         "contentHash": "UcSjPsst+DfAdJGVDsu346FX0ci0ah+lw3WRtn18NUwEqRt70HaOQ7lI72vy3+1LxtqI3T5GWwV39rQSrCzAeg=="
       },
+      "Microsoft.CodeAnalysis.Analyzers": {
+        "type": "Transitive",
+        "resolved": "5.9.0-1.26328.17",
+        "contentHash": "HP9NNk8ZjOSI2hgOyXnQg+kv7/X837Vr2nAlXiGAtqtYnYKjRRa1UmQFr8KFs5ynGYKqfbb8zB9APoWjiAGdMg=="
+      },
+      "Microsoft.CodeAnalysis.Common": {
+        "type": "Transitive",
+        "resolved": "5.9.0",
+        "contentHash": "IYaIaUWdIx539AReKZOBEqTskFusZfCh/wFSPilDvCn5Say8MegLw2LONcSIcVy+v3Gzv53qYBspgvBGSErfbQ==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Analyzers": "5.9.0-1.26328.17"
+        }
+      },
       "Microsoft.Testing.Extensions.Telemetry": {
         "type": "Transitive",
         "resolved": "2.5.1",
@@ -376,13 +389,21 @@
           "Dock.Avalonia.Themes.Fluent": "[12.1.0.7, )",
           "Dock.Model.Mvvm": "[12.1.0.7, )",
           "HL7Workbench.Core": "[1.0.0, )",
-          "HL7Workbench.Workspace": "[1.0.0, )"
+          "HL7Workbench.Workspace": "[1.0.0, )",
+          "Microsoft.CodeAnalysis.CSharp": "[5.9.0, )"
+        }
+      },
+      "hl7workbench.scripting": {
+        "type": "Project",
+        "dependencies": {
+          "HL7Workbench.Core": "[1.0.0, )"
         }
       },
       "hl7workbench.workspace": {
         "type": "Project",
         "dependencies": {
-          "HL7Workbench.Core": "[1.0.0, )"
+          "HL7Workbench.Core": "[1.0.0, )",
+          "HL7Workbench.Scripting": "[1.0.0, )"
         }
       },
       "Avalonia": {
@@ -461,6 +482,16 @@
         "dependencies": {
           "CommunityToolkit.Mvvm": "8.4.0",
           "Dock.Model": "12.1.0.7"
+        }
+      },
+      "Microsoft.CodeAnalysis.CSharp": {
+        "type": "CentralTransitive",
+        "requested": "[5.9.0, )",
+        "resolved": "5.9.0",
+        "contentHash": "7JGDA0UT1+h7k9ZcA3rF4eFC8+QPq1xyYaXxag4p8r/zzPurEJxvdi7aM+MRL/SfP7XADXpWF/pl/eUYXOq/ww==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Analyzers": "5.9.0-1.26328.17",
+          "Microsoft.CodeAnalysis.Common": "[5.9.0]"
         }
       }
     }

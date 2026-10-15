@@ -4,6 +4,12 @@
     "net10.0": {
       "hl7workbench.core": {
         "type": "Project"
+      },
+      "hl7workbench.scripting": {
+        "type": "Project",
+        "dependencies": {
+          "HL7Workbench.Core": "[1.0.0, )"
+        }
       }
     }
   }

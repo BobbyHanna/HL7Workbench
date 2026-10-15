@@ -28,6 +28,7 @@ public sealed class DockContentTemplate : IDataTemplate
             return Viewer.MessageViewer.Create(document, DockedInspection && dockable.Factory is WorkspaceDockFactory { HasInspectionTools: true });
         if (context is FullRawInspectorViewModel raw) return new Viewer.FullRawInspectorHost(raw);
         if (context is ActivityLogViewModel activity) return new Viewer.ActivityLogView(activity);
+        if (context is ScriptEditorViewModel script) return new Viewer.ScriptEditorView(script);
         if (context is InspectionToolViewModel inspection) return new Viewer.InspectionToolHost(inspection);
         if (context is MessageBrowserViewModel browser)
         {

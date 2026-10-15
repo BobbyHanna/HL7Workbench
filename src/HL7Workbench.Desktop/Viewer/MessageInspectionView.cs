@@ -27,6 +27,7 @@ public sealed class MessageInspectionView : Grid
     private InspectionPanes? panes;
     public TextEditor Editor { get; }
     public PresentationView? PresentationView { get; }
+    private readonly FieldToolTipLifecycle? rawToolTips;
     public Grid RawPane { get; } = new() { RowDefinitions = new("*,Auto,Auto") };
     public TextBlock WindowStatus { get; } = new();
     public ListBox Navigator => panes!.Navigator;
@@ -39,14 +40,21 @@ public sealed class MessageInspectionView : Grid
     private bool HasCurrentInspection => inspection.IsCurrent && (document is null ||
         document.InspectionState == DocumentInspectionState.Current && ReferenceEquals(document.ActiveInspection, inspection));
     public MessageInspectionView(MessageInspection inspection, TextEditor editor, MessageDocument? document = null, bool dockedInspection = false)
+        : this(inspection, editor, document, dockedInspection, null) { }
+    internal MessageInspectionView(MessageInspection inspection, TextEditor editor, MessageDocument? document, bool dockedInspection,
+        Func<Action, TimeSpan, IDisposable>? scheduleHover)
     {
         this.inspection = inspection;
         this.document = document;
 
         Editor = editor;
         if (document is not null && document.Presentation is null) ViewerRequests.AttachMenu(new(editor, document, inspection));
-        if (document?.Presentation is not null) PresentationView = new(document, inspection, editor);
-        else editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(() => HasCurrentInspection ? this.inspection : null));
+        if (document?.Presentation is not null) PresentationView = new(document, inspection, editor, scheduleHover);
+        else
+        {
+            rawToolTips = new(editor, offset => HasCurrentInspection ? FieldToolTipTarget.From(this.inspection.ResolveOffset(offset)) : null, scheduleHover);
+            editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(() => HasCurrentInspection ? this.inspection : null));
+        }
         // Workspace owns history across navigation and view reconstruction. Limit
         // local retention before input starts: TextChanged can run inside AvaloniaEdit's
         // input undo group, where clearing the stack would violate its transaction.
@@ -85,16 +93,6 @@ public sealed class MessageInspectionView : Grid
         Editor.TextChanged += WorkingTextChanged;
         UpdateFromDocument();
         Editor.TextArea.AddHandler(PointerPressedEvent, RawPointerPressed, RoutingStrategies.Tunnel);
-        var textView = Editor.TextArea.TextView;
-        // A TextView contains many coordinates within one control. AvaloniaEdit supplies
-        // the hover timing; a conventional Avalonia ToolTip displays the resolved position.
-        ToolTip.SetServiceEnabled(textView, false);
-        ToolTip.SetPlacement(textView, PlacementMode.Pointer);
-        textView.PointerHover += RawPointerHover;
-        textView.PointerHoverStopped += RawHoverStopped;
-        textView.PointerExited += RawHoverStopped;
-        textView.ScrollOffsetChanged += RawScrolled;
-        textView.AddHandler(PointerPressedEvent, RawHoverStopped, RoutingStrategies.Tunnel, true);
         ApplySelection(true);
     }
 
@@ -106,12 +104,6 @@ public sealed class MessageInspectionView : Grid
         Editor.TextChanged -= WorkingTextChanged;
         Editor.TextArea.Caret.PositionChanged -= CaretChanged;
         Editor.TextArea.RemoveHandler(PointerPressedEvent, RawPointerPressed);
-        var textView = Editor.TextArea.TextView;
-        textView.PointerHover -= RawPointerHover;
-        textView.PointerHoverStopped -= RawHoverStopped;
-        textView.PointerExited -= RawHoverStopped;
-        textView.ScrollOffsetChanged -= RawScrolled;
-        textView.RemoveHandler(PointerPressedEvent, RawHoverStopped);
         CloseRawToolTip();
         subscribed = false;
         base.OnDetachedFromVisualTree(e);
@@ -187,32 +179,7 @@ public sealed class MessageInspectionView : Grid
         if (!synchronizing && HasCurrentInspection) inspection.SelectOffset(Editor.CaretOffset);
     }
 
-    private void RawPointerHover(object? sender, PointerEventArgs e)
-    {
-        if (!HasCurrentInspection) { CloseRawToolTip(); return; }
-        var textView = Editor.TextArea.TextView;
-        var point = e.GetPosition(textView);
-        var buttons = e.GetCurrentPoint(textView).Properties;
-        if (buttons.IsLeftButtonPressed || buttons.IsRightButtonPressed ||
-            !textView.Bounds.WithX(0).WithY(0).Contains(point) || !textView.VisualLinesValid) return;
-        // Floor resolves the glyph under the pointer; nearest-caret rounding can falsely
-        // report the next component when hovering the right half of a separator/value.
-        var position = textView.GetPositionFloor(point + textView.ScrollOffset);
-        var node = position is { } hit && hit.Column <= Editor.Document.GetLineByNumber(hit.Line).Length ?
-            inspection.ResolveOffset(Editor.Document.GetOffset(hit.Location)) : null;
-        if (node is null) { CloseRawToolTip(); return; }
-        ToolTip.SetTip(textView, InspectionPathToolTip.Format(node.PathInfo));
-        ToolTip.SetIsOpen(textView, true);
-    }
-
-    private void RawHoverStopped(object? sender, PointerEventArgs e) => CloseRawToolTip();
-    private void RawScrolled(object? sender, EventArgs e) => CloseRawToolTip();
-    private void CloseRawToolTip()
-    {
-        var textView = Editor.TextArea.TextView;
-        ToolTip.SetIsOpen(textView, false);
-        ToolTip.SetTip(textView, null);
-    }
+    private void CloseRawToolTip() => rawToolTips?.Close();
 
     private void RawPointerPressed(object? sender, PointerPressedEventArgs e)
     {

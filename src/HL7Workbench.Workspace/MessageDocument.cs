@@ -71,7 +71,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     {
         if (disposed) throw new ObjectDisposedException(nameof(MessageDocument));
         if (number < 1 || number > MessageCount) throw new ArgumentOutOfRangeException(nameof(number));
-        if (IsSaving) return;
+        if (IsSaving || IsCapturingScript) return;
         if (Index is null || Snapshot is null || number == MessageNumber && !IsLoading && Failure is null) return;
         request?.Cancel();
         request?.Dispose();

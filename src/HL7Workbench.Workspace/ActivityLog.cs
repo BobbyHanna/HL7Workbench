@@ -7,7 +7,8 @@ public enum ActivityKind
     ApplicationReady, ApplicationError, OpeningFile, FileIndexed, FileOpened, FileOpenFailed,
     FileOpenCanceled, Diagnostic, DiagnosticLimit, SourceViewerOpened, SourceReadFailed,
     ExportStarted, ExportCompleted, ExportFailed, ExportCanceled, LayoutFailed,
-    SaveStarted, SaveCompleted, SaveFailed, SaveCanceled
+    SaveStarted, SaveCompleted, SaveFailed, SaveCanceled,
+    ScriptStarted, ScriptCompleted, ScriptFailed, ScriptCanceled
 }
 public enum ActivityFailure { None, Unavailable, AccessDenied, ResourceLimit, Encoding, Unsupported, Unexpected }
 public enum ActivityCategory { Application, File, Boundary, Structure, Inspection, Export }
@@ -57,6 +58,10 @@ public sealed record ActivityEntry
         ActivityKind.SaveCompleted => "Document saved",
         ActivityKind.SaveFailed => "Document save failed; working text retained",
         ActivityKind.SaveCanceled => "Document save canceled; working text retained",
+        ActivityKind.ScriptStarted => "Script run started on captured input",
+        ActivityKind.ScriptCompleted => $"Script run completed — {Count:N0} message(s) in independent output",
+        ActivityKind.ScriptFailed => "Script run failed; no partial output published",
+        ActivityKind.ScriptCanceled => "Script run canceled; no partial output published",
         ActivityKind.DiagnosticLimit => "Additional diagnostic activity omitted; document diagnostics remain available",
         _ => Diagnostic switch
         {
@@ -127,7 +132,7 @@ public sealed class ActivityLog
                 ActivityKind.SourceViewerOpened or ActivityKind.SourceReadFailed or ActivityKind.DiagnosticLimit => ActivityCategory.Inspection,
                 _ => ActivityCategory.Application
             },
-            Severity = kind is ActivityKind.ApplicationError or ActivityKind.FileOpenFailed or ActivityKind.SourceReadFailed or ActivityKind.ExportFailed or ActivityKind.LayoutFailed or ActivityKind.SaveFailed
+            Severity = kind is ActivityKind.ApplicationError or ActivityKind.FileOpenFailed or ActivityKind.SourceReadFailed or ActivityKind.ExportFailed or ActivityKind.LayoutFailed or ActivityKind.SaveFailed or ActivityKind.ScriptFailed
                 ? Hl7DiagnosticSeverity.Error : kind == ActivityKind.DiagnosticLimit ? Hl7DiagnosticSeverity.Warning : Hl7DiagnosticSeverity.Information });
     }
     /// <summary>Projects a diagnostic through a fixed vocabulary; imported description, code and path strings are never retained.</summary>

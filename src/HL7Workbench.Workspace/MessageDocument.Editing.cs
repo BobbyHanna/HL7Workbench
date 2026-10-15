@@ -28,7 +28,7 @@ public sealed partial class MessageDocument
         set { if (editMode == value) return; editMode = value; PropertyChanged?.Invoke(this, new(nameof(IsEditMode))); }
     }
     public string DisplayTitle => Title + (IsDirty ? " *" : "");
-    public bool IsDirty => buffers.Values.Any(b => b.IsDirty);
+    public bool IsDirty => generatedUnsaved || buffers.Values.Any(b => b.IsDirty);
     public bool IsSaving { get; private set; }
     public string? SavePath { get; private set; }
     public string? EditError { get; private set; }
@@ -37,8 +37,8 @@ public sealed partial class MessageDocument
     public bool HasWorkingSourceChanges => buffers.TryGetValue(MessageNumber, out var b) && b.DiffersFromOriginal;
     public string? WorkingText => buffers.GetValueOrDefault(MessageNumber)?.Text;
     public string? EditableText => WorkingText ?? (message?.HasDecodedText == true ? message.RawText : null);
-    public bool CanUndo => !IsSaving && buffers.GetValueOrDefault(MessageNumber)?.CanUndo == true;
-    public bool CanRedo => !IsSaving && buffers.GetValueOrDefault(MessageNumber)?.CanRedo == true;
+    public bool CanUndo => !IsSaving && !IsCapturingScript && buffers.GetValueOrDefault(MessageNumber)?.CanUndo == true;
+    public bool CanRedo => !IsSaving && !IsCapturingScript && buffers.GetValueOrDefault(MessageNumber)?.CanRedo == true;
     public string? EditingUnavailableReason => IsLoading ? "Wait for message preparation." :
         buffers.ContainsKey(MessageNumber) ? null :
         Source is not null ? "This source-backed message remains read-only. Editing requires a complete message within the existing 1 Mi-character / 16 Ki-character line viewer limits." :
@@ -46,7 +46,7 @@ public sealed partial class MessageDocument
         message.RawText.Length > MessagePresentation.MaximumEditorCharacters || message.Segments.Any(s => s.Raw.Length > MaximumEditableLineCharacters) ?
             "Message exceeds the complete-editor or line rendering limit; source inspection remains available." :
         !(message.Encoding.IsSingleByte || message.Encoding.CodePage is 65001 or 1200 or 1201) ? "This encoding supports inspection and exact copying; manual editing is unavailable." : null;
-    public bool CanEditText => !disposed && !IsSaving && IsEditMode && EditingUnavailableReason is null;
+    public bool CanEditText => !disposed && !IsSaving && !IsCapturingScript && IsEditMode && EditingUnavailableReason is null;
 
     /// <summary>Updates a bounded draft synchronously; parsing is debounced and version-checked off the UI thread.</summary>
     public void ReplaceWorkingText(string text)
@@ -124,7 +124,7 @@ public sealed partial class MessageDocument
     public async Task SaveAsync(string? destination = null, CancellationToken token = default)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
-        if (IsSaving) throw new InvalidOperationException("A save is already running.");
+        if (IsSaving || IsCapturingScript) throw new InvalidOperationException("A save or script capture is already running.");
         var path = Path.GetFullPath(destination ?? SavePath ?? throw new InvalidOperationException("Choose a local destination with Save As."));
         if (Snapshot is { } owned && PhysicalPath(path).StartsWith(PhysicalPath(owned.DirectoryPath) + Path.DirectorySeparatorChar,
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
@@ -181,6 +181,7 @@ public sealed partial class MessageDocument
                     finally { try { if (File.Exists(temporary)) File.Delete(temporary); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
                 }, linked.Token);
                 foreach (var buffer in buffers.Values) buffer.MarkSaved();
+                generatedUnsaved = false;
                 SavePath = path; Title = Path.GetFileName(path);
                 RecordActivity(ActivityKind.SaveCompleted);
             }

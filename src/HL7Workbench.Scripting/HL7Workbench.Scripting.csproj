@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
+    <InternalsVisibleTo Include="HL7Workbench.ScriptHost" />
+    <InternalsVisibleTo Include="HL7Workbench.Scripting.Tests" />
+  </ItemGroup>
+</Project>

@@ -134,6 +134,59 @@ public sealed class Stage3ViewTests
             return true;
         }, TestContext.Current.CancellationToken);
     }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task PresentationClickDismissalRejectsHoverNotificationCapturedBeforeThePress(bool releaseBeforeLateHover)
+    {
+        var path = await LargeSyntheticFile.CreateAsync(256 * 1024, TestContext.Current.CancellationToken);
+        await using var session = HeadlessUnitTestSession.StartNew(typeof(RawHoverTestApplication));
+        await session.Dispatch(async () =>
+        {
+            using var manager = new DocumentManager(); await using var input = File.OpenRead(path);
+            var document = await MessageFileReader.OpenFileAsync(manager, "Synthetic", input, TestContext.Current.CancellationToken);
+            var clock = new ManualHoverScheduler();
+            var host = new FileDocumentView(document, false, clock.Schedule); var window = new Window { Width = 1600, Height = 1000, Content = host }; window.Show();
+            try
+            {
+                var view = host.ActiveView!; await view.PresentationView!.Ready;
+                var inspection = document.Inspection;
+                inspection.SelectSegment(inspection.Segments.Single(s => s.Identifier == "OBX"));
+                var data = inspection.InspectField(5)!.Children[0].Children[4]; inspection.SelectNode(data);
+                window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+                var textView = view.Editor.TextArea.TextView;
+                var displayed = (int)view.PresentationView.Presentation.DisplayOffset(data.Range64!.Value.Offset + 8);
+                var position = textView.GetVisualPosition(new AvaloniaEdit.TextViewPosition(view.Editor.Document.GetLocation(displayed)),
+                    AvaloniaEdit.Rendering.VisualYPosition.LineMiddle) - textView.ScrollOffset;
+                var hit = textView.TranslatePoint(position + new Vector(2, 0), window)!.Value;
+                PointerEventArgs? beforePress = null;
+                textView.PointerMoved += (_, e) => beforePress = e;
+                window.MouseMove(new(1, 1)); window.MouseMove(hit);
+                Assert.NotNull(beforePress); Assert.False(beforePress.GetCurrentPoint(textView).Properties.IsLeftButtonPressed);
+                void NotifyHover(PointerEventArgs args)
+                {
+                    // AvaloniaEdit retains the last move's event for its hover callback.
+                    // Deliver that valid notification in a controlled order, without sleeps.
+                    args.RoutedEvent = AvaloniaEdit.Rendering.TextView.PointerHoverEvent; args.Handled = false;
+                    textView.RaiseEvent(args);
+                }
+                var captured = beforePress;
+                NotifyHover(captured); clock.AdvanceBy(FieldToolTipLifecycle.HoverDelay); Assert.True(ToolTip.GetIsOpen(textView));
+                window.MouseDown(hit, MouseButton.Left);
+                Assert.False(ToolTip.GetIsOpen(textView));
+                if (releaseBeforeLateHover) window.MouseUp(hit, MouseButton.Left);
+                NotifyHover(captured);
+                clock.AdvanceBy(FieldToolTipLifecycle.HoverDelay);
+                Assert.False(ToolTip.GetIsOpen(textView));
+                if (!releaseBeforeLateHover) window.MouseUp(hit, MouseButton.Left);
+                window.MouseMove(hit + new Vector(8, 0));
+                Assert.NotSame(captured, beforePress);
+                NotifyHover(beforePress!); clock.AdvanceBy(FieldToolTipLifecycle.HoverDelay); Assert.True(ToolTip.GetIsOpen(textView));
+                Assert.Equal(data.Path, inspection.SelectedNode!.Path);
+            }
+            finally { window.Close(); manager.Close(document.Id); await document.Disposal; }
+            return true;
+        }, TestContext.Current.CancellationToken);
+    }
     [Fact]
     public async Task MeasureHundredMiBAbbreviatedPresentationAndStructuralNavigationRendering()
     {

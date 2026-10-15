@@ -30,7 +30,12 @@ public sealed class PresentationView : ContentControl
     public Task Ready { get; private set; } = Task.CompletedTask;
 
     public PresentationView(MessageDocument document, MessageInspection inspection, TextEditor editor)
+        : this(document, inspection, editor, null) { }
+    private readonly Func<Action, TimeSpan, IDisposable>? scheduleHover;
+    internal PresentationView(MessageDocument document, MessageInspection inspection, TextEditor editor,
+        Func<Action, TimeSpan, IDisposable>? scheduleHover)
     {
+        this.scheduleHover = scheduleHover;
         this.document = document; this.inspection = inspection; Editor = editor;
         presentation = document.Presentation ?? throw new InvalidOperationException("Presentation required.");
         if (!presentation.RequiresVirtualization) { Content = editor; Setup(editor, new(0, presentation.Length)); }
@@ -53,6 +58,14 @@ public sealed class PresentationView : ContentControl
     {
         // Soft wrapping the compact preview keeps later fields visible without changing source lines.
         editor.WordWrap = !presentation.RequiresVirtualization;
+        var toolTips = new FieldToolTipLifecycle(editor, local =>
+        {
+            var hit = display.Offset + local;
+            var fragment = presentation.Hit(hit);
+            if (fragment?.Marker is not null) return new(fragment.Display,
+                "Display-only omission marker · right-click to View Full Value or export original source bytes.");
+            return presentation.SourceOffset(hit) is { } raw ? FieldToolTipTarget.From(inspection.ResolveOffset(raw)) : null;
+        }, scheduleHover);
         var loading = 0L;
         CancellationTokenSource? cancel = null;
         editor.TextArea.TextView.LineTransformers.Add(new SourceColorizer(document.Structure, () => display.Offset, presentation));
@@ -92,25 +105,7 @@ public sealed class PresentationView : ContentControl
             var offset = presentation.SourceOffset(hit) ?? fragment?.Omitted?.Offset;
             if (offset is { } raw) { e.Handled = true; inspection.SelectDeepestOffset(raw); }
         }, RoutingStrategies.Tunnel);
-        var view = editor.TextArea.TextView;
-        ToolTip.SetServiceEnabled(view, false); ToolTip.SetPlacement(view, PlacementMode.Pointer);
-        void CloseTip() { ToolTip.SetIsOpen(view, false); ToolTip.SetTip(view, null); }
-        view.PointerHover += (_, e) =>
-        {
-            var point = e.GetPosition(view); var props = e.GetCurrentPoint(view).Properties;
-            if (!view.VisualLinesValid || props.IsLeftButtonPressed || props.IsRightButtonPressed || !view.Bounds.WithX(0).WithY(0).Contains(point)) return;
-            var position = view.GetPositionFloor(point + view.ScrollOffset);
-            if (position is null || position.Value.Column > editor.Document.GetLineByNumber(position.Value.Line).Length) { CloseTip(); return; }
-            var hit = display.Offset + editor.Document.GetOffset(position.Value.Location);
-            var f = presentation.Hit(hit);
-            var offset = presentation.SourceOffset(hit);
-            var node = offset is { } raw ? inspection.ResolveOffset(raw) : null;
-            var tip = f?.Marker is not null ? "Display-only omission marker · right-click to View Full Value or export original source bytes." : node is null ? null : InspectionPathToolTip.Format(node.PathInfo);
-            ToolTip.SetTip(view, tip); ToolTip.SetIsOpen(view, tip is not null);
-        };
-        view.PointerHoverStopped += (_, _) => CloseTip(); view.PointerExited += (_, _) => CloseTip();
-        view.ScrollOffsetChanged += (_, _) => CloseTip();
-        view.AddHandler(PointerPressedEvent, (_, _) => CloseTip(), RoutingStrategies.Tunnel, true);
+        void CloseTip() => toolTips.Close();
         BoundedCopy.Attach(editor, () => presentation.IsContiguousSource(new(display.Offset + editor.SelectionStart, editor.SelectionLength)));
         ViewerRequests.AttachMenu(new(editor, document, inspection, presentation, display.Offset));
         editor.PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty && !editor.IsVisible) CloseTip(); };

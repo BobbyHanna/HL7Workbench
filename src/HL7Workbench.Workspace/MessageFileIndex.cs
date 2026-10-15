@@ -22,10 +22,10 @@ public sealed class MessageFileIndex
     public const int MaxIndexedMessages = 100_000;
     public const int MaxSourceRegions = 200_000;
     public static MessageFileIndex Build(SourceSnapshot snapshot, CancellationToken token = default,
-        IProgress<long>? progress = null)
+        IProgress<long>? progress = null, Encoding? inheritedEncoding = null)
     {
         var prefix = snapshot.ReadBytes(new(0, Math.Min(4, snapshot.Length)));
-        var (encoding, bom) = Hl7SourceEncoding.Detect(prefix);
+        var (encoding, bom) = Hl7SourceEncoding.Detect(prefix, inheritedEncoding);
         var reader = new IndexBytes(snapshot, token, progress);
         var width = encoding.CodePage is 1200 or 1201 ? 2 : encoding.CodePage is 12000 or 12001 ? 4 : 1;
         var bigEndian = encoding.CodePage is 1201 or 12001;

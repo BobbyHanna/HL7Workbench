@@ -14,13 +14,14 @@ public static class MessageViewer
         if (document.Index is not null) return new FileDocumentView(document, dockedInspection);
         return CreateActive(document, dockedInspection);
     }
-    internal static Control CreateActive(MessageDocument document, bool dockedInspection = false)
+    internal static Control CreateActive(MessageDocument document, bool dockedInspection = false,
+        Func<Action, TimeSpan, IDisposable>? scheduleHover = null)
     {
         if (document.Source is { } source)
         {
             var inspection = document.ActiveInspection ?? new MessageInspection(new HL7Workbench.Core.Hl7Structure(source.Length,
                 HL7Workbench.Core.Hl7Delimiters.Default, [], [], false), source);
-            var sourceView = new MessageInspectionView(inspection, CreateEditor(""), document, dockedInspection);
+            var sourceView = new MessageInspectionView(inspection, CreateEditor(""), document, dockedInspection, scheduleHover);
             if (document.Failure is { } failure) sourceView.WindowStatus.Text = failure;
             return sourceView;
         }
@@ -30,7 +31,7 @@ public static class MessageViewer
         var editor = CreateEditor(document.EditableText);
         var map = document.MaterializedMessage is { } parsed ? new Hl7HighlightMap(parsed) : null;
         editor.TextArea.TextView.LineTransformers.Add(new Hl7Colorizer(() => map));
-        var view = new MessageInspectionView(document.ActiveInspection ?? (document.MaterializedMessage is not null ? document.Inspection : new(HL7Workbench.Core.Hl7Parser.Parse(""))), editor, document, dockedInspection);
+        var view = new MessageInspectionView(document.ActiveInspection ?? (document.MaterializedMessage is not null ? document.Inspection : new(HL7Workbench.Core.Hl7Parser.Parse(""))), editor, document, dockedInspection, scheduleHover);
         HL7Workbench.Core.Hl7Message? highlighted = document.MaterializedMessage;
         view.HighlightChanged = parsedMessage =>
         {

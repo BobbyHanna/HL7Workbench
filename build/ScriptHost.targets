@@ -1,0 +1,21 @@
+<Project>
+  <ItemGroup>
+    <!-- Keep scripting/execution dependencies in the worker directory; Desktop uses compiler-only Roslyn for editor colors. -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../src/HL7Workbench.ScriptHost/HL7Workbench.ScriptHost.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="CopyScriptHost" AfterTargets="Build">
+    <ItemGroup>
+      <_ScriptHostFiles Include="$(MSBuildThisFileDirectory)../src/HL7Workbench.ScriptHost/bin/$(Configuration)/net10.0/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ScriptHostFiles)" DestinationFiles="@(_ScriptHostFiles->'$(TargetDir)ScriptHost/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="PublishScriptHost" BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <_PublishScriptHost Include="$(MSBuildThisFileDirectory)../src/HL7Workbench.ScriptHost/bin/$(Configuration)/net10.0/**/*" />
+      <ResolvedFileToPublish Include="@(_PublishScriptHost)">
+        <RelativePath>ScriptHost/%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

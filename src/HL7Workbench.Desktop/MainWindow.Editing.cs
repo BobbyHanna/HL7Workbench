@@ -74,21 +74,42 @@ public partial class MainWindow
     {
         if (shutdownApproved) { SaveLayout(this, new()); return; }
         if (documents.Documents.Any(d => d.IsSaving)) { e.Cancel = true; Status.Text = "Wait for saving to finish before closing."; return; }
-        if (!documents.Documents.Any(d => d.IsDirty)) { SaveLayout(this, new()); return; }
+        if (!documents.Documents.Any(d => d.IsDirty) && !scripts.Session.IsDirty && !scripts.IsBusy) { SaveLayout(this, new()); return; }
         e.Cancel = true;
         if (promptingShutdown) return;
         promptingShutdown = true;
         try
         {
+            // Discard consent is consumed only once all document close prompts succeed.
+            // Canceling a later HL7 prompt must not silently remove the script draft.
+            if (!await scripts.ConfirmCloseAsync(PromptUnsavedScriptAsync, discardImmediately: false)) return;
+            var scriptVersion = scripts.Session.ContentVersion;
             var revisions = new Dictionary<MessageDocument, long>();
             foreach (var document in documents.Documents.ToArray())
             {
                 if (!await ConfirmDocumentCloseAsync(document)) return;
                 revisions[document] = document.ContentVersion;
             }
-            if (documents.Documents.Any(d => !revisions.TryGetValue(d, out var version) || version != d.ContentVersion || d.IsSaving)) return;
+            if (scripts.Session.ContentVersion != scriptVersion || scripts.IsBusy ||
+                documents.Documents.Any(d => !revisions.TryGetValue(d, out var version) || version != d.ContentVersion || d.IsSaving)) return;
+            if (scripts.Session.IsDirty) scripts.Session.DiscardChanges();
             shutdownApproved = true; Close();
         }
         finally { promptingShutdown = false; }
+    }
+
+    private async Task<UnsavedChangesDecision> PromptUnsavedScriptAsync()
+    {
+        var dialog = new Window { Title = "Unsaved script", Width = 470, Height = 175, CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8 };
+        foreach (var (label, decision) in new[] { ("Save", UnsavedChangesDecision.Save), ("Discard", UnsavedChangesDecision.Discard), ("Cancel", UnsavedChangesDecision.Cancel) })
+        {
+            var button = new Button { Content = label, IsCancel = decision == UnsavedChangesDecision.Cancel };
+            button.Click += (_, _) => dialog.Close(decision); buttons.Children.Add(button);
+        }
+        dialog.Content = new StackPanel { Margin = new Thickness(16), Spacing = 20, Children =
+            { new TextBlock { Text = "Save changes to the script before continuing?", TextWrapping = Avalonia.Media.TextWrapping.Wrap }, buttons } };
+        return await dialog.ShowDialog<UnsavedChangesDecision>(this);
     }
 }

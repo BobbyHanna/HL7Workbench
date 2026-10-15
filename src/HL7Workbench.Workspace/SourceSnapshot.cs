@@ -20,6 +20,32 @@ public sealed class SourceSnapshot : IDisposable
     public static async Task<SourceSnapshot> CaptureAsync(Stream source, CancellationToken token = default,
         IProgress<long>? progress = null, string? storageRoot = null)
     {
+        var expected = source.CanSeek ? source.Length - source.Position : (long?)null;
+        var sourceWriteTime = source is FileStream original ? File.GetLastWriteTimeUtc(original.Name) : (DateTime?)null;
+        return await CreateAsync(async (output, cancellation) =>
+        {
+            var buffer = new byte[65536]; long length = 0;
+            while (true)
+            {
+                var read = await source.ReadAsync(buffer, cancellation).ConfigureAwait(false);
+                if (read == 0) break;
+                length = checked(length + read);
+                if (length > MaxFileBytes) throw new Hl7LimitException(nameof(MaxFileBytes));
+                await output.WriteAsync(buffer.AsMemory(0, read), cancellation).ConfigureAwait(false);
+                progress?.Report(length);
+            }
+            if (expected is { } size && (length != size || source.Length - source.Position != 0))
+                throw new IOException("Source length changed during capture.");
+            if (sourceWriteTime is { } time && source is FileStream originalFile && File.GetLastWriteTimeUtc(originalFile.Name) != time)
+                throw new IOException("Source modification detected during capture.");
+        }, MaxFileBytes, token, storageRoot, (source as FileStream)?.Name);
+    }
+
+    /// <summary>Builds a bounded private snapshot, then seals it read-only. Ownership transfers only after successful completion.</summary>
+    internal static async Task<SourceSnapshot> CreateAsync(Func<Stream, CancellationToken, Task> write, long maximumBytes,
+        CancellationToken token, string? storageRoot = null, string? originalPath = null)
+    {
+        if (maximumBytes < 0 || maximumBytes > MaxFileBytes) throw new ArgumentOutOfRangeException(nameof(maximumBytes));
         var owner = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Environment.UserName + "|" +
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))))[..16];
         var root = storageRoot ?? Path.Combine(Path.GetTempPath(), "HL7Workbench-snapshots-" + owner);
@@ -33,29 +59,15 @@ public sealed class SourceSnapshot : IDisposable
         try
         {
             lease = new(Path.Combine(directory, "lease"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
-            var expected = source.CanSeek ? source.Length - source.Position : (long?)null;
-            var sourceWriteTime = source is FileStream original ? File.GetLastWriteTimeUtc(original.Name) : (DateTime?)null;
             var path = Path.Combine(directory, "source.bin");
             await using (var output = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, true))
             {
-                var buffer = new byte[65536];
-                long length = 0;
-                while (true)
-                {
-                    var read = await source.ReadAsync(buffer, token).ConfigureAwait(false);
-                    if (read == 0) break;
-                    length = checked(length + read);
-                    if (length > MaxFileBytes) throw new Hl7LimitException(nameof(MaxFileBytes));
-                    await output.WriteAsync(buffer.AsMemory(0, read), token).ConfigureAwait(false);
-                    progress?.Report(length);
-                }
-                if (expected is { } size && (length != size || source.Length - source.Position != 0))
-                    throw new IOException("Source length changed during capture.");
-                if (sourceWriteTime is { } time && source is FileStream originalFile && File.GetLastWriteTimeUtc(originalFile.Name) != time)
-                    throw new IOException("Source modification detected during capture.");
+                using var bounded = new BoundedOutputStream(output, maximumBytes);
+                await write(bounded, token).ConfigureAwait(false);
+                await output.FlushAsync(token).ConfigureAwait(false);
             }
             token.ThrowIfCancellationRequested();
-            return new(directory, lease, new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1), (source as FileStream)?.Name);
+            return new(directory, lease, new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1), originalPath);
         }
         catch
         {
@@ -105,11 +117,13 @@ public sealed class SourceSnapshot : IDisposable
         // are eligible. A live process retains its exclusive lease on every platform.
         foreach (var directory in Directory.EnumerateDirectories(root).Take(256))
         {
-            if (!Guid.TryParseExact(Path.GetFileName(directory), "N", out _) ||
-                (File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0 ||
-                Directory.GetLastWriteTimeUtc(directory) > DateTime.UtcNow.AddDays(-1)) continue;
             try
             {
+                // Another capture/process can dispose an entry after enumeration.
+                // Metadata lookups need the same best-effort I/O guard as lease checks.
+                if (!Guid.TryParseExact(Path.GetFileName(directory), "N", out _) ||
+                    (File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0 ||
+                    Directory.GetLastWriteTimeUtc(directory) > DateTime.UtcNow.AddDays(-1)) continue;
                 using (new FileStream(Path.Combine(directory, "lease"), FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
                 RemoveOwnedDirectory(directory);
             }

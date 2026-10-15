@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/HL7Workbench.Scripting/HL7Workbench.Scripting.csproj" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+  <Import Project="../../build/ScriptHost.targets" />
+</Project>

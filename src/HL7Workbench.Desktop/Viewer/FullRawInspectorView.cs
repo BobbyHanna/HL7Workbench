@@ -19,14 +19,19 @@ public sealed class FullRawInspectorView : Grid, IDisposable
     private CancellationTokenSource? request;
     private long generation;
     private bool disposed;
+    private readonly FieldToolTipLifecycle toolTips;
     public TextEditor Editor { get; } = MessageViewer.CreateEditor("");
     public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap };
     public NumericUpDown Offset { get; } = new() { Minimum = 0, Width = 150, FormatString = "0", Value = 0 };
     public long Position { get; private set; }
     public Task Ready { get; private set; } = Task.CompletedTask;
     public FullRawInspectorView(RawInspectorSession session)
+        : this(session, null) { }
+    internal FullRawInspectorView(RawInspectorSession session, Func<Action, TimeSpan, IDisposable>? scheduleHover)
     {
         this.session = session;
+        toolTips = new(Editor, local => FieldToolTipTarget.From(
+            session.Inspection?.ResolveOffset(session.Scope.Offset + Position + local)), scheduleHover);
         AutomationProperties.SetName(this, "Full Source Viewer"); AutomationProperties.SetName(Editor, "Original source within selected scope");
         Position = session.WindowOffset;
         RowDefinitions = new("Auto,*,Auto");
@@ -63,20 +68,6 @@ public sealed class FullRawInspectorView : Grid, IDisposable
             var raw = session.Scope.Offset + Position + Editor.Document.GetOffset(position.Location);
             e.Handled = true; session.Inspection?.SelectDeepestOffset(raw);
         }, RoutingStrategies.Tunnel);
-        var textView = Editor.TextArea.TextView;
-        ToolTip.SetServiceEnabled(textView, false); ToolTip.SetPlacement(textView, PlacementMode.Pointer);
-        void CloseTip() { ToolTip.SetIsOpen(textView, false); ToolTip.SetTip(textView, null); }
-        textView.PointerHover += (_, e) =>
-        {
-            var point = e.GetPosition(textView); var props = e.GetCurrentPoint(textView).Properties;
-            if (!textView.VisualLinesValid || props.IsLeftButtonPressed || props.IsRightButtonPressed || !textView.Bounds.WithX(0).WithY(0).Contains(point)) return;
-            var position = textView.GetPositionFloor(point + textView.ScrollOffset);
-            var node = position is { } hit && hit.Column <= Editor.Document.GetLineByNumber(hit.Line).Length ?
-                session.Inspection?.ResolveOffset(session.Scope.Offset + Position + Editor.Document.GetOffset(hit.Location)) : null;
-            ToolTip.SetTip(textView, node is null ? null : InspectionPathToolTip.Format(node.PathInfo)); ToolTip.SetIsOpen(textView, node is not null);
-        };
-        textView.PointerHoverStopped += (_, _) => CloseTip(); textView.PointerExited += (_, _) => CloseTip(); textView.ScrollOffsetChanged += (_, _) => CloseTip();
-        textView.AddHandler(PointerPressedEvent, (_, _) => CloseTip(), RoutingStrategies.Tunnel, true);
     }
     public async Task LoadAsync(long offset, bool align = false)
     {
@@ -103,7 +94,7 @@ public sealed class FullRawInspectorView : Grid, IDisposable
     { base.OnAttachedToVisualTree(e); if (!disposed) Ready = LoadAsync(Position); }
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     { generation++; request?.Cancel(); request?.Dispose(); request = null; CloseTip(); Editor.Document = new TextDocument(); base.OnDetachedFromVisualTree(e); }
-    private void CloseTip() { ToolTip.SetIsOpen(Editor.TextArea.TextView, false); ToolTip.SetTip(Editor.TextArea.TextView, null); }
+    private void CloseTip() => toolTips.Close();
     internal void ReleaseView()
     {
         if (disposed) return; disposed = true; generation++; request?.Cancel(); request?.Dispose(); request = null;
