@@ -12,10 +12,13 @@ public partial class MainWindow : Window
 {
     private readonly DocumentManager documents = new();
     private readonly WorkspaceDockFactory factory;
-    private readonly DiagnosticsViewModel diagnostics;
     private readonly MessageBrowserViewModel browser;
+    private readonly ToolWindowRegistry registry = new();
+    private readonly InspectionToolViewModel navigator;
+    private readonly InspectionToolViewModel fields;
     private readonly CancellationTokenSource lifetime = new();
     private bool opening;
+    private CancellationTokenSource? openingCancellation;
     private readonly string layoutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "HL7Workbench", "workspace-layout.json");
 
@@ -23,13 +26,28 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         browser = new MessageBrowserViewModel(documents);
-        diagnostics = new(documents);
-        var registry = new ToolWindowRegistry();
+        navigator = new(documents, true); fields = new(documents, false);
         registry.Register(new(WorkspaceDockFactory.BrowserId, "Message Browser", () => browser));
-        registry.Register(new(WorkspaceDockFactory.DiagnosticsId, "Diagnostics", () => diagnostics));
+        registry.Register(new(WorkspaceDockFactory.ActivityLogId, "Activity Log", () => new ActivityLogViewModel(documents.Activity), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
+        registry.Register(new(WorkspaceDockFactory.NavigatorId, "Segment Navigator", () => navigator));
+        registry.Register(new(WorkspaceDockFactory.FieldInspectorId, "Field Inspector", () => fields));
         factory = new(documents, registry);
+        registry.Register(new(WorkspaceDockFactory.FullRawId, "Full Source Viewer", () =>
+        {
+            var model = new FullRawInspectorViewModel();
+            model.CloseRequested += (_, _) => factory.CloseDockable(factory.GetDockable<Dock.Model.Controls.ITool>(WorkspaceDockFactory.FullRawId));
+            return model;
+        }, Optional: true, ReleaseOnClose: true));
+        AddHandler(Viewer.ViewerRequests.OpenInspectorEvent, (_, e) =>
+        {
+            var model = (FullRawInspectorViewModel)registry.GetContent(WorkspaceDockFactory.FullRawId);
+            model.Open(e.Document, e.Range, e.Path); factory.ShowTool(WorkspaceDockFactory.FullRawId); e.Handled = true;
+            e.Document.RecordActivity(ActivityKind.SourceViewerOpened);
+        });
         browser.OpenRequested += factory.OpenDocument;
         WorkspaceDock.Layout = factory.CreateLayout();
+        ActivityIndicatorHost.Content = new Viewer.ActivityStatusIndicator(documents.Activity, () => factory.ShowTool(WorkspaceDockFactory.ActivityLogId));
+        documents.Activity.Record(ActivityKind.ApplicationReady);
         Opened += (_, _) => { if (File.Exists(layoutPath)) RestoreLayout(this, new()); };
         Closing += (_, _) => SaveLayout(this, new());
         Closed += (_, _) =>
@@ -38,7 +56,8 @@ public partial class MainWindow : Window
             lifetime.Dispose();
             factory.Dispose();
             browser.Dispose();
-            diagnostics.Dispose();
+            navigator.Dispose(); fields.Dispose();
+            documents.Dispose();
         };
     }
 
@@ -46,10 +65,12 @@ public partial class MainWindow : Window
     {
         if (opening || lifetime.IsCancellationRequested) return;
         opening = true;
-        var cancellationToken = lifetime.Token;
+        openingCancellation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        var cancellationToken = openingCancellation.Token;
+        CancelOpening.IsVisible = true;
         try
         {
-            if (!StorageProvider.CanOpen) { Status.Text = "File picking is unavailable on this platform."; return; }
+            if (!StorageProvider.CanOpen) { Status.Text = "File picking is unavailable on this platform."; documents.Activity.Record(ActivityKind.ApplicationError, failure: ActivityFailure.Unsupported); return; }
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Open HL7 files", AllowMultiple = true,
@@ -57,34 +78,56 @@ public partial class MainWindow : Window
             });
             var opened = 0;
             var failed = 0;
+            var warnings = 0; var errors = 0;
             foreach (var file in files)
             {
                 using (file)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var operation = documents.Activity.BeginFileOpen();
+                    var readerStarted = false;
+                    var reading = true;
                     try
                     {
                         await using var source = await file.OpenReadAsync();
-                        var message = await MessageFileReader.ReadAsync(source, cancellationToken);
+                        var progress = new ThrottledProgress(new Progress<long>(bytes =>
+                        { if (reading && !cancellationToken.IsCancellationRequested) Status.Text = $"Opening source (capture, index, first-message preparation): byte position {bytes:N0}. Cancel is available."; }));
+                        readerStarted = true;
+                        var document = await MessageFileReader.OpenFileAsync(documents, file.Name, source, cancellationToken, progress, activityDocumentNumber: operation);
                         cancellationToken.ThrowIfCancellationRequested();
-                        var document = MessageFileReader.Open(documents, file.Name, message);
                         factory.OpenDocument(document.Id);
                         opened++;
+                        var health = ActivityHealth.For(document); warnings += health.Warnings; errors += health.Errors;
                     }
                     catch (Exception error) when (error is IOException or UnauthorizedAccessException or Hl7LimitException or NotSupportedException)
-                    { failed++; }
+                    { failed++; if (!readerStarted) documents.Activity.Record(ActivityKind.FileOpenFailed, operation, failure: ActivityLog.Classify(error)); }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    { if (!readerStarted) documents.Activity.Record(ActivityKind.FileOpenCanceled, operation); throw; }
+                    finally { reading = false; }
                 }
             }
             if (files.Count > 0)
-                Status.Text = $"Opened {opened} file(s) read-only; {failed} failed (unavailable, unreadable, or beyond parser limits). See Diagnostics for retained input warnings.";
+                Status.Text = ActivityHealth.OpenStatus(opened, failed, new(warnings, errors));
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { Status.Text = "File opening canceled."; }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or NotSupportedException)
-        { if (!cancellationToken.IsCancellationRequested) Status.Text = "Unable to open the file picker. Try again."; }
-        finally { opening = false; }
+        { if (!cancellationToken.IsCancellationRequested) { Status.Text = "Unable to open the file picker. Try again."; documents.Activity.Record(ActivityKind.ApplicationError, failure: ActivityLog.Classify(error)); } }
+        finally { opening = false; CancelOpening.IsVisible = false; openingCancellation.Dispose(); openingCancellation = null; }
     }
+    private void CancelOpen(object? sender, RoutedEventArgs e) => openingCancellation?.Cancel();
 
     private void ShowBrowser(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.BrowserId);
-    private void ShowDiagnostics(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.DiagnosticsId);
+    private void ShowActivity(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.ActivityLogId);
+    private void ShowNavigator(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.NavigatorId);
+    private void ShowFields(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.FieldInspectorId);
+    private void ShowRaw(object? sender, RoutedEventArgs e)
+    {
+        if (documents.ActiveDocument is not { IsLoading: false } document || document.Source is null && document.MaterializedMessage?.HasDecodedText != true)
+        { Status.Text = "Open an inspectable message first."; return; }
+        var model = (FullRawInspectorViewModel)registry.GetContent(WorkspaceDockFactory.FullRawId);
+        model.Open(document, null, null); factory.ShowTool(WorkspaceDockFactory.FullRawId);
+        document.RecordActivity(ActivityKind.SourceViewerOpened);
+    }
     private void SaveLayout(object? sender, RoutedEventArgs e)
     {
         try
@@ -97,7 +140,7 @@ public partial class MainWindow : Window
             Status.Text = "Workspace layout saved.";
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
-        { Status.Text = "Unable to save workspace layout; current workspace remains available."; }
+        { Status.Text = "Unable to save workspace layout; current workspace remains available."; documents.Activity.Record(ActivityKind.LayoutFailed, failure: ActivityLog.Classify(error)); }
     }
     private void RestoreLayout(object? sender, RoutedEventArgs e)
     {
@@ -116,6 +159,7 @@ public partial class MainWindow : Window
             CloseFloatingWindows();
             WorkspaceDock.Layout = factory.CreateLayout();
             Status.Text = "Saved layout unavailable or invalid; default workspace restored.";
+            documents.Activity.Record(ActivityKind.LayoutFailed, failure: ActivityLog.Classify(error));
         }
     }
     private void ResetLayout(object? sender, RoutedEventArgs e)

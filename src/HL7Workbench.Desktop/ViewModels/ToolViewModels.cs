@@ -42,7 +42,10 @@ public sealed class DiagnosticsViewModel : INotifyPropertyChanged, IDisposable
     private bool disposed;
     public string ActiveTitle => documents.ActiveDocument?.Title ?? "No active message";
     public IReadOnlyList<Hl7Diagnostic> Diagnostics => documents.ActiveDocument is { } document
-        ? document.Message.Diagnostics.Concat(Hl7Validator.Validate(document.Message)).ToArray() : [];
+        ? document.Index is { } index ? index.Diagnostics.Select(d => d with { Description = "File: " + d.Description })
+            .Concat(document.ActiveDiagnostics.Select(d => d with { Description =
+                (d.Code is "IncompleteMllp" or "AmbiguousFraming" or "InteriorBom" ? "Boundary: " : "Active message: ") + d.Description })).ToArray()
+            : document.Message.Diagnostics.Concat(Hl7Validator.Validate(document.Message)).ToArray() : [];
     public event PropertyChangedEventHandler? PropertyChanged;
     public DiagnosticsViewModel(DocumentManager documents)
     {

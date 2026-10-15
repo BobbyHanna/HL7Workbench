@@ -92,3 +92,78 @@ selection explicitly. Desktop owns AvaloniaEdit glyph-floor hover hit-testing,
 scroll-offset mapping, ancestor reveal and conventional raw-editor ToolTips.
 Tooltips consume `InspectionPathInfo` and display only canonical coordinates, allowing
 future independent version/profile metadata without a hardcoded standards catalog.
+
+## Viewer Stage 3 (native Windows acceptance granted October 14, 2026)
+
+File documents now own streamed immutable snapshots and complete byte partitions.
+Workspace indexes concatenated/MLLP messages without creating parsed models for each
+entry. Only the active message has structural projections. Core's shared
+`Hl7StructureScanner` supplies ranges to both the original materialized parser and
+source-backed inspection; no second HL7 grammar is maintained in the UI.
+
+Workspace strictly decodes active source-backed messages to an owned UTF-16 spool,
+with sparse original-byte checkpoints and a bounded character cache. One decoded
+spool may survive navigation as a cache, without old structural models. Desktop
+uses AvaloniaEdit and the existing structural controls; main previews, optional raw
+inspector windows and field previews are bounded, with selection and hit-testing
+mapped to message-global UTF-16 coordinates.
+Original byte ranges remain separate and never derive from editor text.
+
+The consolidated UX refinement replaces main-pane raw paging with Workspace's
+`MessagePresentation`: structural leaf abbreviation and explicit source/display
+interval mappings. Desktop renders compact wrapped previews or virtualized bounded
+editor blocks. Original bytes/text remain unchanged. Hover and structural selection
+map through retained fragments; synthetic markers have no source-character offsets.
+
+`RawInspectorSession` and `FullRawInspectorView` provide optional contiguous source
+windows and streamed exact-byte export. The document retains snapshot/spool ownership;
+the optional tool borrows access and closes on bound message/document changes.
+Its context is explicit: document-tab switching does not retarget it. Same-file
+message navigation still invalidates it, contrary to the requested full snapshot
+retention. The user explicitly deferred that source-ownership change during layout
+polish; see `stage3-workspace-layout-acceptance.md` for the verified limitation.
+`InspectionPanes` supplies the shared structural controls both to standalone document
+tests and production dock-tool adapters. Tool focus retains active-document context.
+The existing registry gains optional/release-on-close flags; layout schema version 2
+stores stable groups and closed-tool placement. It accepts version 1 and never restores
+optional source content at startup. See `viewer-stage3-ux-acceptance.md` for resource
+bounds, export semantics and accepted lifecycle policy.
+
+Optional/releasable tool wrappers retain stable Dock identities while feature Context
+objects change on close/reopen. `DockToolContentHost` observes that replacement at
+the cached template boundary, detaches old content and builds current feature hosts.
+Visual-tree attach/detach controls subscriptions and bounded reads; no timing delay
+or forced docking transition is needed to initialize Full Source Viewer. Layout
+restore adds Navigator/Field Inspector only when their identities are absent from
+old metadata, preserving explicit user-hidden state and existing geometry.
+
+See `viewer-stage3-acceptance.md` for boundary recovery, capture-consistency limits,
+resource budgets and manual acceptance; `stage3-performance.md` records measurements.
+No message editing, saving, scripting or attachment rendering is implemented.
+
+Stage 3 final polish adds Workspace's typed `ActivityLog` over session operations,
+with a bounded 2,000-entry queue and generated document numbers. Fixed descriptions
+and allowlisted diagnostic codes prevent imported content, filenames, paths or
+exception text from entering history. Document-owned capped deduplication projects
+retained index/boundary/active-structure diagnostics without altering Core contracts
+or parsing inactive messages. File opening and exact-byte exports record safe states
+and counts. Routine selection/navigation/progress is excluded.
+
+Desktop's optional `ActivityLogViewModel`/virtualized `ActivityLogView` supports
+severity filtering, clear/copy, tail following and anchored review. Closing releases
+the projection but retains session history; restart clears history. The stable old
+Diagnostics identity aliases Activity Log, retaining placement. Activity Log now opts
+into `ToolDefinition.RestoreVisibility`: saved visible content is constructed in place,
+while saved hidden content remains uninitialized. Full Source Viewer continues to omit
+content on restore. Legacy slots without placement records retain their reopen geometry.
+Status remains immediate operation feedback with actual diagnostic counts and a
+lightweight clickable history indicator. No logging framework, disk sink or new
+layout version is introduced. See `stage3-activity-log-acceptance.md`.
+
+Final workspace polish changes only fresh/reset defaults: a 78/22 horizontal content
+split puts documents left and independent Navigator/Field Inspector docks in an equal
+vertical stack right. A 73/27 vertical split puts that content above a full-width
+Activity Log. Message Browser remains registered but hidden in the default graph.
+All proportions are adjustable, and saved valid graphs are restored without applying
+this new arrangement. The shell keeps its natural-height command row and flexible
+workspace. See `stage3-workspace-layout-acceptance.md` for current native checks.

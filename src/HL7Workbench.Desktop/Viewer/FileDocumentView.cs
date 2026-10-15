@@ -1,0 +1,122 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Layout;
+using HL7Workbench.Workspace;
+
+namespace HL7Workbench.Desktop.Viewer;
+
+/// <summary>Stable file tab; message changes replace only document-internal content.</summary>
+public sealed class FileDocumentView : ContentControl
+{
+    private readonly MessageDocument document;
+    private readonly bool dockedInspection;
+    private readonly WrapPanel toolbar = new() { Orientation = Orientation.Horizontal, Margin = new(4) };
+    private readonly StackPanel navigation = new() { Spacing = 4 };
+    private readonly List<Button> directions = [];
+    private readonly TextBlock count = new();
+    private readonly TextBlock status = new();
+    private readonly Button go = new() { Content = "Go" };
+    private readonly Button retry = new() { Content = "Retry" };
+    private readonly Button cancel = new() { Content = "Cancel scan" };
+    private readonly ComboBox regions = new() { Width = 190 };
+    private readonly Expander regionInspector = new() { Header = "Inspect source bytes" };
+    private bool subscribed;
+    public TextBox MessageNumberInput { get; } = new() { Width = 90 };
+    public MessageInspectionView? ActiveView { get; private set; }
+    public FileDocumentView(MessageDocument document, bool dockedInspection = false)
+    {
+        this.document = document;
+        this.dockedInspection = dockedInspection;
+        void Button(string title, string tip, Func<int> position)
+        {
+            var button = new Button { Content = title, Margin = new(2) };
+            ToolTip.SetTip(button, tip);
+            button.Click += async (_, _) => await NavigateAsync(position());
+            directions.Add(button); toolbar.Children.Add(button);
+        }
+        Button("|<", "First message", () => 1); Button("<", "Previous message", () => document.MessageNumber - 1);
+        ToolTip.SetTip(MessageNumberInput, "Message number within this file"); ToolTip.SetTip(go, "Jump to message number");
+        ToolTip.SetTip(retry, "Retry preparing the selected message"); ToolTip.SetTip(cancel, "Cancel preparing the selected message");
+        ToolTip.SetTip(regions, "Select a retained unclassified source region"); ToolTip.SetTip(regionInspector, "Inspect original bytes outside classified messages");
+        toolbar.Children.Add(MessageNumberInput); toolbar.Children.Add(count);
+        MessageNumberInput.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await JumpAsync(); } };
+        go.Click += async (_, _) => await JumpAsync(); toolbar.Children.Add(go);
+        Button(">", "Next message", () => document.MessageNumber + 1); Button(">|", "Last message", () => document.MessageCount);
+        retry.Click += async (_, _) => await NavigateAsync(document.MessageNumber);
+        toolbar.Children.Add(retry);
+        cancel.Click += (_, _) => document.CancelScan(); toolbar.Children.Add(cancel);
+        regions.ItemsSource = document.Index?.Regions.Where(r => r.MessageNumber is null).ToArray();
+        regions.ItemTemplate = new Avalonia.Controls.Templates.FuncDataTemplate<SourceRegion>((r, _) => new TextBlock { Text = r?.Reason ?? "" });
+        regions.SelectionChanged += (_, _) =>
+        {
+            if (regions.SelectedItem is SourceRegion region && document.Snapshot is { } snapshot)
+            { regionInspector.Content = new SourceRegionInspector(snapshot, document.Index!.Encoding, region, document); regionInspector.IsExpanded = true; }
+        };
+        if (regions.ItemCount > 0)
+        { toolbar.Children.Add(new TextBlock { Text = "Source regions", VerticalAlignment = VerticalAlignment.Center }); toolbar.Children.Add(regions); }
+        navigation.Children.Add(status); navigation.Children.Add(regionInspector); navigation.Children.Add(toolbar);
+        Refresh();
+    }
+    public async Task JumpAsync()
+    {
+        if (!int.TryParse(MessageNumberInput.Text, out var number) || number < 1 || number > document.MessageCount)
+        { status.Text = $"Enter a whole message number from 1 to {document.MessageCount}."; return; }
+        await NavigateAsync(number);
+    }
+    public async Task NavigateAsync(int number)
+    {
+        if (number < 1 || number > document.MessageCount) return;
+        try { await document.NavigateAsync(number); }
+        catch (ObjectDisposedException) { }
+    }
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        if (!subscribed) { subscribed = true; document.PropertyChanged += Changed; Refresh(); }
+    }
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        document.PropertyChanged -= Changed; subscribed = false;
+        base.OnDetachedFromVisualTree(e);
+    }
+    private void Changed(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MessageDocument.PreparedBytes)) status.Text = $"Preparing message {document.MessageNumber}; {document.PreparedBytes:N0} bytes decoded…";
+        else Refresh();
+    }
+    private void Refresh()
+    {
+        MessageNumberInput.Text = document.MessageNumber.ToString(); count.Text = $"/ {document.MessageCount:N0}";
+        MessageNumberInput.IsEnabled = document.MessageCount > 0;
+        go.IsEnabled = document.MessageCount > 0;
+        retry.IsVisible = document.Failure is not null && document.MessageCount > 0;
+        cancel.IsVisible = document.IsLoading;
+        directions[0].IsEnabled = directions[1].IsEnabled = document.MessageNumber > 1;
+        directions[2].IsEnabled = directions[3].IsEnabled = document.MessageNumber > 0 && document.MessageNumber < document.MessageCount;
+        status.Text = document.IsLoading ? $"Preparing message {document.MessageNumber}…" : document.Failure ??
+            (regions.ItemCount > 0 ? "Source regions are retained for byte inspection." : "");
+        regionInspector.IsVisible = regions.ItemCount > 0 || document.Failure is not null;
+        // Reparent the fixed navigation controls only after the old view is detached.
+        if (navigation.Parent is Panel parent) parent.Children.Remove(navigation);
+        Content = null;
+        if (!document.IsLoading && (document.MaterializedMessage?.HasDecodedText == true || document.Source is not null))
+        {
+            ActiveView = (MessageInspectionView)MessageViewer.CreateActive(document, dockedInspection);
+            Grid.SetRow(navigation, 2); ActiveView.RawPane.Children.Add(navigation); Content = ActiveView;
+        }
+        else
+        {
+            ActiveView = null;
+            var panel = new Grid { RowDefinitions = new("*,Auto") };
+            panel.Children.Add(new TextBlock { Margin = new(16), Text = document.IsLoading ? "Scanning active message…" : document.Failure ?? "No classified messages. Inspect retained source regions." });
+            Grid.SetRow(navigation, 1); panel.Children.Add(navigation); Content = panel;
+            if (document.Failure is not null && document.Index is { } index && document.Snapshot is { } snapshot && document.MessageNumber > 0)
+            {
+                var entry = index.Messages[document.MessageNumber - 1];
+                regionInspector.Content = new SourceRegionInspector(snapshot, index.Encoding, new(entry.SourceRange, null, "Active message bytes"), document);
+                regionInspector.IsExpanded = true;
+            }
+        }
+    }
+}

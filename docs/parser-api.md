@@ -1,5 +1,17 @@
 # Parser API, preservation, and limits
 
+Stage 3 adds `Hl7StructureScanner.Scan(IHl7TextSource, Encoding, ...)` for bounded
+source-backed inspection. It returns immutable `Hl7Structure`/`StructureNode` ranges,
+bounded previews, value states and long-coordinate diagnostics. `CharacterRange` is
+decoded message-local UTF-16; an optional node `ByteRange` uses the origin documented
+by its source (Workspace uses message-local original bytes). Source ownership and
+serialized access belong to the caller. Core opens no files and parses no framing.
+
+`Hl7Parser` materializes the same scanner's results into its existing full-string
+model. Its public APIs, byte ownership, edits, serialization and limits below remain
+unchanged. Previews are explicit inspection data and never replace `Raw`/`RawText`.
+See `viewer-stage3-acceptance.md` for Workspace source access, scope and limits.
+
 All types are in `HL7Workbench.Core`. Parsing is independent of Avalonia, files,
 network services, and terminology dictionaries. No dependencies were added.
 

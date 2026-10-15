@@ -39,4 +39,28 @@ reopen in an available group rather than their exact pre-hide position. These li
 are explicit, with a reset/recovery command. Native GUI and monitor/DPI acceptance
 must be checked manually; model tests cannot establish these behaviors.
 
+Stage 3 consolidated UX amendment (including final polish accepted October 14,
+2026): Segment Navigator/Field Inspector become independent tools over their existing
+selection model. The optional Full Source Viewer releases content on close and is
+not instantiated by restore. Version-2 metadata adds stable group identities and
+remembered closed-tool placement/ancestor slots/floating bounds, superseding the
+initial pre-hide-position limitation. Version-1 compatibility and all layer boundaries
+remain. No new docking framework or broad plugin system is introduced.
+
+Final layout amendment: fresh/reset workspaces show documents on the left (78%),
+Navigator above Field Inspector in a right column (22%), and Activity Log across the
+bottom (27% height). Browser is hidden by default but retains its ID/menu and saved
+layout compatibility. Valid saved graphs and hidden preferences take precedence.
+Activity Log opts into saved-visibility restoration while retaining release-on-close;
+Full Source Viewer remains lazy and never restores prior content. No schema bump.
+
+Full Source Viewer has explicit source/scope context, rather than following active
+document selection. Tab switches retain that context; another explicit request
+replaces it. Owning-document closure or tool closure ends the session. Current code
+also ends it on same-file message navigation, which conflicts with the requested
+fully retained snapshot behavior. The user explicitly chose to leave reading/export
+unchanged and document that discrepancy for later ownership work. Do not introduce
+a live active-document mirror or claim same-file retention is implemented. See
+`../stage3-workspace-layout-acceptance.md` for evidence and the acceptance boundary.
+
 See ../docking-acceptance.md for the review gate and ../PROJECT_CONTEXT.md for orientation.

@@ -6,8 +6,13 @@ namespace HL7Workbench.Workspace;
 public sealed record LayoutNode(string Kind, string? Id = null, double? Proportion = null,
     string? ActiveId = null, string? Alignment = null, LayoutNode[]? Children = null, bool Vertical = false);
 public sealed record FloatingLayout(LayoutNode Root, double X, double Y, double Width, double Height);
+public sealed record FloatingBounds(double X, double Y, double Width, double Height);
+public sealed record ContainerSlot(string Id, bool Vertical, double? Proportion, int Index);
+/// <summary>Placement only: no source identity or feature state. Containers permit reconstruction of collapsed groups.</summary>
+public sealed record ToolPlacement(string Id, string GroupId, string Alignment, double? Proportion, int TabIndex,
+    string[] Peers, ContainerSlot[] Containers, FloatingBounds? Floating = null, int GroupIndex = 0);
 public sealed record WorkspaceLayout(int Version, LayoutNode Root, FloatingLayout[] Windows,
-    string[] HiddenTools, string? ActiveDocumentId);
+    string[] HiddenTools, string? ActiveDocumentId, ToolPlacement[]? ToolPlacements = null);
 
 public static class LayoutCodec
 {
@@ -29,19 +34,23 @@ public static class LayoutCodec
     }
     private static void Validate(WorkspaceLayout layout)
     {
-        if (layout.Version != 1 || layout.Root is null || layout.Windows is null || layout.HiddenTools is null ||
+        if (layout.Version is not (1 or 2) || layout.Root is null || layout.Windows is null || layout.HiddenTools is null ||
             layout.Windows.Length > 16 || layout.HiddenTools.Length > 64) throw new InvalidDataException("Unsupported layout.");
         var count = 0;
         var ids = new HashSet<string>();
+        bool InvalidId(string? id) => string.IsNullOrWhiteSpace(id) || id.Length > 128;
+        bool InvalidProportion(double? p) => p is { } number && (!double.IsFinite(number) || number <= 0 || number > 1);
         void Visit(LayoutNode node, int depth)
         {
             if (node is null || ++count > 256 || depth > 16 ||
                 node.Kind is not ("root" or "split" or "splitter" or "documents" or "tools" or "document" or "tool") ||
-                node.Proportion is { } p && (!double.IsFinite(p) || p <= 0 || p > 1) ||
+                InvalidProportion(node.Proportion) || node.Id is { Length: > 128 } ||
                 node.Alignment is not (null or "Left" or "Right" or "Top" or "Bottom"))
                 throw new InvalidDataException("Invalid layout node.");
             if (node.Kind is "tool" or "document" && (string.IsNullOrWhiteSpace(node.Id) || node.Id.Length > 128 || !ids.Add(node.Id)))
                 throw new InvalidDataException("Invalid or repeated identity.");
+            if (node.Kind is not ("tool" or "document") && node.Id is { } groupId && (InvalidId(groupId) || !ids.Add(groupId)))
+                throw new InvalidDataException("Invalid or repeated group identity.");
             foreach (var child in node.Children ?? []) Visit(child, depth + 1);
         }
         Visit(layout.Root, 0);
@@ -51,6 +60,18 @@ public static class LayoutCodec
                 !double.IsFinite(window.Width) || !double.IsFinite(window.Height) || window.Width < 160 || window.Width > 20000 ||
                 window.Height < 100 || window.Height > 20000) throw new InvalidDataException("Invalid window geometry.");
             Visit(window.Root, 0);
+        }
+        if (layout.HiddenTools.Any(InvalidId) || layout.ToolPlacements?.Length > 64) throw new InvalidDataException("Invalid tool metadata.");
+        var placementIds = new HashSet<string>();
+        foreach (var place in layout.ToolPlacements ?? [])
+        {
+            if (place is null || InvalidId(place.Id) || !placementIds.Add(place.Id) || InvalidId(place.GroupId) ||
+                place.Alignment is not ("Left" or "Right" or "Top" or "Bottom") || InvalidProportion(place.Proportion) ||
+                place.TabIndex is < 0 or > 64 || place.GroupIndex is < 0 or > 256 || place.Peers is null || place.Peers.Length > 64 || place.Peers.Any(InvalidId) ||
+                place.Containers is null || place.Containers.Length > 16 || place.Containers.Any(c => c is null || InvalidId(c.Id) || c.Index is < 0 or > 256 || InvalidProportion(c.Proportion)))
+                throw new InvalidDataException("Invalid remembered placement.");
+            if (place.Floating is { } f && (!double.IsFinite(f.X) || !double.IsFinite(f.Y) || !double.IsFinite(f.Width) || !double.IsFinite(f.Height) ||
+                f.Width is < 160 or > 20000 || f.Height is < 100 or > 20000)) throw new InvalidDataException("Invalid remembered floating geometry.");
         }
     }
 }

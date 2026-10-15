@@ -10,14 +10,25 @@ namespace HL7Workbench.Desktop.Docking;
 
 public sealed class DockContentTemplate : IDataTemplate
 {
+    public bool DockedInspection { get; set; }
     public bool Match(object? data) => data is IDocument or ITool;
     public Control Build(object? data)
     {
         if (data is not IDockable dockable) return EmptyContent();
-
-        var context = dockable.Context;
+        // Optional tools replace Context on close/reopen. Dock may cache this template
+        // for the unchanged dockable, so a one-time Context dispatch can stay blank.
+        if (dockable is ITool && (dockable.Id == WorkspaceDockFactory.FullRawId ||
+            dockable.Factory is WorkspaceDockFactory factory && factory.HasReplaceableContent(dockable.Id!)))
+            return new DockToolContentHost(dockable, context => BuildContext(context, dockable));
+        return BuildContext(dockable.Context, dockable);
+    }
+    private Control BuildContext(object? context, IDockable dockable)
+    {
         if (context is MessageDocument document)
-            return Viewer.MessageViewer.Create(document);
+            return Viewer.MessageViewer.Create(document, DockedInspection && dockable.Factory is WorkspaceDockFactory { HasInspectionTools: true });
+        if (context is FullRawInspectorViewModel raw) return new Viewer.FullRawInspectorHost(raw);
+        if (context is ActivityLogViewModel activity) return new Viewer.ActivityLogView(activity);
+        if (context is InspectionToolViewModel inspection) return new Viewer.InspectionToolHost(inspection);
         if (context is MessageBrowserViewModel browser)
         {
             var list = new ListBox { ItemsSource = browser.Documents, DataContext = browser,

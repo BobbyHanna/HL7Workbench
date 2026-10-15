@@ -10,6 +10,6 @@
     <dockTheme:DockFluentTheme />
   </Application.Styles>
   <Application.DataTemplates>
-    <docking:DockContentTemplate />
+    <docking:DockContentTemplate DockedInspection="True" />
   </Application.DataTemplates>
 </Application>

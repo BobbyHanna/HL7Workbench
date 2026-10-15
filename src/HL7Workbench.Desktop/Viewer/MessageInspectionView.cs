@@ -1,13 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
-using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
@@ -15,114 +12,51 @@ using HL7Workbench.Workspace;
 
 namespace HL7Workbench.Desktop.Viewer;
 
-/// <summary>Document-internal panes. These are ordinary grids, not Dock tools.</summary>
+/// <summary>Raw viewer with optional embedded structural panes; Dock adapters use the shared pane controls.</summary>
 public sealed class MessageInspectionView : Grid
 {
     private readonly MessageInspection inspection;
-    private readonly TextBlock selectionTitle = new() { TextWrapping = TextWrapping.Wrap };
-    private readonly Border selectionHeader = new() { Background = Brushes.Transparent };
-    private readonly TextBox rawValue = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap };
-    private readonly TextBlock fieldStatus = new() { TextWrapping = TextWrapping.Wrap };
     private bool synchronizing;
     private bool subscribed;
-    private IReadOnlyList<InspectionNode>? displayedFields;
-    private InspectionNode? revealedNode;
+    private readonly InspectionPanes? panes;
     public TextEditor Editor { get; }
-    public ListBox Navigator { get; } = new();
-    public TreeView Inspector { get; } = new();
-    public Grid LowerPane { get; } = new();
-    public NumericUpDown FieldNumber { get; } = new() { Minimum = 1, Maximum = int.MaxValue, Value = 1, Width = 100, FormatString = "0" };
-    public Button InspectFieldButton { get; } = new() { Content = "Inspect field" };
-
-    public MessageInspectionView(MessageInspection inspection, TextEditor editor)
+    public PresentationView? PresentationView { get; }
+    public Grid RawPane { get; } = new() { RowDefinitions = new("*,Auto,Auto") };
+    public TextBlock WindowStatus { get; } = new();
+    public ListBox Navigator => panes!.Navigator;
+    public TreeView Inspector => panes!.Inspector;
+    public Grid LowerPane => panes!;
+    public NumericUpDown FieldNumber => panes!.FieldNumber;
+    public Button InspectFieldButton => panes!.InspectFieldButton;
+    public TextBlock ValueStatus => panes!.ValueStatus;
+    public Task LoadPreviewAsync(long offset) => panes!.LoadPreviewAsync(offset);
+    public MessageInspectionView(MessageInspection inspection, TextEditor editor, MessageDocument? document = null, bool dockedInspection = false)
     {
         this.inspection = inspection;
+
         Editor = editor;
-        editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(inspection));
-        RowDefinitions = new("65*,6,35*");
-        RowDefinitions[0].MinHeight = 80;
-        RowDefinitions[2].MinHeight = 150;
-        LowerPane.ColumnDefinitions = new("25*,6,75*");
-        LowerPane.ColumnDefinitions[0].MinWidth = 100;
-        LowerPane.ColumnDefinitions[2].MinWidth = 180;
-        SetRow(LowerPane, 2);
-        Children.Add(editor);
-        Children.Add(new GridSplitter { ResizeDirection = GridResizeDirection.Rows, ResizeBehavior = GridResizeBehavior.PreviousAndNext,
-            HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, [RowProperty] = 1 });
-        Children.Add(LowerPane);
-
-        Navigator.ItemsSource = inspection.Segments;
-        Inspector.AutoScrollToSelectedItem = true;
-        Navigator.ItemTemplate = new FuncDataTemplate(data => data is SegmentEntry,
-            (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty });
-        Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
-            (node, _) => CreateInspectorRow(node), node => node?.VisibleChildren ?? []);
-        var navigatorPane = Pane("Segment Navigator", Navigator);
-        var inspectorPane = new Grid { RowDefinitions = new("Auto,Auto,*,Auto,48"), Margin = new(8) };
-        fieldStatus.FontWeight = FontWeight.SemiBold;
-        inspectorPane.Children.Add(fieldStatus);
-        var lookup = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new(0,4),
-            Children = { new TextBlock { Text = "Field number", VerticalAlignment = VerticalAlignment.Center }, FieldNumber, InspectFieldButton } };
-        SetRow(lookup, 1);
-        SetRow(Inspector, 2);
-        selectionTitle.IsHitTestVisible = false;
-        selectionHeader.Child = selectionTitle;
-        SetRow(selectionHeader, 3);
-        SetRow(rawValue, 4);
-        inspectorPane.Children.Add(lookup);
-        inspectorPane.Children.Add(Inspector);
-        inspectorPane.Children.Add(selectionHeader);
-        inspectorPane.Children.Add(rawValue);
-        SetColumn(inspectorPane, 2);
-        LowerPane.Children.Add(navigatorPane);
-        LowerPane.Children.Add(new GridSplitter { ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.PreviousAndNext,
-            HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, [ColumnProperty] = 1 });
-        LowerPane.Children.Add(inspectorPane);
-
-        Navigator.SelectionChanged += (_, _) =>
+        if (document is not null && document.Presentation is null) ViewerRequests.AttachMenu(new(editor, document, inspection));
+        if (document?.Presentation is not null) PresentationView = new(document, inspection, editor);
+        else editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(inspection));
+        RawPane.Children.Add((Control?)PresentationView ?? editor); Children.Add(RawPane);
+        if (dockedInspection) RowDefinitions = new("*");
+        else
         {
-            if (!synchronizing && Navigator.SelectedItem is SegmentEntry segment) inspection.SelectSegment(segment);
-        };
-        Inspector.SelectionChanged += (_, _) =>
-        {
-            if (!synchronizing && Inspector.SelectedItem is InspectionNode node) inspection.SelectNode(node);
-        };
-        InspectFieldButton.Click += (_, _) =>
-        {
-            if (FieldNumber.Value is { } number && decimal.Truncate(number) == number) inspection.InspectField((int)number);
-        };
+            panes = new(inspection, document); RowDefinitions = new("65*,6,35*");
+            RowDefinitions[0].MinHeight = 80; RowDefinitions[2].MinHeight = 150; SetRow(panes, 2);
+            Children.Add(new GridSplitter { ResizeDirection = GridResizeDirection.Rows, ResizeBehavior = GridResizeBehavior.PreviousAndNext,
+                HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, [RowProperty] = 1 });
+            Children.Add(panes);
+        }
         ApplySelection(false);
     }
-
-    private static string Preview(string? raw) => raw is { Length: > 100 } ? raw[..100] + "… (select for full value)" : raw ?? string.Empty;
-
-    private static Control CreateInspectorRow(InspectionNode? node)
-    {
-        if (node is null) return new TextBlock();
-        var path = new TextBlock { Text = node.DisplayPath };
-        // Keep row labels presentation-only so the normal header receives selection input.
-        return new StackPanel { IsHitTestVisible = false, Orientation = Orientation.Horizontal, Spacing = 10, Children =
-        {
-            path, new TextBlock { Text = $"{node.PathInfo.StateLabel}   {Preview(node.Raw)}" }
-        }};
-    }
-
-    private static Grid Pane(string title, Control content)
-    {
-        var pane = new Grid { RowDefinitions = new("Auto,*"), Margin = new(8) };
-        pane.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.SemiBold });
-        SetRow(content, 1);
-        pane.Children.Add(content);
-        return pane;
-    }
-
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
         if (subscribed) return;
         subscribed = true;
-        revealedNode = null;
         inspection.SelectionChanged += SelectionChanged;
+        if (PresentationView is not null) { ApplySelection(false); return; }
         Editor.TextArea.Caret.PositionChanged += CaretChanged;
         Editor.TextArea.AddHandler(PointerPressedEvent, RawPointerPressed, RoutingStrategies.Tunnel);
         var textView = Editor.TextArea.TextView;
@@ -195,7 +129,6 @@ public sealed class MessageInspectionView : Grid
         // Handle only the double-click, before AvaloniaEdit's word selection. Single-click,
         // dragging, keyboard selection and copy keep the accepted editor behavior.
         e.Handled = true;
-        revealedNode = null;
         inspection.SelectDeepestOffset(Editor.Document.GetOffset(position.Value.Location));
     }
 
@@ -204,73 +137,36 @@ public sealed class MessageInspectionView : Grid
         synchronizing = true;
         try
         {
-            Navigator.SelectedItem = inspection.SelectedSegment;
-            if (!ReferenceEquals(displayedFields, inspection.Fields))
+            if (PresentationView is null && navigateRaw && inspection.SelectedRange64 is { } range)
             {
-                displayedFields = inspection.Fields;
-                Inspector.ItemsSource = displayedFields;
-            }
-            // A requested missing field has no tree row or raw coordinate; its state is shown below.
-            var visibleNode = inspection.SelectedVisibleNode;
-            Inspector.SelectedItem = visibleNode;
-            InspectFieldButton.IsEnabled = inspection.SelectedSegment?.HasFieldPaths == true;
-            fieldStatus.Text = inspection.SelectedSegment switch
-            {
-                null => "Field Inspector · no segments",
-                { HasFieldPaths: false } => "Field Inspector · opaque segment; no parsed fields",
-                { Segment.CanEdit: false } => "Field Inspector · provisional structure; see Diagnostics",
-                _ => "Field Inspector · expand fields for structure"
-            };
-            var node = inspection.SelectedNode;
-            selectionTitle.Text = node is null ? "Select a field to inspect its raw value." :
-                $"{node.Path} · {node.PathInfo.StateLabel}" + (node.Range is { Length: 0 } ? " · zero-length range" : node.Range is null ? " · no raw range" : "");
-            rawValue.Text = node?.Raw ?? string.Empty;
-            if (subscribed && visibleNode is not null && !ReferenceEquals(revealedNode, visibleNode))
-            {
-                revealedNode = visibleNode;
-                // Containers may not exist until the next layout. Restore just the selected
-                // branch, not the entire hierarchy, when Dock reconstructs document content.
-                Dispatcher.UIThread.Post(() =>
-                {
-                    if (subscribed && ReferenceEquals(inspection.SelectedVisibleNode, visibleNode)) RevealNode();
-                }, DispatcherPriority.Loaded);
-            }
-            if (navigateRaw && inspection.SelectedRange is { } range)
-            {
-                Editor.Select(range.Offset, range.Length);
-                var location = Editor.Document.GetLocation(range.Offset);
+                SelectVisibleRange(range);
+                var location = Editor.Document.GetLocation(checked((int)Math.Clamp(range.Offset, 0, Editor.Document.TextLength)));
                 Editor.ScrollTo(location.Line, location.Column);
             }
-            else if (navigateRaw) Editor.Select(Editor.CaretOffset, 0);
+            else if (PresentationView is null && navigateRaw) Editor.Select(Editor.CaretOffset, 0);
             Editor.TextArea.TextView.Redraw();
         }
         finally { synchronizing = false; }
     }
 
-    private void RevealNode()
+    private void SelectVisibleRange(HL7Workbench.Core.CharacterRange range)
     {
-        var branch = inspection.SelectedVisibleBranch;
-        ItemsControl parent = Inspector;
-        foreach (var value in branch)
-        {
-            parent.UpdateLayout();
-            if (parent.ContainerFromItem(value) is not TreeViewItem container) break;
-            if (!ReferenceEquals(value, branch[^1])) container.IsExpanded = true;
-            else container.BringIntoView();
-            parent = container;
-        }
+        var start = Math.Clamp(range.Offset, 0, Editor.Document.TextLength);
+        var end = Math.Clamp(range.End, start, Editor.Document.TextLength);
+        Editor.Select(checked((int)start), checked((int)(end - start)));
     }
+
 }
 
-internal sealed class SelectionColorizer(MessageInspection inspection) : DocumentColorizingTransformer
+internal sealed class SelectionColorizer(MessageInspection inspection, Func<long>? origin = null) : DocumentColorizingTransformer
 {
     protected override void ColorizeLine(DocumentLine line)
     {
-        if (inspection.SelectedRange is not { Length: > 0 } range) return;
-        var start = Math.Max(line.Offset, range.Offset);
-        var end = Math.Min(line.EndOffset, range.Offset + range.Length);
+        if (inspection.SelectedRange64 is not { Length: > 0 } range) return;
+        var start = Math.Max(line.Offset, range.Offset - (origin?.Invoke() ?? 0));
+        var end = Math.Min(line.EndOffset, range.End - (origin?.Invoke() ?? 0));
         // A persistent background remains visible when keyboard focus moves into the inspector.
-        if (start < end) ChangeLinePart(start, end,
+        if (start < end) ChangeLinePart(checked((int)start), checked((int)end),
             element => element.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.Parse("#384A65"))));
     }
 }

@@ -2,9 +2,44 @@ using HL7Workbench.Core;
 
 namespace HL7Workbench.Workspace;
 
-/// <summary>Reads one bounded file as raw bytes. The caller owns the stream and publishes the result on its own context.</summary>
+/// <summary>Captures and indexes a file session. The caller owns the input stream and publication context.</summary>
 public static class MessageFileReader
 {
+    public static async Task<MessageDocument> OpenFileAsync(DocumentManager documents, string filename, Stream source,
+        CancellationToken token = default, IProgress<long>? progress = null, StructureScanOptions? inspectionOptions = null,
+        int? activityDocumentNumber = null)
+    {
+        var number = activityDocumentNumber ?? documents.Activity.BeginFileOpen();
+        try
+        {
+            var document = await OpenCoreAsync(documents, filename, source, number, token, progress, inspectionOptions);
+            documents.Activity.Record(ActivityKind.FileOpened, number); return document;
+        }
+        catch (OperationCanceledException) { documents.Activity.Record(ActivityKind.FileOpenCanceled, number); throw; }
+        catch (Exception error)
+        { documents.Activity.Record(ActivityKind.FileOpenFailed, number, failure: ActivityLog.Classify(error)); throw; }
+    }
+    private static async Task<MessageDocument> OpenCoreAsync(DocumentManager documents, string filename, Stream source,
+        int activityNumber, CancellationToken token, IProgress<long>? progress, StructureScanOptions? inspectionOptions)
+    {
+        var snapshot = await SourceSnapshot.CaptureAsync(source, token, progress);
+        MessageDocument? document = null;
+        try
+        {
+            var index = await Task.Run(() => MessageFileIndex.Build(snapshot, token, progress), token);
+            var title = filename;
+            for (var occurrence = 2; documents.Documents.Any(d => string.Equals(d.Title, title, StringComparison.OrdinalIgnoreCase)); occurrence++)
+                title = $"{filename} ({occurrence})";
+            document = new(Guid.NewGuid().ToString("N"), title, snapshot, index, inspectionOptions);
+            document.ActivityNumber = activityNumber;
+            documents.Activity.Record(ActivityKind.FileIndexed, activityNumber, count: index.Messages.Count);
+            if (index.Messages.Count > 0) await document.NavigateAsync(1, token);
+            token.ThrowIfCancellationRequested();
+            documents.Open(document);
+            return document;
+        }
+        catch { if (document is null) snapshot.Dispose(); else document.Dispose(); throw; }
+    }
     public static async Task<Hl7Message> ReadAsync(Stream source, CancellationToken cancellationToken = default)
     {
         var options = new Hl7ParseOptions();

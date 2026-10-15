@@ -22,6 +22,9 @@ public sealed class DockingTests
         var factory = new WorkspaceDockFactory(documents, tools);
         factory.HostWindowLocator = new() { [nameof(IDockWindow)] = () => new FakeHostWindow() };
         factory.CreateLayout();
+        // These compatibility cases exercise two visible tools. Browser is now
+        // hidden in a fresh workspace, so explicitly open it for these scenarios.
+        factory.ShowTool(WorkspaceDockFactory.BrowserId);
         return (factory, documents, diagnostics);
     }
     [Fact]

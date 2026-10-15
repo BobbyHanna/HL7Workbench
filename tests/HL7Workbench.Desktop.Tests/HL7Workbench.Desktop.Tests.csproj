@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Shared/LargeSyntheticFile.cs" Link="LargeSyntheticFile.cs" />
     <PackageReference Include="Avalonia.Headless" />
     <ProjectReference Include="../../src/HL7Workbench.Desktop/HL7Workbench.Desktop.csproj" />
     <PackageReference Include="xunit.v3" />
