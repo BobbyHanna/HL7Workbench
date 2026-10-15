@@ -3,15 +3,18 @@
 The solution targets `net10.0`: Desktop -> Workspace -> Core (Desktop also directly
 references Core). Core, Workspace, and Desktop each have corresponding test projects.
 Core has no NuGet dependencies. Workspace has no UI or docking dependencies.
-Desktop contains the accepted Milestone 2 docking foundation and the Stage 1
-read-only raw viewer, manually accepted on 2026-10-14.
+Desktop contains the accepted docking foundation and Viewer/editor Stages 1–4:
+multi-message navigation, source-backed inspection, dockable tools, Activity Log,
+bounded raw editing, undo/redo, dirty state and Save/Save As. Native Windows
+acceptance is complete through Stage 4 (2026-10-15). The sections below record
+the architectural evolution; the Stage 4 section describes the editable foundation.
 Milestone 1 adds the parser/model, paths, editing, escapes, diagnostics, and
 serialization to Core, with synthetic tests in Core.Tests. No desktop integration
 or other milestone functionality was added during Milestone 1.
 
-Future desktop behavior will use MVVM. Introduce interfaces and dependency
-injection when a concrete testing or substitution need exists. Generation,
-scripting, transport, Synthea, and CLI projects will be added in their milestones.
+Feature view models remain independent of Dock classes. Introduce interfaces and
+dependency injection when a concrete testing or substitution need exists. Generation,
+scripting, transport, Synthea, and CLI projects remain deferred.
 Core libraries must remain UI-independent and cross-platform.
 
 The application has no telemetry, cloud integration, or runtime network features.
@@ -21,8 +24,8 @@ Git ignore rules are a convenience, not proof that data is safe to commit.
 ## Milestone 1: Parser and round-trip
 
 `Hl7Parser` accepts an in-memory string or byte span representing one message.
-There is no file I/O, transport framing, or multi-message reader. Future readers
-can supply one bounded message at a time. The parser is delimiter-driven and has
+Core performs no file I/O, transport framing, or multi-message indexing. Workspace
+readers supply one bounded message at a time. The parser is delimiter-driven and has
 no version dictionary or external dependencies.
 
 Raw segment/element spelling and exact segment terminators are retained alongside
@@ -48,7 +51,7 @@ editability tracked independently of diagnostic storage.
 See [parser API and limits](parser-api.md), [path grammar](hl7-paths.md), and
 [ADR 0002](decisions/0002-lossless-parser.md) for contracts and limitations.
 
-## Milestone 2: Docking foundation (review gate)
+## Milestone 2: Docking foundation (accepted 2026-10-13)
 
 Dock.Avalonia wrappers live in Desktop/Docking, with ordinary feature content in
 their Context. Workspace provides document lifecycle and active-message context,
@@ -60,12 +63,13 @@ Message Browser selects the synthetic tabs; Diagnostics follows their real parse
 and minimal header diagnostics. Dock supplies draggable/resizable/floating tools.
 Layout persistence and View menu reopening are application-coordinated. See
 [ADR 0003](decisions/0003-dockable-workspace.md) and the
-[desktop checklist](docking-acceptance.md). Native UI/monitor checks are pending.
+[desktop checklist](docking-acceptance.md). The foundation passed native Windows
+acceptance on 2026-10-13.
 
-Milestone 2 remains read-only. After explicit continuation approval the document view will have a
-full-width raw pane above segment navigation and hierarchy inspection. Future file
-sessions preserve source bytes/framing, with bounded concatenated-message navigation.
-Editing, history, message saving, and dirty state are deferred to Milestone 3.
+At this foundation gate the workspace was read-only, and the plan deferred editing,
+history, saving and dirty state to Milestone 3. The accepted viewer stages subsequently
+added file sessions and structural inspection (Stages 1–2), source-backed multi-message
+navigation (Stage 3), and editing/history/saving (Stage 4).
 Reusable script storage and Script Editor/Library tools are future services; search,
 comparison, generation, de-identification, MLLP, Synthea, and IRIS remain deferred.
 
@@ -76,9 +80,10 @@ message. See [Stage 1 acceptance](viewer-stage1-acceptance.md).
 
 Stage 2 adds `MessageInspection` on each Workspace document: UI-independent segment
 entries, lazy field/repetition/component/subcomponent projections, raw ranges, and
-session-only selection. Desktop renders these in document-internal Avalonia grids
-with splitters, not Dock tool windows. Selection requests raw navigation; raw caret
-changes update structural context without replacing user text selections. Attached
+session-only selection. Stage 2 rendered these in document-internal Avalonia grids
+with splitters; Stage 3 subsequently promoted them to dockable tools. Selection
+requests raw navigation; raw caret changes update structural context without
+replacing user text selections. Attached
 views subscribe and detached views unsubscribe, allowing Dock content reconstruction
 without leaking views or losing document selection. No Core parser or dependency
 changes are needed. See [Stage 2 acceptance](viewer-stage2-acceptance.md).
@@ -176,7 +181,9 @@ materialized messages can opt into per-document Edit Mode; source-backed abbrevi
 messages remain read-only. Core APIs, edit limits and scanner grammar are unchanged.
 Raw drafts may be temporarily malformed; pending/failed parsing removes current
 coordinates while retaining one labeled previous bounded projection. Its offset and
-selection methods are disabled, as are stale raw highlighting/hover/navigation.
+selection methods refuse stale operations; stale raw highlighting/hover/navigation
+are also blocked. Controls retain enabled styling while input/event guards prevent
+stale structural actions.
 Inspection hosts keep existing panes and bind new data in place, restoring canonical
 selection, realized expansion and scroll offsets where possible. Current/Pending/
 Stale/Empty/Unavailable are explicit states. Debounced parsing runs under the existing
@@ -199,4 +206,4 @@ See [ADR 0004](decisions/0004-editable-document-foundation.md) for alternatives,
 budgets, coordinate contracts and intentionally deferred large-message editing,
 source mappings, grouped/disk-backed history, external-change reconciliation,
 scripting and SQL. See [Stage 4 acceptance](stage4-editable-document-acceptance.md)
-for verification and the native Windows gate.
+for verification and recorded native Windows acceptance.

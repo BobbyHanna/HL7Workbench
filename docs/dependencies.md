@@ -10,7 +10,7 @@ or optional Avalonia commercial tooling are included.
 | Avalonia | 12.1.4 | UI framework | MIT |
 | Avalonia.Desktop | 12.1.4 | Desktop platform integration | MIT |
 | Avalonia.Themes.Fluent | 12.1.4 | Window theme | MIT |
-| Avalonia.AvaloniaEdit | 12.0.0 | Read-only raw message editor | MIT |
+| Avalonia.AvaloniaEdit | 12.0.0 | Raw HL7 viewer and bounded message editor | MIT |
 | Avalonia.Headless | 12.1.4 | Actual editor input tests without native windows (tests only) | MIT |
 | Avalonia.BuildServices | 11.3.2 | Exclude transitive build telemetry assets | MIT |
 | xunit.v3 | 4.0.2 | Test framework | Apache-2.0 |
@@ -32,8 +32,10 @@ the lock graph retains Avalonia 12.1.4. Dock brings DeferredContentControl,
 ProportionalStackPanel, Recycling, Recycling.Model, MarkupExtension, Model, Settings (all 12.1.0.7),
 and CommunityToolkit.Mvvm 8.4.0 transitively. Their restored nuspec metadata declares
 MIT. No Dock serializer, ReactiveUI, Prism, or DI container is added. AvaloniaEdit
-12.0.0 is now integrated for the authorized Stage 1 viewer. Headless is confined
-to Desktop.Tests to verify actual editor read-only behavior without native hosts.
+12.0.0 was introduced for the Stage 1 viewer and also supports Stage 4 bounded raw
+editing. Headless is confined to Desktop.Tests to verify read-only behavior,
+actual editing input, document history and inspection-state regressions without
+native hosts.
 No TextMate package is needed; highlighting uses Core coordinates.
 
 The restored `.nuspec` metadata was inspected for every resolved package.
