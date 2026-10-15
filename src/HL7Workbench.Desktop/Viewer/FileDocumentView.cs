@@ -22,6 +22,7 @@ public sealed class FileDocumentView : ContentControl
     private readonly ComboBox regions = new() { Width = 190 };
     private readonly Expander regionInspector = new() { Header = "Inspect source bytes" };
     private bool subscribed;
+    private int displayedNumber;
     public TextBox MessageNumberInput { get; } = new() { Width = 90 };
     public MessageInspectionView? ActiveView { get; private set; }
     public FileDocumentView(MessageDocument document, bool dockedInspection = false)
@@ -66,7 +67,7 @@ public sealed class FileDocumentView : ContentControl
     }
     public async Task NavigateAsync(int number)
     {
-        if (number < 1 || number > document.MessageCount) return;
+        if (document.IsSaving || number < 1 || number > document.MessageCount) return;
         try { await document.NavigateAsync(number); }
         catch (ObjectDisposedException) { }
     }
@@ -83,7 +84,9 @@ public sealed class FileDocumentView : ContentControl
     private void Changed(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MessageDocument.PreparedBytes)) status.Text = $"Preparing message {document.MessageNumber}; {document.PreparedBytes:N0} bytes decoded…";
-        else Refresh();
+        else if (ActiveView is not null && displayedNumber == document.MessageNumber && !document.IsLoading && document.Source is null)
+            status.Text = document.Failure ?? "";
+        else if (e.PropertyName == "ActiveContent") Refresh();
     }
     private void Refresh()
     {
@@ -100,7 +103,8 @@ public sealed class FileDocumentView : ContentControl
         // Reparent the fixed navigation controls only after the old view is detached.
         if (navigation.Parent is Panel parent) parent.Children.Remove(navigation);
         Content = null;
-        if (!document.IsLoading && (document.MaterializedMessage?.HasDecodedText == true || document.Source is not null))
+        displayedNumber = document.MessageNumber;
+        if (!document.IsLoading && (document.EditableText is not null || document.Source is not null))
         {
             ActiveView = (MessageInspectionView)MessageViewer.CreateActive(document, dockedInspection);
             Grid.SetRow(navigation, 2); ActiveView.RawPane.Children.Add(navigation); Content = ActiveView;

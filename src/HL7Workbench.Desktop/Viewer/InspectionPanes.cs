@@ -2,9 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using HL7Workbench.Core;
 using HL7Workbench.Workspace;
 
 namespace HL7Workbench.Desktop.Viewer;
@@ -14,7 +18,7 @@ public enum InspectionPaneKind { Both, Navigator, Inspector }
 /// <summary>Shared structural controls, usable inside a document or as independent dock tool content.</summary>
 public sealed class InspectionPanes : Grid
 {
-    private readonly MessageInspection inspection;
+    private MessageInspection inspection;
     private readonly InspectionPaneKind kind;
     private readonly TextBlock selectionTitle = new() { TextWrapping = TextWrapping.Wrap };
     private readonly Border selectionHeader = new() { Background = Brushes.Transparent };
@@ -35,6 +39,11 @@ public sealed class InspectionPanes : Grid
     private CancellationTokenSource? previewCancellation;
     public NumericUpDown FieldNumber { get; } = new() { Minimum = 1, Maximum = int.MaxValue, Value = 1, Width = 100, FormatString = "0" };
     public Button InspectFieldButton { get; } = new() { Content = "Inspect field" };
+    public MessageInspection Inspection => inspection;
+    public TextBlock SnapshotStatus { get; } = new() { Height = 38, Margin = new(8,2), TextWrapping = TextWrapping.Wrap, FontSize = 11 };
+    public bool HasCurrentInspection => inspection.IsCurrent && (document is null ||
+        document.InspectionState == DocumentInspectionState.Current && ReferenceEquals(document.ActiveInspection, inspection));
+    private long bindingVersion;
 
     public InspectionPanes(MessageInspection inspection, MessageDocument? document = null, InspectionPaneKind kind = InspectionPaneKind.Both)
     {
@@ -42,7 +51,9 @@ public sealed class InspectionPanes : Grid
         ValueOffset = inspection.PreviewOffset;
         ColumnDefinitions = new("25*,6,75*"); ColumnDefinitions[0].MinWidth = 100; ColumnDefinitions[2].MinWidth = 180;
         Navigator.ItemsSource = inspection.Segments;
-        Inspector.AutoScrollToSelectedItem = true;
+        // RevealNode handles structural navigation explicitly. Framework auto-scroll
+        // would also run when new parse nodes are rebound and shift the user's viewport.
+        Inspector.AutoScrollToSelectedItem = false;
         Navigator.ItemTemplate = new FuncDataTemplate(data => data is SegmentEntry,
             (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty });
         Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
@@ -73,7 +84,7 @@ public sealed class InspectionPanes : Grid
             {
                 var button = new Button { Content = label, Margin = new(2) };
                 ToolTip.SetTip(button, tip);
-                button.Click += async (_, _) => await LoadPreviewAsync(offset());
+                button.Click += async (_, _) => { if (HasCurrentInspection) await LoadPreviewAsync(offset()); };
                 valueControls.Children.Add(button);
             }
             ValueButton("First", "First chunk of selected field value", () => 0);
@@ -103,17 +114,25 @@ public sealed class InspectionPanes : Grid
             HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch, [ColumnProperty] = 1 });
         Children.Add(inspectorPane);
 
+        // Disabled controls inherit theme-wide dimming. Keep the snapshot's visual
+        // state intact and stop stale structural input before selection/expansion.
+        GuardStructuralInput(Navigator);
+        GuardStructuralInput(Inspector);
         Navigator.SelectionChanged += (_, _) =>
         {
-            if (!synchronizing && Navigator.SelectedItem is SegmentEntry segment) inspection.SelectSegment(segment);
+            if (synchronizing) return;
+            if (!HasCurrentInspection) { RestoreSnapshotSelection(); return; }
+            if (Navigator.SelectedItem is SegmentEntry segment) this.inspection.SelectSegment(segment);
         };
         Inspector.SelectionChanged += (_, _) =>
         {
-            if (!synchronizing && Inspector.SelectedItem is InspectionNode node) inspection.SelectNode(node);
+            if (synchronizing) return;
+            if (!HasCurrentInspection) { RestoreSnapshotSelection(); return; }
+            if (Inspector.SelectedItem is InspectionNode node) this.inspection.SelectNode(node);
         };
         InspectFieldButton.Click += (_, _) =>
         {
-            if (FieldNumber.Value is { } number && decimal.Truncate(number) == number) inspection.InspectField((int)number);
+            if (HasCurrentInspection && FieldNumber.Value is { } number && decimal.Truncate(number) == number) this.inspection.InspectField((int)number);
         };
         ApplySelection(false);
         if (kind != InspectionPaneKind.Both)
@@ -121,6 +140,109 @@ public sealed class InspectionPanes : Grid
             Children.Clear(); ColumnDefinitions = new("*");
             var pane = kind == InspectionPaneKind.Navigator ? navigatorPane : inspectorPane;
             SetColumn(pane, 0); Children.Add(pane);
+        }
+        RowDefinitions = new("Auto,*");
+        foreach (var child in Children) SetRow(child, 1);
+        SetColumnSpan(SnapshotStatus, ColumnDefinitions.Count); Children.Add(SnapshotStatus);
+        UpdateSnapshotState();
+    }
+
+    private void GuardStructuralInput(Control control)
+    {
+        control.AddHandler(PointerPressedEvent, (_, e) =>
+        {
+            // Leave scrollbars and wheel input available while previous rows are shown.
+            if (!HasCurrentInspection && e.Source is Visual source &&
+                source.GetSelfAndVisualAncestors().TakeWhile(v => !ReferenceEquals(v, control))
+                    .Any(v => v is ListBoxItem or TreeViewItem)) e.Handled = true;
+        }, RoutingStrategies.Tunnel);
+        control.AddHandler(DoubleTappedEvent, (_, e) => { if (!HasCurrentInspection) e.Handled = true; }, RoutingStrategies.Tunnel);
+        control.AddHandler(KeyDownEvent, (_, e) =>
+        {
+            if (!HasCurrentInspection && e.Key is Key.Up or Key.Down or Key.Left or Key.Right or
+                Key.Home or Key.End or Key.PageUp or Key.PageDown or Key.Space or Key.Enter or
+                Key.Add or Key.Subtract or Key.Multiply) e.Handled = true;
+        }, RoutingStrategies.Tunnel);
+    }
+
+    private void RestoreSnapshotSelection()
+    {
+        // Also guard programmatic/accessibility selection changes; do not rebind,
+        // reveal or read source ranges while the displayed coordinates are stale.
+        synchronizing = true;
+        try
+        {
+            Navigator.SelectedItem = inspection.SelectedSegment;
+            Inspector.SelectedItem = inspection.SelectedVisibleNode;
+        }
+        finally { synchronizing = false; }
+    }
+
+    /// <summary>Rebinds projections without replacing controls, splitters or scroll hosts.</summary>
+    public void UpdateInspection(MessageInspection next)
+    {
+        if (!ReferenceEquals(next, inspection))
+        {
+            var version = ++bindingVersion;
+            var expanded = Inspector.GetVisualDescendants().OfType<TreeViewItem>()
+                .Where(t => t.IsExpanded && t.DataContext is InspectionNode).Select(t => ((InspectionNode)t.DataContext!).Path).ToHashSet();
+            var navigatorScroll = Navigator.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+            var inspectorScroll = Inspector.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+            var navOffset = navigatorScroll?.Offset; var fieldOffset = inspectorScroll?.Offset;
+            inspection.SelectionChanged -= SelectionChanged;
+            previewRequest++; previewCancellation?.Cancel();
+            inspection = next; if (subscribed) inspection.SelectionChanged += SelectionChanged;
+            synchronizing = true;
+            try { Navigator.ItemsSource = inspection.Segments; }
+            finally { synchronizing = false; }
+            // Rebinding after typing must not scroll the inspector to a newly allocated
+            // node. Explicit structural navigation still reveals its selected branch.
+            revealedNode = inspection.SelectedVisibleNode;
+            ApplySelection(false);
+            if (subscribed) Dispatcher.UIThread.Post(() =>
+            {
+                if (!subscribed || version != bindingVersion) return;
+                for (var depth = 0; depth < 4 && expanded.Count > 0; depth++)
+                {
+                    Inspector.UpdateLayout();
+                    foreach (var item in Inspector.GetVisualDescendants().OfType<TreeViewItem>().ToArray())
+                        if (item.DataContext is InspectionNode node && expanded.Remove(node.Path)) item.IsExpanded = true;
+                }
+                if (navOffset is { } n && navigatorScroll is not null) navigatorScroll.Offset = n;
+                if (fieldOffset is { } f && inspectorScroll is not null) inspectorScroll.Offset = f;
+            }, DispatcherPriority.Loaded);
+        }
+        UpdateSnapshotState();
+    }
+    private void UpdateSnapshotState()
+    {
+        var state = document?.InspectionState ?? DocumentInspectionState.Current;
+        SnapshotStatus.Text = state switch
+        {
+            DocumentInspectionState.Pending => "Updating inspection · previous parse shown; structural actions paused.",
+            DocumentInspectionState.Stale => "Previous parse shown · correct the draft to refresh; structural actions paused.",
+            DocumentInspectionState.Empty => "Working message is empty.",
+            DocumentInspectionState.Unavailable => "Inspection unavailable for this message.",
+            _ => "Inspection of current text"
+        };
+        InspectFieldButton.IsEnabled = state != DocumentInspectionState.Empty && inspection.SelectedSegment?.HasFieldPaths == true;
+        if (state == DocumentInspectionState.Empty)
+        {
+            synchronizing = true;
+            try
+            {
+                Navigator.ItemsSource = Array.Empty<SegmentEntry>(); Inspector.ItemsSource = Array.Empty<InspectionNode>();
+                displayedFields = null; rawValue.Text = ""; selectionTitle.Text = "No field values in empty working text.";
+                fieldStatus.Text = "Field Inspector · empty message";
+            }
+            finally { synchronizing = false; }
+        }
+        else if (!ReferenceEquals(Navigator.ItemsSource, inspection.Segments))
+        {
+            synchronizing = true;
+            try { Navigator.ItemsSource = inspection.Segments; }
+            finally { synchronizing = false; }
+            ApplySelection(false);
         }
     }
     private static Control CreateInspectorRow(InspectionNode? node)
@@ -144,7 +266,7 @@ public sealed class InspectionPanes : Grid
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    { base.OnAttachedToVisualTree(e); subscribed = true; revealedNode = null; inspection.SelectionChanged += SelectionChanged; ApplySelection(false); }
+    { base.OnAttachedToVisualTree(e); subscribed = true; revealedNode = null; inspection.SelectionChanged += SelectionChanged; ApplySelection(false); UpdateSnapshotState(); }
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         subscribed = false; previewRequest++; previewCancellation?.Cancel(); previewCancellation?.Dispose(); previewCancellation = null;
@@ -192,7 +314,7 @@ public sealed class InspectionPanes : Grid
                 // branch, not the entire hierarchy, when Dock reconstructs document content.
                 Dispatcher.UIThread.Post(() =>
                 {
-                    if (subscribed && ReferenceEquals(inspection.SelectedVisibleNode, visibleNode)) RevealNode();
+                    if (subscribed && HasCurrentInspection && ReferenceEquals(inspection.SelectedVisibleNode, visibleNode)) RevealNode();
                 }, DispatcherPriority.Loaded);
             }
         }
@@ -200,6 +322,7 @@ public sealed class InspectionPanes : Grid
     }
     public async Task LoadPreviewAsync(long offset)
     {
+        if (!HasCurrentInspection) return;
         var node = inspection.SelectedNode;
         if (node is null || document?.Source is null) { ValueStatus.Text = ""; return; }
         if (node.Range64 is not { } range || offset < 0 || offset > range.Length) { ValueStatus.Text = "Offset outside value."; return; }

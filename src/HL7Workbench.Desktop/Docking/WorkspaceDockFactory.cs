@@ -26,6 +26,10 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public bool HasInspectionTools => items.ContainsKey(NavigatorId) && items.ContainsKey(FieldInspectorId);
     internal bool HasReplaceableContent(string id) => tools.Definitions.Any(t => t.Id == id && (t.Optional || t.ReleaseOnClose));
     private bool disposed;
+    private readonly HashSet<MessageDocument> observedDocuments = [];
+    private readonly HashSet<string> closingDocuments = [];
+    private readonly HashSet<string> approvedCloses = [];
+    public Func<MessageDocument, Task<bool>>? ConfirmDocumentCloseAsync { get; set; }
 
     public WorkspaceDockFactory(DocumentManager documents, ToolWindowRegistry tools)
     {
@@ -40,12 +44,37 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
 
     private void ActiveDockableChangedHandler(object? sender, Dock.Model.Core.Events.ActiveDockableChangedEventArgs e) => TrackDocument(e.Dockable);
     private void DockableClosingHandler(object? sender, Dock.Model.Core.Events.DockableClosingEventArgs e)
-    { if (e.Dockable is ITool tool) Remember(tool); }
+    {
+        if (e.Dockable is ITool tool) Remember(tool);
+        if (e.Dockable?.Context is not MessageDocument document || approvedCloses.Contains(document.Id)) return;
+        if (document.IsSaving) { e.Cancel = true; return; }
+        if (!document.IsDirty) return;
+        e.Cancel = true;
+        if (ConfirmDocumentCloseAsync is not null && closingDocuments.Add(document.Id)) _ = ConfirmCloseAsync(document, e.Dockable);
+    }
+    private async Task ConfirmCloseAsync(MessageDocument document, IDockable item)
+    {
+        try
+        {
+            if (ConfirmDocumentCloseAsync is not null && await ConfirmDocumentCloseAsync(document) && !disposed && documents.Documents.Contains(document))
+            {
+                approvedCloses.Add(document.Id);
+                try { CloseDockable(item); }
+                finally { approvedCloses.Remove(document.Id); }
+            }
+        }
+        finally { closingDocuments.Remove(document.Id); }
+    }
+    private void Observe(MessageDocument document)
+    { if (observedDocuments.Add(document)) document.PropertyChanged += DocumentTitleChanged; }
+    private void DocumentTitleChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    { if (sender is MessageDocument document && items.TryGetValue(document.Id, out var item)) item.Title = document.DisplayTitle; }
     private void DockableClosedHandler(object? sender, Dock.Model.Core.Events.DockableClosedEventArgs e)
     {
-        if (e.Dockable?.Context is MessageDocument && e.Dockable.Id is { } id)
+        if (e.Dockable?.Context is MessageDocument document && e.Dockable.Id is { } id)
         {
-            documents.Close(id);
+            document.PropertyChanged -= DocumentTitleChanged; observedDocuments.Remove(document);
+            documents.Close(id, discardChanges: true);
             items.Remove(id);
             DockableLocator?.Remove(id);
         }
@@ -62,8 +91,11 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     {
         items.Clear();
         foreach (var document in documents.Documents)
-            items.Add(document.Id, new Document { Id = document.Id, Title = document.Title, Context = document,
+        {
+            Observe(document);
+            items.Add(document.Id, new Document { Id = document.Id, Title = document.DisplayTitle, Context = document,
                 CanFloat = false, CanClose = true, CanPin = false });
+        }
         foreach (var tool in tools.Definitions)
             items.Add(tool.Id, new Tool { Id = tool.Id, Title = tool.Title, Context = tool.Optional ? null : tools.GetContent(tool.Id),
                 CanDockAsDocument = false, CanFloat = true, CanClose = true, CanPin = false });
@@ -124,7 +156,8 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
             // Insert into the live document group so opening a file retains tool geometry
             // and native floating hosts, rather than reconstructing the accepted layout.
             var document = documents.Documents.Single(d => d.Id == id);
-            var item = new Document { Id = id, Title = document.Title, Context = document,
+            Observe(document);
+            var item = new Document { Id = id, Title = document.DisplayTitle, Context = document,
                 CanFloat = false, CanClose = true, CanPin = false };
             var dock = FindDockable(Root, d => d is IDocumentDock) as IDocumentDock
                 ?? throw new InvalidOperationException("Missing document workspace.");
@@ -144,6 +177,8 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     {
         if (disposed) return;
         disposed = true;
+        foreach (var document in observedDocuments) document.PropertyChanged -= DocumentTitleChanged;
+        observedDocuments.Clear(); ConfirmDocumentCloseAsync = null;
         ActiveDockableChanged -= ActiveDockableChangedHandler;
         DockableClosed -= DockableClosedHandler;
         DockableClosing -= DockableClosingHandler;

@@ -55,8 +55,13 @@ public sealed class DockContentTemplate : IDataTemplate
         return EmptyContent();
     }
 
-    private static Control CreateDocumentItem(MessageDocument? document) =>
-        new TextBlock { Text = document?.Title ?? string.Empty };
+    private static Control CreateDocumentItem(MessageDocument? document)
+    {
+        if (document is null) return new TextBlock { Text = string.Empty };
+        var label = new TextBlock { DataContext = document };
+        label.Bind(TextBlock.TextProperty, new Binding(nameof(MessageDocument.DisplayTitle)));
+        return label;
+    }
 
     private static Control CreateDiagnosticItem(HL7Workbench.Core.Hl7Diagnostic? diagnostic) =>
         new TextBlock

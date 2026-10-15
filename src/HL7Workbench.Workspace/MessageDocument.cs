@@ -5,7 +5,7 @@ using HL7Workbench.Core;
 namespace HL7Workbench.Workspace;
 
 /// <summary>One file session. Only its current message owns decoded and structural state.</summary>
-public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
+public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposable
 {
     private static readonly SemaphoreSlim scanConcurrency = new(2, 2);
     private readonly SemaphoreSlim work = new(1, 1);
@@ -33,7 +33,7 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
         activity?.Record(kind, ActivityNumber, messageNumber ?? (MessageNumber > 0 ? MessageNumber : null), count, failure);
     }
     public string Id { get; }
-    public string Title { get; }
+    public string Title { get; private set; }
     public SourceSnapshot? Snapshot { get; }
     public MessageFileIndex? Index { get; }
     public Hl7Message Message => message ?? throw new InvalidOperationException("Active content is source-backed or unavailable.");
@@ -53,7 +53,7 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
     public Task Disposal { get; private set; } = Task.CompletedTask;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event EventHandler? Closed;
-    public long TextLength => Source?.Length ?? (message?.HasDecodedText == true ? message.RawText.Length : 0);
+    public long TextLength => Source?.Length ?? EditableText?.Length ?? 0;
     /// <summary>Session generation for UI intents that may outlive a context menu or native dialog.</summary>
     public long ContentVersion => generation;
     public MessageDocument(string id, string title, Hl7Message message)
@@ -71,14 +71,16 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
     {
         if (disposed) throw new ObjectDisposedException(nameof(MessageDocument));
         if (number < 1 || number > MessageCount) throw new ArgumentOutOfRangeException(nameof(number));
+        if (IsSaving) return;
         if (Index is null || Snapshot is null || number == MessageNumber && !IsLoading && Failure is null) return;
         request?.Cancel();
         request?.Dispose();
         request = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, cancellationToken);
         var token = request.Token;
         var version = ++generation;
+        editRefresh?.Cancel(); IsRefreshingEdit = false; EditError = null;
         MessageNumber = number; PreparedBytes = 0; IsLoading = true; Failure = null; ActiveDiagnostics = [];
-        message = null; inspection = null; Structure = null; Source = null; Presentation = null;
+        message = null; inspection = null; previousInspection = null; Structure = null; Source = null; Presentation = null;
         Changed();
         var progress = new ThrottledProgress(new Progress<long>(value =>
         {
@@ -127,6 +129,16 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
         MessageInspection? Inspection, string? Failure, IReadOnlyList<Hl7Diagnostic> Diagnostics, MessagePresentation? Presentation = null);
     private Loaded Load(IndexedMessage entry, CancellationToken token, IProgress<long> progress)
     {
+        if (buffers.TryGetValue(entry.Number, out var buffer))
+        {
+            try
+            {
+                var parsed = buffer.Parse();
+                return new(null, null, parsed, new(parsed), null, parsed.Diagnostics.Concat(Hl7Validator.Validate(parsed)).ToArray());
+            }
+            catch (Exception error) when (error is Hl7LimitException or EncoderFallbackException or ArgumentException)
+            { return new(null, null, null, null, "Draft retained. Undo or shorten the edit to restore structural inspection and saving.", []); }
+        }
         var index = Index ?? throw new InvalidOperationException("File index required.");
         var snapshot = Snapshot ?? throw new InvalidOperationException("File snapshot required.");
         DecodedMessageSource? source = null;
@@ -139,7 +151,7 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
             var interiorBom = Hl7SourceEncoding.Detect(snapshot.ReadBytes(new(entry.PayloadRange.Offset, Math.Min(4, entry.PayloadRange.Length)))).BomLength > 0;
             // Size and longest-line preflight avoids throwing after materializing a large value.
             if (inspectionOptions is null && !interiorBom && entry.PayloadRange.Length <= limits.MaxMessageBytes && source.Length <= Math.Min(limits.MaxMessageCharacters, MessagePresentation.MaximumEditorCharacters) &&
-                source.LongestLine <= Math.Min(limits.MaxSegmentLength, 16384))
+                source.LongestLine <= Math.Min(limits.MaxSegmentLength, MaximumEditableLineCharacters))
             {
                 var bytes = snapshot.ReadBytes(entry.PayloadRange, limits.MaxMessageBytes);
                 var parsed = Hl7Parser.Parse(bytes, limits with { Encoding = index.Encoding });
@@ -201,7 +213,8 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
         try
         {
             if (disposed || IsLoading) return null;
-            IHl7TextSource? text = (IHl7TextSource?)Source ?? (message?.HasDecodedText == true ? new MaterializedSource(message.RawText, Index?.Encoding) : null);
+            IHl7TextSource? text = (IHl7TextSource?)Source ?? (message?.HasDecodedText == true ?
+                new MaterializedSource(message.RawText, HasWorkingSourceChanges || message.IsModified ? null : Index?.Encoding) : null);
             if (text is null) return null;
             var result = await Task.Run(() => read(text), token);
             return disposed || version != generation ? null : result;
@@ -230,7 +243,7 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
         await work.WaitAsync(token);
         try
         {
-            if (disposed || IsLoading || Snapshot is null || Index is null || message?.IsModified == true)
+            if (disposed || IsLoading || Snapshot is null || Index is null || HasWorkingSourceChanges || message?.IsModified == true)
                 throw new InvalidOperationException("Exact original range unavailable for the current content.");
             var source = (IHl7TextSource?)Source ?? new MaterializedSource(Message.RawText, Index.Encoding);
             var bytes = await Task.Run(() => source.Bytes(range) ?? throw new InvalidOperationException("Exact byte range unavailable."), token);
@@ -254,12 +267,13 @@ public sealed class MessageDocument : INotifyPropertyChanged, IDisposable
     {
         if (disposed) return;
         disposed = true; generation++; lifetime.Cancel(); request?.Cancel();
+        previousInspection = null;
         Closed?.Invoke(this, EventArgs.Empty); Closed = null;
         PropertyChanged = null;
         Disposal = Task.Run(async () =>
         {
             await work.WaitAsync();
-            try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; Snapshot?.Dispose(); request?.Dispose(); lifetime.Dispose(); }
+            try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; buffers.Clear(); Snapshot?.Dispose(); editRefresh?.Dispose(); request?.Dispose(); lifetime.Dispose(); }
             finally { work.Release(); }
         });
     }

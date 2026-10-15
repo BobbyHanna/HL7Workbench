@@ -8,6 +8,11 @@
     <Menu>
       <MenuItem Header="_File">
         <MenuItem Header="_Open File…" Click="OpenFile" />
+        <MenuItem Header="_Save" Click="SaveDocument" InputGesture="Ctrl+S" />
+        <MenuItem Header="Save _As…" Click="SaveDocumentAs" InputGesture="Ctrl+Shift+S" />
+      </MenuItem>
+      <MenuItem Header="_Settings">
+        <MenuItem x:Name="StartInEditMode" Header="Start in Edit Mode" ToggleType="CheckBox" Click="ChangeEditPreference" ToolTip.Tip="Apply to newly opened documents; existing documents keep their own Edit Mode" />
       </MenuItem>
       <MenuItem Header="_View">
         <MenuItem Header="Message _Browser" Click="ShowBrowser" />
@@ -26,7 +31,7 @@
     <DockPanel Grid.Row="2">
       <ContentControl x:Name="ActivityIndicatorHost" DockPanel.Dock="Right" />
       <Button x:Name="CancelOpening" DockPanel.Dock="Right" Content="Cancel opening" Click="CancelOpen" IsVisible="False" ToolTip.Tip="Cancel opening and indexing the selected files" />
-      <TextBlock x:Name="Status" Margin="8,4" Text="Read-only HL7 viewer • use File → Open File" />
+      <TextBlock x:Name="Status" Margin="8,4" Text="HL7 Workbench • use File → Open File" />
     </DockPanel>
   </Grid>
 </Window>

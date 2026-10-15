@@ -31,7 +31,13 @@ complete and explicitly accepted on October 14, 2026, including its UX refinemen
 Windows fixes, Activity Log and final workspace layout. The user authorized milestone
 verification and one local commit with the message
 `feat: complete Stage 3 multi-message workspace and source inspection`.
-No push, publication, tag, release or Stage 4 implementation is authorized.
+No push, publication, tag or release is authorized. Stage 4's editable-document
+foundation passed explicit user native Windows acceptance on 2026-10-15, including
+the raw-editing crash and inspection-flicker fixes. The user authorized final
+verification and one local commit with the message
+`feat: complete Stage 4 editable HL7 document foundation`.
+See `docs/decisions/0004-editable-document-foundation.md` for the architecture
+assessment and `docs/stage4-editable-document-acceptance.md` for scope and native steps.
 The clarified hover target is the upper RAW HL7 editor. Earlier inspector tooltip
 investigations resulted from testing over raw text and did not establish an inspector bug.
 Raw editor hover now uses AvaloniaEdit's hover events and glyph-floor coordinates
@@ -82,8 +88,8 @@ See `docs/viewer-stage1-acceptance.md` for architecture, limits, and exact steps
 See `docs/viewer-stage2-acceptance.md` for current changes and manual acceptance.
 Dock model tests use a fake host for native-window operations; supplemental monitor,
 mixed-DPI, and OS-level behavior still benefit from platform-specific verification.
-No editing, undo/redo, message saves, dirty-state tracking, or destructive operations
-in Milestone 2. These move to Milestone 3, whose revised scope needs later planning.
+Milestone 2 / Viewer Stage 3 provide the accepted read-only baseline. Accepted Stage 4 adds
+bounded raw editing, history, dirty state and document saving; scripting/SQL remain deferred.
 Do not commit or push without user authorization.
 
 ## Projects and boundaries
@@ -139,9 +145,66 @@ git diff --check
 Core's materialized parser still parses one bounded message at a time; its shared
 range scanner also supports source-backed inspection without payload-sized strings.
 Workspace owns original snapshots plus at most one cached decoded spool per document,
-with no cached inactive structural models. Byte input preserves encoding/BOM;
+with no cached inactive structural models. Stage 4 additionally retains bounded
+per-message working text/delta history: complete messages only (1 Mi UTF-16 units,
+16 Ki per line), 32 MiB character-storage budget / 4,096 history entries per document.
+Read-only is still the default; a separate persistent Start in Edit Mode preference
+applies once at open. Edit Mode off retains dirty working state. Parsing is debounced,
+version-checked and uses the existing global scan gate. Save streams snapshot bytes
+plus changed payload overlays and publishes a flushed same-directory temporary file.
+Original snapshot/index ranges remain immutable across Save/Save As; edited working
+offsets are not original-byte coordinates. Original-source tools are unavailable for
+edited messages until saved output is reopened. Close prompts preserve drafts on
+Cancel, dismissal or save failure. Native Windows Stage 4 acceptance was explicitly
+granted by the user on 2026-10-15.
+Byte input preserves encoding/BOM;
 MSH-18 does not select encoding. Messages are mutable/not thread-safe; reacquire
 model snapshots after edits. Never use display text as a save source.
+
+Initial Stage 4 automated verification on 2026-10-15: locked restore succeeded;
+Release build succeeded with zero warnings/errors; the complete suite passed
+518 tests (211 Core, 226 Workspace, 81 Desktop), including 40 new editing tests.
+The Workspace stress run with `HL7WORKBENCH_STRESS=1` passed all 228 tests,
+including the existing 256/512 MiB cases. `git diff --check` passed. A new 64 MiB
+streaming-save test verifies unchanged prefix bytes and a sub-16 MiB allocation
+budget. UTF-16 encoded framing collisions are checked with the existing indexer.
+These automated/headless results did not replace native acceptance. At that point,
+HEAD remained the Stage 3 baseline; no commit, amend, push, tag, publication or release
+had been performed.
+
+Native Stage 4 acceptance on 2026-10-15 found a critical raw-editing crash. It was
+reproduced through real AvaloniaEdit routed input: `InvalidOperationException`,
+"No undo group should be open at this point", from `UndoStack.ClearAll()` inside
+`MessageInspectionView.WorkingTextChanged`. The fix configures zero native history
+retention before input and removes transaction-time clears; Workspace history stays
+authoritative. The three Stage 4 editing tests now use awaited `Task<bool>` UI
+callbacks instead of accidentally selecting `async void`; a new routed-input/Dock
+regression covers typing, deletion, paste, selection, history and fresh inspection.
+See `docs/stage4-raw-editing-crash.md` for evidence and native retest steps.
+Post-fix verification: locked restore passed; Release build had zero warnings/errors;
+all 519 tests passed (211 Core, 226 Workspace, 82 Desktop). The Workspace stress
+run passed all 228 tests, including 256/512 MiB cases. `git diff --check` passed.
+At that point native acceptance and commit authorization were still pending.
+
+The subsequent native editing UX fix preserves stable inspection tools. Workspace
+now separates Current/Pending/Stale/Empty/Unavailable and retains one labeled,
+non-current bounded inspection snapshot while parsing. `ActiveInspection` remains
+current-only; old snapshot resolution/selection and offset-dependent UI actions are
+blocked. Pending/Stale controls retain enabled styling; event guards reject stale
+structural input while a fixed-height label identifies previous inspection data.
+Dock/embedded panes stay mounted and rebind refreshed projections with
+canonical selection, realized expansion and viewport restoration where possible.
+Tolerant malformed text remains inspectable; empty text has its own state. Existing
+debounce/limits, source-backed lifetimes, undo-group safety and dirty/Edit Mode
+ownership remain unchanged. See `docs/stage4-inspection-continuity.md` for the event
+trace, state contract, tests and native retest. The user subsequently accepted these
+fixes as part of native Windows Stage 4 acceptance.
+Final milestone verification on 2026-10-15: locked restore passed; Release build had
+zero warnings/errors; all 527 tests passed (211 Core, 230 Workspace, 86 Desktop),
+including eight continuity cases and extended native-input regression assertions.
+All 232 Workspace stress tests passed, including 256/512 MiB cases; `git diff --check`
+passed. The user authorized the final verification and one local Stage 4 milestone
+commit. Push, amend, tag, publication and release remain unauthorized.
 
 ## Important documentation
 
@@ -152,5 +215,9 @@ model snapshots after edits. Never use display text as a save source.
 - `docs/stage3-activity-log-acceptance.md`: Activity Log privacy, history and lifecycle.
 - `docs/stage3-workspace-layout-acceptance.md`: accepted final layout, source-lifetime limitation and milestone verification.
 - `docs/dependencies.md`: versions/licenses.
+- `docs/decisions/0004-editable-document-foundation.md`: Stage 4 assessment and working-state/save contracts.
+- `docs/stage4-editable-document-acceptance.md`: implemented editing, deferred scope and native Windows checklist.
+- `docs/stage4-raw-editing-crash.md`: captured editor exception, fix, regression and native retest.
+- `docs/stage4-inspection-continuity.md`: stable inspection snapshots, stale-action guards and native retest.
 - `docs/docking-acceptance.md`: passed docking gate, supplemental checklist, and limitations.
 - `README.md`: setup/run commands; `samples/synthetic-only/`: synthetic fixtures.

@@ -7,12 +7,13 @@ public static class MessageFileReader
 {
     public static async Task<MessageDocument> OpenFileAsync(DocumentManager documents, string filename, Stream source,
         CancellationToken token = default, IProgress<long>? progress = null, StructureScanOptions? inspectionOptions = null,
-        int? activityDocumentNumber = null)
+        int? activityDocumentNumber = null, string? localPath = null)
     {
         var number = activityDocumentNumber ?? documents.Activity.BeginFileOpen();
         try
         {
             var document = await OpenCoreAsync(documents, filename, source, number, token, progress, inspectionOptions);
+            if (localPath is not null) document.SetInitialSavePath(Path.GetFullPath(localPath));
             documents.Activity.Record(ActivityKind.FileOpened, number); return document;
         }
         catch (OperationCanceledException) { documents.Activity.Record(ActivityKind.FileOpenCanceled, number); throw; }
@@ -31,6 +32,7 @@ public static class MessageFileReader
             for (var occurrence = 2; documents.Documents.Any(d => string.Equals(d.Title, title, StringComparison.OrdinalIgnoreCase)); occurrence++)
                 title = $"{filename} ({occurrence})";
             document = new(Guid.NewGuid().ToString("N"), title, snapshot, index, inspectionOptions);
+            document.SetInitialSavePath(snapshot.OriginalFilePath);
             document.ActivityNumber = activityNumber;
             documents.Activity.Record(ActivityKind.FileIndexed, activityNumber, count: index.Messages.Count);
             if (index.Messages.Count > 0) await document.NavigateAsync(1, token);

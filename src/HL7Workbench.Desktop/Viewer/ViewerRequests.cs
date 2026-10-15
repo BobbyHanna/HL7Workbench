@@ -37,8 +37,9 @@ public static class ViewerRequests
     public static void AttachMenu(TextEditorTarget target)
     {
         var editor = target.Editor;
-        var contentVersion = target.Document.ContentVersion;
-        bool Current() => contentVersion == target.Document.ContentVersion && !target.Document.IsLoading;
+        var messageNumber = target.Document.MessageNumber;
+        bool Current() => messageNumber == target.Document.MessageNumber && !target.Document.IsLoading &&
+            !target.Document.IsRefreshingEdit && !target.Document.HasWorkingSourceChanges;
         CharacterRange? value = null; string? path = null;
         var inspect = new MenuItem { Header = "View Full Value" };
         var export = new MenuItem { Header = "Export Original Value…" };
@@ -63,7 +64,8 @@ public static class ViewerRequests
             var display = target.Origin + local;
             var f = target.Presentation?.Hit(display);
             var raw = target.Presentation is null ? display : target.Presentation.SourceOffset(display) ?? f?.Omitted?.Offset;
-            var node = raw is { } offset ? target.Inspection.ResolveOffset(offset) : null;
+            full.IsEnabled = true;
+            var node = raw is { } offset ? (target.Document.ActiveInspection ?? target.Inspection).ResolveOffset(offset) : null;
             value = f?.Omitted ?? node?.Range64;
             path = node?.DisplayPath ?? (f?.IsOpaque == true ? "Opaque source region" : null);
             inspect.IsEnabled = value is not null; export.IsEnabled = value is not null && target.Document.Snapshot is not null;

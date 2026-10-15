@@ -6,7 +6,8 @@ public enum ActivityKind
 {
     ApplicationReady, ApplicationError, OpeningFile, FileIndexed, FileOpened, FileOpenFailed,
     FileOpenCanceled, Diagnostic, DiagnosticLimit, SourceViewerOpened, SourceReadFailed,
-    ExportStarted, ExportCompleted, ExportFailed, ExportCanceled, LayoutFailed
+    ExportStarted, ExportCompleted, ExportFailed, ExportCanceled, LayoutFailed,
+    SaveStarted, SaveCompleted, SaveFailed, SaveCanceled
 }
 public enum ActivityFailure { None, Unavailable, AccessDenied, ResourceLimit, Encoding, Unsupported, Unexpected }
 public enum ActivityCategory { Application, File, Boundary, Structure, Inspection, Export }
@@ -42,7 +43,7 @@ public sealed record ActivityEntry
         ActivityKind.ApplicationError => "Application operation unavailable",
         ActivityKind.OpeningFile => "Opening file",
         ActivityKind.FileIndexed => $"Indexed {Count:N0} HL7 message(s)",
-        ActivityKind.FileOpened => "File opened read-only",
+        ActivityKind.FileOpened => "File opened",
         ActivityKind.FileOpenFailed => "File open failed",
         ActivityKind.FileOpenCanceled => "File open canceled",
         ActivityKind.SourceViewerOpened => "Full Source Viewer opened",
@@ -52,6 +53,10 @@ public sealed record ActivityEntry
         ActivityKind.ExportFailed => "Original-source export failed; no partial output published",
         ActivityKind.ExportCanceled => "Original-source export canceled",
         ActivityKind.LayoutFailed => "Workspace layout operation unavailable",
+        ActivityKind.SaveStarted => "Document save started",
+        ActivityKind.SaveCompleted => "Document saved",
+        ActivityKind.SaveFailed => "Document save failed; working text retained",
+        ActivityKind.SaveCanceled => "Document save canceled; working text retained",
         ActivityKind.DiagnosticLimit => "Additional diagnostic activity omitted; document diagnostics remain available",
         _ => Diagnostic switch
         {
@@ -116,12 +121,13 @@ public sealed class ActivityLog
         Add(new() { Kind = kind, DocumentNumber = document, MessageNumber = message, Count = count, Failure = failure,
             Category = kind switch
             {
-                ActivityKind.OpeningFile or ActivityKind.FileIndexed or ActivityKind.FileOpened or ActivityKind.FileOpenFailed or ActivityKind.FileOpenCanceled => ActivityCategory.File,
+                ActivityKind.OpeningFile or ActivityKind.FileIndexed or ActivityKind.FileOpened or ActivityKind.FileOpenFailed or ActivityKind.FileOpenCanceled or
+                    ActivityKind.SaveStarted or ActivityKind.SaveCompleted or ActivityKind.SaveFailed or ActivityKind.SaveCanceled => ActivityCategory.File,
                 ActivityKind.ExportStarted or ActivityKind.ExportCompleted or ActivityKind.ExportFailed or ActivityKind.ExportCanceled => ActivityCategory.Export,
                 ActivityKind.SourceViewerOpened or ActivityKind.SourceReadFailed or ActivityKind.DiagnosticLimit => ActivityCategory.Inspection,
                 _ => ActivityCategory.Application
             },
-            Severity = kind is ActivityKind.ApplicationError or ActivityKind.FileOpenFailed or ActivityKind.SourceReadFailed or ActivityKind.ExportFailed or ActivityKind.LayoutFailed
+            Severity = kind is ActivityKind.ApplicationError or ActivityKind.FileOpenFailed or ActivityKind.SourceReadFailed or ActivityKind.ExportFailed or ActivityKind.LayoutFailed or ActivityKind.SaveFailed
                 ? Hl7DiagnosticSeverity.Error : kind == ActivityKind.DiagnosticLimit ? Hl7DiagnosticSeverity.Warning : Hl7DiagnosticSeverity.Information });
     }
     /// <summary>Projects a diagnostic through a fixed vocabulary; imported description, code and path strings are never retained.</summary>
@@ -147,7 +153,7 @@ public sealed class ActivityLog
     }
     public static ActivityFailure Classify(Exception error) => error switch
     {
-        Hl7LimitException => ActivityFailure.ResourceLimit, System.Text.DecoderFallbackException => ActivityFailure.Encoding,
+        Hl7LimitException => ActivityFailure.ResourceLimit, System.Text.DecoderFallbackException or System.Text.EncoderFallbackException => ActivityFailure.Encoding,
         UnauthorizedAccessException => ActivityFailure.AccessDenied, IOException => ActivityFailure.Unavailable,
         NotSupportedException => ActivityFailure.Unsupported, _ => ActivityFailure.Unexpected
     };
@@ -163,8 +169,8 @@ public readonly record struct ActivityHealth(int Warnings, int Errors)
         { if (item.Diagnostic.Severity == Hl7DiagnosticSeverity.Warning) warnings++; else if (item.Diagnostic.Severity == Hl7DiagnosticSeverity.Error) errors++; }
         return new(warnings, errors);
     }
-    public static string OpenStatus(int opened, int failed, ActivityHealth health) =>
-        $"Opened {opened} file(s) read-only" + (failed > 0 ? $"; {failed} failed" : "") +
+    public static string OpenStatus(int opened, int failed, ActivityHealth health, bool allReadOnly = true) =>
+        $"Opened {opened} file(s)" + (allReadOnly ? " read-only" : "") + (failed > 0 ? $"; {failed} failed" : "") +
         (health.Errors > 0 ? $"; {health.Errors} error(s)" : "") + (health.Warnings > 0 ? $"; {health.Warnings} warning(s)" : "") + ".";
 }
 

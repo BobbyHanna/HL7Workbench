@@ -32,6 +32,13 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.NavigatorId, "Segment Navigator", () => navigator));
         registry.Register(new(WorkspaceDockFactory.FieldInspectorId, "Field Inspector", () => fields));
         factory = new(documents, registry);
+        factory.ConfirmDocumentCloseAsync = ConfirmDocumentCloseAsync;
+        LoadEditPreferences();
+        KeyDown += async (_, e) =>
+        {
+            if (e.Key == Avalonia.Input.Key.S && e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Control))
+            { e.Handled = true; if (documents.ActiveDocument is { } active) await SaveDocumentAsync(active, e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift)); }
+        };
         registry.Register(new(WorkspaceDockFactory.FullRawId, "Full Source Viewer", () =>
         {
             var model = new FullRawInspectorViewModel();
@@ -49,7 +56,7 @@ public partial class MainWindow : Window
         ActivityIndicatorHost.Content = new Viewer.ActivityStatusIndicator(documents.Activity, () => factory.ShowTool(WorkspaceDockFactory.ActivityLogId));
         documents.Activity.Record(ActivityKind.ApplicationReady);
         Opened += (_, _) => { if (File.Exists(layoutPath)) RestoreLayout(this, new()); };
-        Closing += (_, _) => SaveLayout(this, new());
+        Closing += ConfirmWindowClose;
         Closed += (_, _) =>
         {
             lifetime.Cancel();
@@ -77,6 +84,7 @@ public partial class MainWindow : Window
                 FileTypeFilter = [new("HL7 and text files") { Patterns = ["*.hl7", "*.txt", "*.dat"] }, FilePickerFileTypes.All]
             });
             var opened = 0;
+            var allReadOnly = true;
             var failed = 0;
             var warnings = 0; var errors = 0;
             foreach (var file in files)
@@ -93,10 +101,11 @@ public partial class MainWindow : Window
                         var progress = new ThrottledProgress(new Progress<long>(bytes =>
                         { if (reading && !cancellationToken.IsCancellationRequested) Status.Text = $"Opening source (capture, index, first-message preparation): byte position {bytes:N0}. Cancel is available."; }));
                         readerStarted = true;
-                        var document = await MessageFileReader.OpenFileAsync(documents, file.Name, source, cancellationToken, progress, activityDocumentNumber: operation);
+                        var document = await MessageFileReader.OpenFileAsync(documents, file.Name, source, cancellationToken, progress, activityDocumentNumber: operation, localPath: file.TryGetLocalPath());
                         cancellationToken.ThrowIfCancellationRequested();
                         factory.OpenDocument(document.Id);
                         opened++;
+                        allReadOnly &= !document.IsEditMode;
                         var health = ActivityHealth.For(document); warnings += health.Warnings; errors += health.Errors;
                     }
                     catch (Exception error) when (error is IOException or UnauthorizedAccessException or Hl7LimitException or NotSupportedException)
@@ -107,7 +116,7 @@ public partial class MainWindow : Window
                 }
             }
             if (files.Count > 0)
-                Status.Text = ActivityHealth.OpenStatus(opened, failed, new(warnings, errors));
+                Status.Text = ActivityHealth.OpenStatus(opened, failed, new(warnings, errors), allReadOnly);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { Status.Text = "File opening canceled."; }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or NotSupportedException)
@@ -124,6 +133,7 @@ public partial class MainWindow : Window
     {
         if (documents.ActiveDocument is not { IsLoading: false } document || document.Source is null && document.MaterializedMessage?.HasDecodedText != true)
         { Status.Text = "Open an inspectable message first."; return; }
+        if (document.HasWorkingSourceChanges) { Status.Text = "This message has edited working text. Use Save to publish it; original-source inspection is available on unchanged messages."; return; }
         var model = (FullRawInspectorViewModel)registry.GetContent(WorkspaceDockFactory.FullRawId);
         model.Open(document, null, null); factory.ShowTool(WorkspaceDockFactory.FullRawId);
         document.RecordActivity(ActivityKind.SourceViewerOpened);

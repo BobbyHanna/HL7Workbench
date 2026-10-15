@@ -139,7 +139,7 @@ old metadata, preserving explicit user-hidden state and existing geometry.
 
 See `viewer-stage3-acceptance.md` for boundary recovery, capture-consistency limits,
 resource budgets and manual acceptance; `stage3-performance.md` records measurements.
-No message editing, saving, scripting or attachment rendering is implemented.
+Stage 3 itself implements no message editing, saving, scripting or attachment rendering.
 
 Stage 3 final polish adds Workspace's typed `ActivityLog` over session operations,
 with a bounded 2,000-entry queue and generated document numbers. Fixed descriptions
@@ -167,3 +167,36 @@ Activity Log. Message Browser remains registered but hidden in the default graph
 All proportions are adjustable, and saved valid graphs are restored without applying
 this new arrangement. The shell keeps its natural-height command row and flexible
 workspace. See `stage3-workspace-layout-acceptance.md` for current native checks.
+
+## Stage 4 editable document foundation (accepted 2026-10-15)
+
+Workspace now owns bounded raw working buffers and delta histories independently
+of editor/Dock view lifetime. Original snapshots/indexes remain immutable. Complete
+materialized messages can opt into per-document Edit Mode; source-backed abbreviated
+messages remain read-only. Core APIs, edit limits and scanner grammar are unchanged.
+Raw drafts may be temporarily malformed; pending/failed parsing removes current
+coordinates while retaining one labeled previous bounded projection. Its offset and
+selection methods are disabled, as are stale raw highlighting/hover/navigation.
+Inspection hosts keep existing panes and bind new data in place, restoring canonical
+selection, realized expansion and scroll offsets where possible. Current/Pending/
+Stale/Empty/Unavailable are explicit states. Debounced parsing runs under the existing
+work/scan gates, with revision checks and drain-before-disposal ownership.
+
+Dirty state compares working text with the last published save point; undo/redo
+survives navigation, view reconstruction and saving. A separate application preference
+changes the default only when a document opens. Layouts continue to store placement
+metadata exclusively. Desktop supplies the Edit Mode toolbar, keyboard commands,
+local pickers and unsaved-change dialogs; Dock adapters observe titles/close intents.
+
+Saving freezes this document's manual mutations, validates boundaries and streams
+original file ranges plus surrogate-safe encoded payload splices. Same-directory
+temporary output is flushed then replaced/moved; failures keep working state and
+save identity. Save As retargets future Save without rebasing immutable source ranges.
+Edited UTF-16 ranges cannot be used for original-byte exports. Existing optional
+source sessions end on edits and retain Stage 3's navigation/closure lifecycle.
+
+See [ADR 0004](decisions/0004-editable-document-foundation.md) for alternatives,
+budgets, coordinate contracts and intentionally deferred large-message editing,
+source mappings, grouped/disk-backed history, external-change reconciliation,
+scripting and SQL. See [Stage 4 acceptance](stage4-editable-document-acceptance.md)
+for verification and the native Windows gate.

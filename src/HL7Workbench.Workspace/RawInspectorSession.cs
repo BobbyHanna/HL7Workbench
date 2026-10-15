@@ -18,13 +18,14 @@ public sealed class RawInspectorSession : IDisposable
     public long MessageLength { get; }
     public long WindowOffset { get; set; }
     public bool IsClosed => disposed;
-    public bool CanExport => !disposed && document?.Snapshot is not null && document.MaterializedMessage?.IsModified != true;
+    public bool CanExport => !disposed && document?.Snapshot is not null && !document.HasWorkingSourceChanges && document.MaterializedMessage?.IsModified != true;
     public MessageInspection? Inspection => document?.ActiveInspection ?? (document?.MaterializedMessage?.HasDecodedText == true ? document.Inspection : null);
     public Hl7Structure? Structure => document?.Structure;
     public event EventHandler? Closed;
     public void ReportReadFailure() => document?.RecordActivity(ActivityKind.SourceReadFailed, messageNumber: MessageNumber);
     public RawInspectorSession(MessageDocument document, CharacterRange? scope = null, string? path = null)
     {
+        if (document.HasWorkingSourceChanges) throw new InvalidOperationException("Original-source ranges are unavailable for edited working text. Inspect an unchanged message or reopen the saved file.");
         if (document.IsLoading || document.Source is null && document.MaterializedMessage?.HasDecodedText != true) throw new InvalidOperationException("Active source unavailable.");
         this.document = document; Scope = scope ?? new(0, document.TextLength);
         if (Scope.Offset < 0 || Scope.Length < 0 || Scope.End > document.TextLength) throw new ArgumentOutOfRangeException(nameof(scope));
@@ -75,6 +76,7 @@ public sealed class RawInspectorSession : IDisposable
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
         var physical = PhysicalPath(path);
         if (string.Equals(physical, snapshot.OriginalFilePath is { } original ? PhysicalPath(original) : null, comparison) ||
+            string.Equals(physical, owner.SavePath is { } saved ? PhysicalPath(saved) : null, comparison) ||
             physical.StartsWith(PhysicalPath(snapshot.DirectoryPath) + Path.DirectorySeparatorChar, comparison))
             throw new IOException("Export cannot replace the original source or snapshot.");
         var temporary = Path.Combine(Path.GetDirectoryName(path)!, ".hl7-export-" + Guid.NewGuid().ToString("N") + ".tmp");

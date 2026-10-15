@@ -2,7 +2,7 @@ using HL7Workbench.Core;
 
 namespace HL7Workbench.Workspace;
 
-/// <summary>A range in the original decoded UTF-16 text, excluding the encoding BOM.</summary>
+/// <summary>A range in this inspection revision's decoded UTF-16 text, excluding the encoding BOM.</summary>
 public readonly record struct MessageRange(int Offset, int Length);
 
 /// <summary>Structural tooltip data. A future version/profile resolver can enrich Path separately.</summary>
@@ -104,6 +104,9 @@ public sealed class InspectionSelectionChangedEventArgs(bool navigateRaw) : Even
 /// <summary>Read-only document selection over Core snapshots. Not serialized into workspace layouts.</summary>
 public sealed class MessageInspection
 {
+    /// <summary>False after the owning working text changes. Old values are a labeled snapshot, never current coordinates.</summary>
+    public bool IsCurrent { get; private set; } = true;
+    internal void Invalidate() => IsCurrent = false;
     private readonly long textLength;
     public DecodedMessageSource? Source { get; }
     private readonly Dictionary<SegmentEntry, IReadOnlyList<InspectionNode>> fieldCache = [];
@@ -146,6 +149,7 @@ public sealed class MessageInspection
     }
     public void ClearSelection()
     {
+        if (!IsCurrent) return;
         SetSegment(null);
         SelectionChanged?.Invoke(this, new(false));
     }
@@ -174,6 +178,22 @@ public sealed class MessageInspection
         Fields = segment is null ? [] : GetFields(segment);
     }
 
+    /// <summary>Restores identity by canonical path, never by a previous revision's character offsets.</summary>
+    internal void RestoreSelection(MessageInspection previous)
+    {
+        var selected = previous.SelectedSegment;
+        var segment = selected is null ? null : Segments.FirstOrDefault(s => s.Identifier == selected.Identifier && s.Occurrence == selected.Occurrence);
+        SetSegment(segment);
+        if (segment is null || previous.SelectedNode is not { } old) return;
+        InspectionNode? node = Fields.FirstOrDefault(f => f.Path.Field == old.Path.Field);
+        foreach (var index in new[] { old.Path.Repetition, old.Path.Component, old.Path.Subcomponent })
+        {
+            if (index is null || node is null) break;
+            node = index > 0 && index <= node.Children.Count ? node.Children[index.Value - 1] : null;
+        }
+        SelectedNode = node;
+    }
+
     private IReadOnlyList<InspectionNode> GetFields(SegmentEntry segment)
     {
         if (!fieldCache.TryGetValue(segment, out var fields))
@@ -189,6 +209,7 @@ public sealed class MessageInspection
 
     public void SelectSegment(SegmentEntry segment)
     {
+        if (!IsCurrent) return;
         if (!Segments.Contains(segment)) throw new ArgumentException("Segment belongs to another document.", nameof(segment));
         if (ReferenceEquals(SelectedSegment, segment) && SelectedNode is null) return;
         if (!ReferenceEquals(SelectedSegment, segment)) SetSegment(segment);
@@ -198,6 +219,7 @@ public sealed class MessageInspection
 
     public void SelectNode(InspectionNode node)
     {
+        if (!IsCurrent) return;
         if (!ReferenceEquals(node.Owner, SelectedSegment)) throw new ArgumentException("Value belongs to another segment.", nameof(node));
         if (ReferenceEquals(SelectedNode, node)) return;
         SelectedNode = node;
@@ -226,6 +248,7 @@ public sealed class MessageInspection
     /// Whitespace inside a value belongs to that value. No missing value is synthesized from a raw hit.</summary>
     public void SelectDeepestOffset(long offset)
     {
+        if (!IsCurrent) return;
         var segment = FindSegment(offset);
         if (segment is null) return;
         if (!ReferenceEquals(SelectedSegment, segment)) SetSegment(segment);
@@ -246,6 +269,7 @@ public sealed class MessageInspection
     /// </summary>
     public InspectionNode? ResolveOffset(long offset)
     {
+        if (!IsCurrent) return null;
         var segment = FindSegment(offset);
         if (segment is null || !Contains(segment.Range64, offset)) return null;
         var node = NodeAt(GetFields(segment), offset);
@@ -290,6 +314,7 @@ public sealed class MessageInspection
     /// <summary>Looks up a field number without assuming how many fields a version/profile requires.</summary>
     public InspectionNode? InspectField(int number)
     {
+        if (!IsCurrent) return null;
         if (number < 1) throw new ArgumentOutOfRangeException(nameof(number));
         if (SelectedSegment is not { HasFieldPaths: true } segment) return null;
         if (SelectedNode is { HasContent: false } missing && missing.Path.Field == number) return missing;
@@ -302,6 +327,7 @@ public sealed class MessageInspection
     /// <summary>Updates context from a raw caret without replacing the user's raw text selection.</summary>
     public void SelectOffset(long offset)
     {
+        if (!IsCurrent) return;
         var segment = FindSegment(offset);
         if (segment is null) return;
         var changed = !ReferenceEquals(SelectedSegment, segment);
