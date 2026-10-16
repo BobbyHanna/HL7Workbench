@@ -20,15 +20,18 @@ public partial class MainWindow : Window
     private readonly CancellationTokenSource lifetime = new();
     private bool opening;
     private CancellationTokenSource? openingCancellation;
-    private readonly string layoutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "HL7Workbench", "workspace-layout.json");
+    private readonly string layoutPath;
 
-    public MainWindow()
+    public MainWindow() : this(Path.GetDirectoryName(EditorPreferences.DefaultPath)!) { }
+    internal MainWindow(string configurationDirectory)
     {
+        preferences = new(Path.Combine(configurationDirectory, "editor-preferences.json"));
+        layoutPath = Path.Combine(configurationDirectory, "workspace-layout.json");
         InitializeComponent();
         browser = new MessageBrowserViewModel(documents);
         navigator = new(documents, true); fields = new(documents, false);
-        scripts = new(documents, new ScriptLibrary(ScriptLibrary.DefaultDirectory), preferencesPath: ScriptEditorPreferences.DefaultPath);
+        scripts = new(documents, new ScriptLibrary(Path.Combine(configurationDirectory, "Scripts")),
+            preferencesPath: Path.Combine(configurationDirectory, "script-editor-preferences.json"));
         scripts.PromptUnsavedAsync = PromptUnsavedScriptAsync;
         registry.Register(new(WorkspaceDockFactory.BrowserId, "Message Browser", () => browser));
         registry.Register(new(WorkspaceDockFactory.ActivityLogId, "Activity Log", () => new ActivityLogViewModel(documents.Activity), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
@@ -60,6 +63,7 @@ public partial class MainWindow : Window
         });
         browser.OpenRequested += factory.OpenDocument;
         WorkspaceDock.Layout = factory.CreateLayout();
+        InitializeShell();
         ActivityIndicatorHost.Content = new Viewer.ActivityStatusIndicator(documents.Activity, () => factory.ShowTool(WorkspaceDockFactory.ActivityLogId));
         documents.Activity.Record(ActivityKind.ApplicationReady);
         Opened += (_, _) => { if (File.Exists(layoutPath)) RestoreLayout(this, new()); };
@@ -72,6 +76,8 @@ public partial class MainWindow : Window
             browser.Dispose();
             navigator.Dispose(); fields.Dispose();
             scripts.Dispose();
+            preferences.PropertyChanged -= PreferencesChanged;
+            documents.PropertyChanged -= ShellCommandsChanged;
             documents.Dispose();
         };
     }

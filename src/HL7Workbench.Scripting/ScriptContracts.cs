@@ -1,7 +1,5 @@
 namespace HL7Workbench.Scripting;
 
-/// <summary>Entry-point discriminator. Only Message is implemented in Stage 5A.</summary>
-public enum ScriptMode { Message, Batch, Generate }
 public enum ScriptScope { CurrentMessage, WholeDocument }
 public enum ScriptPhase { Configuration, Compilation, Execution, Protocol, Worker, Input, Output }
 
@@ -11,7 +9,15 @@ public sealed record ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line 
 {
     public string Description => Code switch
     {
-        "UnsupportedMode" => "Only Message scripts are available in this milestone.",
+        "UnsupportedApi" => "This worker requires unified Main scripts using API version 2.",
+        "MissingMain" => "Define one synchronous, parameterless void Main() method.",
+        "EntryPointSignature" => "Main and optional Complete must be instance, synchronous, nongeneric, parameterless void methods.",
+        "AmbiguousEntryPoint" => "Define only one Main and at most one Complete method; entry-point overloads are unavailable.",
+        "LifecyclePhase" => "Message and Hold/Defer require Main; Emit requires Complete. This operation is unavailable in the current phase.",
+        "BatchLimit" => "Batch exceeds the 100,000-message limit.",
+        "DeferredLimit" => "Deferred output exceeds 128 messages or 16 MiB.",
+        "ReportSchema" => "Report schema, name, phase or row column count is invalid.",
+        "ReportLimit" => "Report exceeds its row, cell, operation or total byte limit.",
         "ScriptLimit" => "Script exceeds the 65,536-character limit.",
         "DirectiveNotSupported" => "External reference, source loading and line-mapping directives are unavailable.",
         "CompilationFailed" => "C# compilation failed. Check the indicated script location and compiler code.",
@@ -46,7 +52,7 @@ public sealed class ScriptRunException : Exception
         Diagnostics = diagnostics;
 }
 
-public sealed record ScriptDefinition(string Source, ScriptMode Mode = ScriptMode.Message, int ApiVersion = 1);
+public sealed record ScriptDefinition(string Source, int ApiVersion = 2);
 public sealed record ScriptWorkerOptions
 {
     public TimeSpan StartupTimeout { get; init; } = TimeSpan.FromSeconds(30);
@@ -68,6 +74,15 @@ public static class ScriptLimits
     public const int LineCharacters = 16_384;
     public const int MessageBytes = 8 * 1024 * 1024;
     public const int Diagnostics = 100;
+    public const int BatchMessages = 100_000;
+    public const int DeferredMessages = 128;
+    public const int DeferredBytes = 16 * 1024 * 1024;
+    public const int Reports = 8;
+    public const int ReportColumns = 64;
+    public const int ReportCellCharacters = 16_384;
+    public const int ReportRows = 100_000;
+    public const int ReportBytes = 16 * 1024 * 1024;
+    public const int ReportOperationBytes = 256 * 1024;
 }
 
 public sealed record ScriptMessageResult(bool Excluded, byte[]? Bytes);

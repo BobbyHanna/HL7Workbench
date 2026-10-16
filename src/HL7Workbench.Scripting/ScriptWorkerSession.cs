@@ -13,6 +13,12 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
     private WorkerLifetime? resourceLifetime;
     private bool disposed;
     private bool finished;
+    private ScriptReportChunk[] reports = [];
+    private int processed;
+    private int deferred;
+    /// <summary>Transfers this operation's bounded report buffer. Drain after startup, each Process and Complete before continuing.</summary>
+    public IReadOnlyList<ScriptReportChunk> DrainReports()
+    { var result = reports; reports = []; return result; }
     public int ProcessId => process.Id;
     private ScriptWorkerSession(Process process, NamedPipeServerStream pipe, ScriptWorkerOptions options)
     {
@@ -23,8 +29,8 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
         ScriptWorkerOptions? options = null, CancellationToken token = default)
     {
         options ??= new(); options.Validate();
-        if (definition.Mode != ScriptMode.Message || definition.ApiVersion != 1)
-            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Configuration, "UnsupportedMode"));
+        if (definition.ApiVersion != 2)
+            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Configuration, "UnsupportedApi"));
         if (definition.Source.Length > ScriptLimits.ScriptCharacters)
             throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Configuration, "ScriptLimit"));
         if (!File.Exists(executable)) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Worker, "WorkerUnavailable"));
@@ -56,6 +62,8 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
             await connection;
             startup.Cancel();
             await session.ExchangeAsync(new(FrameKind.Initialize, Definition: definition), FrameKind.Ready, options.CompilationTimeout, token);
+            var begun = await session.ExchangeAsync(new(FrameKind.Begin), FrameKind.Begun, options.MessageTimeout, token);
+            session.reports = begun.Reports ?? [];
             return session;
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -71,17 +79,34 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
     public async Task<ScriptMessageResult> ProcessAsync(byte[] bytes, int codePage, int messageNumber, CancellationToken token = default)
     {
         if (finished) throw new InvalidOperationException("Worker job is complete.");
+        if (reports.Length != 0) throw new InvalidOperationException("Drain pending reports before processing another message.");
+        if (++processed > ScriptLimits.BatchMessages) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "BatchLimit"));
         if (bytes.Length > ScriptLimits.MessageBytes) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputLimit", MessageNumber: messageNumber));
         var response = await ExchangeAsync(new(FrameKind.Message, Bytes: bytes, CodePage: codePage, Number: messageNumber),
             FrameKind.Result, options.MessageTimeout, token);
         if (response.Number != messageNumber || (!response.Excluded && response.Bytes is null) || response.Bytes?.Length > ScriptLimits.MessageBytes)
             throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Protocol, "ProtocolError", MessageNumber: messageNumber));
+        reports = response.Reports ?? [];
         return new(response.Excluded, response.Bytes);
     }
     public async Task CompleteAsync(CancellationToken token = default)
     {
-        await ExchangeAsync(new(FrameKind.Finish), FrameKind.Finished, options.MessageTimeout, token);
+        if (finished || reports.Length != 0) throw new InvalidOperationException("Job completed or reports not drained.");
+        var response = await ExchangeAsync(new(FrameKind.Finish), FrameKind.Finished, options.MessageTimeout, token);
+        reports = response.Reports ?? [];
+        deferred = response.DeferredCount;
+        if (deferred is < 0 or > ScriptLimits.DeferredMessages) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Protocol, "ProtocolError"));
         finished = true;
+    }
+    /// <summary>Drains one deferred copy at a time after completion, retaining the original source ordinal for parent validation.</summary>
+    public async Task<(int MessageNumber, byte[] Bytes)?> TakeDeferredAsync(CancellationToken token = default)
+    {
+        if (!finished) throw new InvalidOperationException("Complete the job first.");
+        if (deferred == 0) return null;
+        var response = await ExchangeAsync(new(FrameKind.Deferred), FrameKind.Result, options.MessageTimeout, token);
+        if (response.Bytes is null || response.Bytes.Length > ScriptLimits.MessageBytes || response.Number < 1)
+            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Protocol, "ProtocolError"));
+        deferred--; return (response.Number, response.Bytes);
     }
     private async Task<ScriptFrame> ExchangeAsync(ScriptFrame request, FrameKind expected, TimeSpan timeout, CancellationToken token)
     {

@@ -25,14 +25,17 @@ public sealed class ScriptEditorSession : INotifyPropertyChanged
         set { if (entry.Bundled || value == entry.Source) return; entry = entry with { Source = value }; revision++; Changed(); }
     }
     public Guid Id => entry.Id;
+    public bool IsObsolete => entry.Obsolete;
+    public const string MigrationNotice = "Obsolete development script. Rewrite with void Main(), then Save Script to adopt the unified lifecycle. Source retained; Run is disabled until Save.";
     public long ContentVersion => revision;
     public bool IsBundled => entry.Bundled;
+    public bool CanDelete => !entry.Bundled && saved.Revision.Length > 0;
     public bool IsDirty => entry.Revision.Length == 0 || entry.Name != saved.Name || entry.Source != saved.Source;
     public string DisplayName => Name + (IsDirty ? " *" : "");
     public ScriptEditorSession(ScriptLibrary library) { this.library = library; Refresh(); }
     public void Refresh()
     {
-        try { Items = library.List(); HasError = false; }
+        try { Items = library.List(); HasError = IsObsolete; if (IsObsolete) Status = MigrationNotice; }
         catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
         { HasError = true; Status = "Script Library unavailable. Existing drafts are retained; check local storage and entry format."; }
         Changed();
@@ -46,6 +49,33 @@ public sealed class ScriptEditorSession : INotifyPropertyChanged
         catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
         { HasError = true; Status = "Script was not saved. Draft retained. Check local access or external changes; duplicate the draft to save another copy."; Changed(); return false; }
     }
+    /// <summary>Confirms a name in the current draft without saving or discarding its code.</summary>
+    public bool Rename(string name)
+    {
+        if (IsBundled) return false;
+        if (!ScriptLibrary.ValidName(name))
+        { HasError = true; Status = "Name unchanged. Use 1–120 characters, including a non-space character, without control characters."; Changed(); return false; }
+        Name = name; HasError = IsObsolete;
+        Status = IsObsolete ? MigrationNotice : "Name confirmed. Save Script to persist the name and code."; Changed(); return true;
+    }
+    public async Task<bool> DeleteAsync(Func<Task<UnsavedChangesDecision>> prompt, Func<string, Task<bool>> confirm)
+    {
+        if (!CanDelete || deciding) return false;
+        // Defer Discard until deletion succeeds. Canceling confirmation or a failed
+        // filesystem operation must retain the exact unsaved name/source draft.
+        if (!await ConfirmChangesAsync(prompt, discardImmediately: false)) return false;
+        deciding = true;
+        try
+        {
+            var version = revision;
+            if (!await confirm(saved.Name) || version != revision) return false;
+            library.Delete(saved);
+            Apply(ScriptLibrary.Example); Refresh(); Status = "Script deleted. Bundled example selected."; Changed(); return true;
+        }
+        catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        { HasError = true; Status = "Script was not deleted. Draft retained; check access or reopen an externally changed record."; Changed(); return false; }
+        finally { deciding = false; }
+    }
     public async Task<bool> OpenAsync(Guid id, Func<Task<UnsavedChangesDecision>> prompt)
     {
         LibraryScript next;
@@ -55,10 +85,11 @@ public sealed class ScriptEditorSession : INotifyPropertyChanged
         if (!await ConfirmChangesAsync(prompt)) return false;
         Apply(next); return true;
     }
+    /// <summary>Creates a unified Main draft after resolving existing unsaved changes.</summary>
     public async Task<bool> NewAsync(Func<Task<UnsavedChangesDecision>> prompt)
     {
         if (!await ConfirmChangesAsync(prompt)) return false;
-        Apply(new(Guid.NewGuid(), "New script", "", "")); return true;
+        Apply(new(Guid.NewGuid(), "New script", "void Main()\n{\n}\n", "")); return true;
     }
     /// <summary>Duplicate the actual draft, including unsaved content, without overwriting its saved original.</summary>
     public bool Duplicate()
@@ -86,6 +117,6 @@ public sealed class ScriptEditorSession : INotifyPropertyChanged
     }
     public void DiscardChanges() => Apply(saved.Revision.Length == 0 ? ScriptLibrary.Example : saved);
     private void Apply(LibraryScript next)
-    { entry = saved = next; revision++; HasError = false; Status = next.Bundled ? "Bundled example. Duplicate it to edit." : "Script ready."; Changed(); }
+    { entry = saved = next; revision++; HasError = next.Obsolete; Status = next.Obsolete ? MigrationNotice : next.Bundled ? "Bundled example. Duplicate it to edit." : "Script ready."; Changed(); }
     private void Changed() => PropertyChanged?.Invoke(this, new(null));
 }

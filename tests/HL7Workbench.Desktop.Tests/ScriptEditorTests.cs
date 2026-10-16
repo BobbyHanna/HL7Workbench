@@ -14,7 +14,7 @@ using Xunit;
 
 namespace HL7Workbench.Desktop.Tests;
 
-public sealed class ScriptEditorTests
+public sealed partial class ScriptEditorTests
 {
     private const string Synthetic = "MSH|^~\\&|SYN\rPID|1||SYN-001||Example^Ada\r";
     private sealed class Files : IDisposable
@@ -37,8 +37,8 @@ public sealed class ScriptEditorTests
             try
             {
                 Assert.True(view.Editor.IsReadOnly); Assert.NotNull(view.Editor.SyntaxHighlighting);
-                await model.Session.NewAsync(Cancel); view.ScriptName.Text = "Synthetic editable";
-                window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); view.Editor.TextArea.Focus();
+                await model.Session.NewAsync(Cancel); model.BeginRename(); view.ScriptName.Text = "Synthetic editable"; Assert.True(model.CommitRename());
+                window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); view.Editor.TextArea.Focus(); view.Editor.SelectAll();
                 window.KeyTextInput("Message.Clear(\"PID-19\");");
                 Assert.Equal("Message.Clear(\"PID-19\");", model.Session.Source); Assert.True(model.Session.IsDirty);
                 Assert.True(view.Editor.Document.UndoStack.CanUndo);
@@ -83,7 +83,7 @@ public sealed class ScriptEditorTests
             using var files = new Files(); using var docs = new DocumentManager();
             var source = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(Synthetic)); docs.Open(source);
             using var model = new ScriptEditorViewModel(docs, files.Library, files.Options);
-            await model.Session.NewAsync(Cancel); model.Session.Source = "Message.SetText(\"PID-5.2\", \"SYNTHETIC\");";
+            await model.Session.NewAsync(Cancel); model.Session.Source = "void Main() { Message.SetText(\"PID-5.2\", \"SYNTHETIC\"); }";
             var view = new ScriptEditorView(model); var window = new Window { Width = 900, Height = 650, Content = view }; window.Show();
             try
             {
@@ -108,10 +108,10 @@ public sealed class ScriptEditorTests
             using var files = new Files(); using var docs = new DocumentManager();
             var source = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(Synthetic)); docs.Open(source);
             using var model = new ScriptEditorViewModel(docs, files.Library, files.Options);
-            await model.Session.NewAsync(Cancel); model.Session.Name = "Synthetic loop"; model.Session.Source = "while (true) { }"; Assert.True(model.Session.Save());
+            await model.Session.NewAsync(Cancel); model.Session.Name = "Synthetic loop"; model.Session.Source = "void Main() { while (true) { } }"; Assert.True(model.Session.Save());
             var run = model.RunAsync(); Assert.True(model.IsBusy);
             Assert.True(await model.ConfirmCloseAsync(Cancel)); await run;
-            Assert.False(model.IsBusy); Assert.Single(docs.Documents); Assert.Equal("while (true) { }", model.Session.Source);
+            Assert.False(model.IsBusy); Assert.Single(docs.Documents); Assert.Equal("void Main() { while (true) { } }", model.Session.Source);
             Assert.True(!Directory.Exists(files.Options.StorageRoot) || !Directory.EnumerateDirectories(files.Options.StorageRoot).Any());
             docs.Close(source.Id); await source.Disposal;
             return true;
@@ -126,7 +126,7 @@ public sealed class ScriptEditorTests
             using var files = new Files(); using var docs = new DocumentManager();
             var source = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(Synthetic)); docs.Open(source);
             using var model = new ScriptEditorViewModel(docs, files.Library, files.Options);
-            await model.Session.NewAsync(Cancel); model.Session.Source = "throw new Exception(Message.Text(\"PID-3\"));";
+            await model.Session.NewAsync(Cancel); model.Session.Source = "void Main() { throw new Exception(Message.Text(\"PID-3\")); }";
             await model.RunAsync(); Assert.Contains(model.Diagnostics, d => d.Code == "RuntimeFailed"); Assert.Single(docs.Documents);
             Assert.DoesNotContain("SYN-001", string.Join("", model.Diagnostics));
             Assert.DoesNotContain("SYN-001", string.Join("", docs.Activity.Snapshot()));

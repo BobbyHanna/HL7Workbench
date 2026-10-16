@@ -1,0 +1,2 @@
+# Protocol-byte fixture: preserve CR segment terminators and the reviewed hash.
+/samples/synthetic-only/stage5b-repeated-patients.hl7 binary

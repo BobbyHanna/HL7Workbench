@@ -217,3 +217,54 @@ budgets, coordinate contracts and intentionally deferred large-message editing,
 source mappings, grouped/disk-backed history, external-change reconciliation,
 scripting and SQL. See [Stage 4 acceptance](stage4-editable-document-acceptance.md)
 for verification and recorded native Windows acceptance.
+
+## Unified C# scripting (Stage 5B, native acceptance granted 2026-10-16)
+
+Scripting/ScriptHost use one lifecycle for both execution scopes: compile once,
+initialize once, synchronous Main per selected message, optional Complete on success.
+Roslyn syntax/semantic entry validation and one fixed continuation bind delegates
+to the initialized submission, retaining run-level state with no per-message compilation.
+Message resolves dynamically during Main; Batch exposes phase-checked reports,
+Defer/Hold/Emit and bounded deferred-copy draining. Core remains
+dependency-free and authoritative for structure, controlled writes and serialization.
+Workspace reuses captured working snapshots and transactional output validation;
+interleaved CSV rows stream into a separate bounded snapshot journal. Both artifacts
+roll back until the complete job validates. Completed reports are explicitly exported
+after document publication, with flushed temporary files and version-scoped replacement
+only after explicit user authorization. HL7 Save As, CSV and original-source exports
+share Workspace's FileSaveDestination publication path; ordinary associated Save requires
+no repeated confirmation. See [save/export safety](save-and-export-safety.md) for native
+provider evidence, destination checks and platform limits.
+Export read leases defer snapshot cleanup until readers drain. No cross-resource
+atomic transaction is claimed. Desktop provides one New Script action, Apply to: scope
+selection and report export with existing docking, font, coloring and draft ownership.
+Session-only last-successful-run attribution records script name/scope at start
+and changes only with successful report replacement. API/protocol version 2 refuses
+obsolete clients. Library schema 3 omits kind and retains a migration warning flag;
+version-1/2 records are blocked as obsolete without load-time writes until explicit Save.
+See [ADR 0007](decisions/0007-unified-csharp-scripting.md) and [script API](script-api.md).
+
+## Desktop command surfaces and preferences (Stage 5B finishing)
+
+The permanent menu and an Avalonia utility ribbon sit above Dock. Collapsed ribbon
+commands use a light-dismiss popup; only deliberately pinned commands consume Dock
+height. No new dependency or window-layout schema is introduced. Existing Home/HL7
+actions are reused; TCP/MLLP buttons are disabled Planned placeholders without services.
+UiCommand adapters on the retained ScriptEditorViewModel serve menu, ribbon and editor.
+Decision/export/run state gates every surface. Dock still owns placement only; reopening
+or floating reconstructs controls over the same draft and report journal.
+
+The compact editor keeps two rows and moves secondary commands into ⋯. Inline rename
+confirms a validated draft name; explicit Save persists name/code atomically. Delete
+uses ScriptLibrary's lock/revision guard, dirty consent and a named confirmation;
+failure/cancel retains the draft, success selects a bundled fallback. Output documents,
+exported files and report provenance are independent. A contextual reports window reuses
+the existing export service; journal replacement is blocked throughout the native picker.
+
+Workspace's ApplicationPreferences publishes only successfully persisted EditorPreferences.
+The existing per-user JSON gains RibbonExpanded and reserved schema-mode/target metadata,
+preserving valid unknown fields. The General/HL7 Preferences window uses Apply/OK/Cancel;
+the existing Edit Mode checkbox and pin/unpin share that state. Only newly opened documents
+receive the edit default. Core exposes declared MSH-12 but has no schema interpreter or
+validator: schema controls are disabled and never drive parsing, writes or diagnostics.
+See [settings contracts](desktop-preferences.md) and [native acceptance](stage5b-ui-finishing-acceptance.md).

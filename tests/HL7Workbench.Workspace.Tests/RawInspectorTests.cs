@@ -99,6 +99,14 @@ public sealed class RawInspectorTests
             Assert.Equal("PID|SYN", await File.ReadAllTextAsync(original, TestContext.Current.CancellationToken));
             Assert.Single(Directory.GetFiles(directory));
             await Assert.ThrowsAsync<IOException>(() => session.ExportAsync(Path.Combine(doc.Snapshot!.DirectoryPath, "source.bin"), TestContext.Current.CancellationToken));
+            await File.WriteAllTextAsync(target, "SYNTHETIC EXISTING", TestContext.Current.CancellationToken);
+            await Assert.ThrowsAnyAsync<IOException>(() => session.ExportAsync(target, TestContext.Current.CancellationToken));
+            Assert.Equal("SYNTHETIC EXISTING", await File.ReadAllTextAsync(target, TestContext.Current.CancellationToken));
+            await session.ExportAsync(await FileSaveDestination.CaptureAsync(target, TestContext.Current.CancellationToken), TestContext.Current.CancellationToken);
+            Assert.Equal("PID|SYN", await File.ReadAllTextAsync(target, TestContext.Current.CancellationToken));
+            await Assert.ThrowsAsync<IOException>(async () => await session.ExportAsync(
+                await FileSaveDestination.CaptureAsync(Path.Combine(doc.Snapshot!.DirectoryPath, "source.bin"), TestContext.Current.CancellationToken), TestContext.Current.CancellationToken));
+            Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
         }
         finally { manager.Close(doc.Id); await doc.Disposal; await input.DisposeAsync(); Directory.Delete(directory, true); }
     }

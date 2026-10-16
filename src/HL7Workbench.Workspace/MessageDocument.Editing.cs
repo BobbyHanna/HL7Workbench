@@ -121,7 +121,10 @@ public sealed partial class MessageDocument
     }
 
     /// <summary>Publishes the whole file, copying untouched snapshot bytes and substituting bounded payload overlays.</summary>
-    public async Task SaveAsync(string? destination = null, CancellationToken token = default)
+    public Task SaveAsync(string? destination = null, CancellationToken token = default) => SaveCoreAsync(destination, null, token);
+    /// <summary>Save As with explicit, version-scoped replacement consent.</summary>
+    public Task SaveAsync(FileSaveDestination destination, CancellationToken token = default) => SaveCoreAsync(destination.Path, destination, token);
+    private async Task SaveCoreAsync(string? destination, FileSaveDestination? authorization, CancellationToken token)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         if (IsSaving || IsCapturingScript) throw new InvalidOperationException("A save or script capture is already running.");
@@ -134,6 +137,9 @@ public sealed partial class MessageDocument
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, lifetime.Token);
         try
         {
+            // Associated Save is an established operation, with no new overwrite prompt.
+            // Explicit paths without consent are creation-only, including API callers.
+            var target = authorization ?? (destination is null ? await FileSaveDestination.CaptureAsync(path, linked.Token) : FileSaveDestination.NewFile(path));
             await work.WaitAsync(linked.Token);
             try
             {
@@ -152,33 +158,22 @@ public sealed partial class MessageDocument
                         }
                     }
                     finally { scanConcurrency.Release(); }
-                    var temporary = Path.Combine(Path.GetDirectoryName(path)!, ".hl7-save-" + Guid.NewGuid().ToString("N") + ".tmp");
-                    try
+                    await target.WriteAsync(async (output, cancellation) =>
                     {
-                        await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, true))
+                        if (Snapshot is { } snapshot && Index is { } index)
                         {
-                            if (Snapshot is { } snapshot && Index is { } index)
+                            long cursor = 0;
+                            foreach (var (number, buffer) in buffers.OrderBy(p => p.Key))
                             {
-                                long cursor = 0;
-                                foreach (var (number, buffer) in buffers.OrderBy(p => p.Key))
-                                {
-                                    if (!buffer.DiffersFromOriginal) continue;
-                                    var range = index.Messages[number - 1].PayloadRange;
-                                    await CopySnapshotAsync(snapshot, new(cursor, range.Offset - cursor), output, linked.Token);
-                                    await output.WriteAsync(buffer.Serialize(), linked.Token); cursor = range.End;
-                                }
-                                await CopySnapshotAsync(snapshot, new(cursor, snapshot.Length - cursor), output, linked.Token);
+                                if (!buffer.DiffersFromOriginal) continue;
+                                var range = index.Messages[number - 1].PayloadRange;
+                                await CopySnapshotAsync(snapshot, new(cursor, range.Offset - cursor), output, cancellation);
+                                await output.WriteAsync(buffer.Serialize(), cancellation); cursor = range.End;
                             }
-                            else await output.WriteAsync(buffers.GetValueOrDefault(1)?.Serialize() ?? Hl7Serializer.Serialize(Message), linked.Token);
-                            await output.FlushAsync(linked.Token); output.Flush(true);
+                            await CopySnapshotAsync(snapshot, new(cursor, snapshot.Length - cursor), output, cancellation);
                         }
-                        linked.Token.ThrowIfCancellationRequested();
-                        // Same-directory publication avoids a cross-volume copy. Existing files
-                        // use replacement; failure never deletes the destination or working state.
-                        if (File.Exists(path)) File.Replace(temporary, path, null);
-                        else File.Move(temporary, path);
-                    }
-                    finally { try { if (File.Exists(temporary)) File.Delete(temporary); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+                        else await output.WriteAsync(buffers.GetValueOrDefault(1)?.Serialize() ?? Hl7Serializer.Serialize(Message), cancellation);
+                    }, linked.Token);
                 }, linked.Token);
                 foreach (var buffer in buffers.Values) buffer.MarkSaved();
                 generatedUnsaved = false;

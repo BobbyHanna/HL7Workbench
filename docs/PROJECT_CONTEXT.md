@@ -6,6 +6,222 @@ All committed examples and tests must be synthetic.
 
 ## Current milestone and review boundary
 
+On 2026-10-16 the user confirmed final native Windows acceptance of Stage 5B, including
+the safe overwrite and compact-dialog corrections, and explicitly authorized one
+milestone commit and a normal push to existing origin/main from baseline 6dfa9f4.
+Commit message: `feat: complete Stage 5B unified scripting and desktop tooling`.
+No amend, rebase, force-push, tag or release is authorized. Stop if origin/main advanced.
+The accepted verification remains the zero-warning/error Release build, 802 automated
+cases, 333 Workspace stress cases, published-worker smoke/hashes/dependency isolation
+and native Windows acceptance. Final review makes only acceptance-documentation,
+generated-export ignore and fixture attribute changes; implementation/test code remains
+the verified version.
+The known synthetic-summary.csv native export stays local and ignored; the reviewed
+synthetic HL7 fixture is included. Earlier pending-acceptance/Git restrictions below
+describe historical checkpoints and are superseded by this explicit authorization.
+Final review checked all 48 changed C# files against existing Release portable-PDB
+source checksums (zero mismatches); MainWindow markup predates that verified build.
+The published-worker checks passed again under Windows PowerShell 5.1. Expensive
+automated/stress runs were not repeated because implementation/tests are unchanged.
+The commit inventory is 64 reviewed files, with generated outputs excluded. A targeted
+Git binary attribute preserves the synthetic fixture's protocol CR terminators and
+exact reviewed bytes; its documented SHA-256 is unchanged.
+
+### Earlier final save/dialog correction checkpoint
+
+The user completed native Stage 5B functional checks for unified scripting, Library,
+reports, ribbon, Preferences and document workflows. Two final acceptance corrections
+remain for native retest: confirmed Save File replacement and compact confirmations.
+All three picker workflows (shared ordinary/generated HL7 Save As, CSV export and exact
+source export) now use one Desktop authorization adapter and Workspace FileSaveDestination.
+The installed Avalonia 12.1.4 Windows backend was inspected: ShowOverwritePrompt=true
+retains Windows' default overwrite consent, so no second application prompt is shown.
+Other providers require application consent for existing local files. A path alone
+allows creation only. Complete same-directory staged writes are flushed/closed, then
+identity/metadata/hash and location are checked before File.Replace; collisions/changes
+fail safely. Associated Save needs no repeat prompt. Existing streaming/byte/undo/script
+contracts remain, with no worker/API or persistence changes. Native-confirmation and
+final check-to-replace races are documented rather than claimed impossible.
+
+Unsaved HL7/script, Delete Script and fallback Replace confirmations share a content-sized
+420-pixel layout, wrapping, aligned buttons and safe Cancel/Escape/window-close behavior.
+See `save-and-export-safety.md` for the full before/after inventory, provider evidence,
+filesystem limits and exact native retest. The finishing checklist records verification.
+Final locked restore/Release build passed with zero warnings/errors; 80 focused checks
+and all 802 automated cases passed, zero failed/skipped (33 added). Refreshed folder
+publish and full Windows PowerShell 5.1 worker/hash/dependency checks passed. No mocked
+picker result is claimed as native confirmation/visual/DPI acceptance.
+Workspace stress was rerun for the shared file-publication changes: all 333 passed.
+Diff/whitespace/conflict checks passed across all 63 modified/untracked files. The
+ignored investigation probe was removed; the synthetic fixture hash is unchanged.
+Main stays at 6dfa9f4, with 28 modified tracked / 35 untracked and nothing staged.
+Do not stage, commit, push, tag or release; explicit final acceptance and Git authorization
+are still required. Earlier checkpoints below are historical.
+
+### Earlier final-menu checkpoint
+
+The user confirmed the corrected Stage 5B ribbon looks substantially better and switches
+tabs with one click. The final menu cleanup leaves **File | Settings | View**, removing
+Scripts and Window dropdowns. All ten former Scripts entries retain their shared command
+instances in the Scripts ribbon; Open Script Editor was added there. Home → Workspace
+retains Save/Restore Layout and now exposes Reset Layout / Recover Windows. All six tool
+visibility commands stay in View. Scope, Review Output, Reports / Export CSV, keyboard
+shortcuts and docked/floating editor controls are retained. Ribbon tabs, accepted styles,
+theme bindings, input routing, pinning and persistence are unchanged. No runtime, library,
+export, Dock, HL7 or schema implementation changes belong to this cleanup.
+
+Final menu verification on 2026-10-15: locked restore passed; Release build passed with
+zero warnings/errors; all ten focused menu/ribbon/shortcut cases and all 769 automated
+cases passed (zero failed/skipped). The large-file stress suite was not rerun for this
+menu-only change; its earlier successful result remains historical. See the complete
+command inventory and remaining native steps in `stage5b-ui-finishing-acceptance.md`.
+Stage 5B remains uncommitted on main; nothing may be staged, committed, pushed, tagged
+or released without separate explicit authorization. Full native acceptance is pending.
+
+### Earlier ribbon correction checkpoint
+
+Initial native acceptance of the Stage 5B ribbon failed for light command surfaces in
+dark mode, weak hierarchy/contrast and two-click tab switching. The authorized defect
+correction keeps Popup.Child stable, passes overlay input only through the tab/pin strip,
+and switches temporary content on the first click without dismissing it. The selected
+tab toggles temporary visibility; outside/Escape dismissal and pinned preferences remain.
+Dynamic Fluent resource bindings follow the window's dark/light theme. Compact vector
+commands now form Script Library / Execution / Results groups with an accent Run tile;
+Home/HL7 Tools use the same layout and networking stays disabled Planned placeholders.
+The user subsequently confirmed improved appearance and single-click switching;
+remaining native checks are tracked in the checklist and previews alone are not acceptance.
+See the explicit ribbon retest in `stage5b-ui-finishing-acceptance.md`. No runtime, API,
+library/settings persistence, export safety, Dock or source-byte behavior changes.
+
+Ribbon correction verification on 2026-10-15: locked restore and Release build passed
+with zero warnings/errors; seven focused ribbon checks and four isolated Skia rendering
+cases passed, followed by all 768 automated cases (zero failed/skipped). Dark/light
+pinned/overlay PNGs were inspected and remain in ignored artifacts/ribbon-visual/.
+Publish and the complete worker/hash/dependency checks passed under Windows PowerShell
+5.1. Diff/whitespace checks and all 51 modified/untracked files passed inspection.
+Temporary investigation/comparison files were removed. Main stays at 6dfa9f4, with
+23 modified tracked / 28 untracked and nothing staged. This predates the final menu cleanup.
+
+Stage 5B's earlier UI/UX finishing pass added a permanent Scripts menu (now removed), a collapsed-
+by-default utility ribbon (Home, Scripts, HL7 Tools, TCP/MLLP), and a separate General/HL7
+Preferences window. Temporary commands overlay Dock without changing its viewport;
+pin/unpin and Preferences share atomic per-user ribbon persistence. General also reuses
+the existing new-document Edit Mode preference and Settings checkbox. Core has no target-
+schema interpreter/validator: selected target and interpretation mode are reserved metadata,
+distinct from each message's declared MSH-12; controls are disabled with an explanation.
+No schema catalog, source mutation, conflict/conformance results or networking is added.
+
+The ribbon/editor share the retained script model's UiCommands and operation gates.
+Two compact editor rows contain library/name/New/Save/⋯ and scope/Run/Cancel/state.
+Inline rename confirms a valid draft name; Save Script explicitly persists name/code.
+Secondary actions include Duplicate, Rename, Delete, Review and Reports / Export CSV.
+Delete only targets saved user entries with dirty consent, named confirmation and
+lock/revision validation; canceled/failed deletion retains drafts, success selects the
+simple bundled example. Generated HL7/CSV and report attribution remain independent.
+Contextual reports preserve name/scope and block replacement throughout picker/export.
+All unified runtime, containment, CSV and byte-preservation contracts below remain.
+See `desktop-preferences.md` and `stage5b-ui-finishing-acceptance.md`. Native Windows
+acceptance is pending; no commit/push/tag/release or staging is authorized.
+
+UI finishing verification on 2026-10-15: locked restore and final Release build passed
+with zero warnings/errors. All 762 automated cases passed (zero failed/skipped), adding
+19 cases for defaults/recovery/forward fields, edit/schema separation, rename/delete,
+command state, popup sizing/dismissal/keyboard behavior, Preferences and report retention.
+Workspace stress passed all 320 cases, including 8,192 stateful messages, 4,096-message
+streaming and the 256/512 MiB fixtures. Folder publish and the complete worker/hash/
+dependency checks passed in Windows PowerShell 5.1 and PowerShell 7. A transient build
+overlap with stress produced Windows copy-lock warnings; the final sequential build
+and full tests passed cleanly. Diff/whitespace and all 50 modified/untracked file checks
+passed. Main remains at 6dfa9f4 with 23 modified tracked / 27 untracked files and nothing
+staged. The existing synthetic CSV export and earlier Stage 5B work are retained.
+
+Stage 5B now uses unified C# scripting under ADR 0007. Every Run compiles once,
+initializes once, calls required synchronous `void Main()` for each selected message
+in source order, then optional `void Complete()` once on success. Roslyn syntax and
+semantic validation discover entry points; one fixed host continuation binds callbacks
+to the initialized submission, retaining shared variables without per-message compilation.
+Current message and Whole document use identical source/lifecycle and fresh state per Run.
+`Message` resolves only during Main; `Batch` supplies reports, Defer/Hold/Emit and ordinal
+access, never a script kind. Existing bounds, lossless capture, working edits, privacy,
+Windows worker containment and transactional HL7/report publication remain intact.
+
+The editor has one New Script action and an Apply to: scope selector. Kind labels,
+type changes and ScriptMode are removed. Last-successful report attribution captures
+script name/scope only. Definition API/protocol are version 2; library schema 3 stores
+identity/name/source and an obsolete-record warning flag, with no kind metadata.
+Version-1/2 records retain their files/source, display Needs update and cannot Run until
+the author rewrites and explicitly saves. Duplication preserves that warning. Settings,
+docking, font/color behavior and immutable duplicable examples are preserved.
+
+The unified redesign requires native Windows acceptance. No commit/push/tag/release
+is authorized. See `script-api.md`, ADR 0007 and `stage5b-batch-scripting-acceptance.md`
+for current contracts, verification and exact acceptance steps.
+
+Unified final verification on 2026-10-15: locked restore passed; Release build had
+zero warnings/errors; all 743 tests passed with no failures/skips. The 23 new unified
+lifecycle cases cover shared state, helpers, fresh locals/runs, completion, signature
+validation and original diagnostic locations. Obsolete kind-only workflows were
+replaced while persistence, dirty-state, source preservation, worker safety, CSV,
+attribution and tool coverage remain. Workspace stress passed all 306 cases, including
+8,192 stateful messages, the 4,096-message stream and 256/512 MiB fixtures. Folder
+publish and published one-/multi-message unified worker smoke passed, including CSV,
+completion, Hold/Emit, clean exit, all worker file hashes and dependency isolation.
+`git diff --check` and all 35 modified/untracked file checks passed. The temporary
+ignored `artifacts/unified-probe/` investigation project was removed; permanent
+lifecycle tests and publish smoke retain its coverage. The user's synthetic-summary.csv
+was retained. Main remains at 6dfa9f4 with 19 modified tracked and 16 untracked files,
+nothing staged and no commit/push/tag/release. Stop for native Windows acceptance.
+
+## Historical Stage 5B split scripting and editor polish
+
+Stage 5B stateful Batch scripting passed practical native Windows functional
+acceptance. The user requested final Script Editor UX polish; its native Windows
+retest is pending. Leave every change uncommitted; no commit/push/tag/release is
+authorized. ADR 0006 extends the accepted 5A worker/facade, source capture, library
+and dockable editor. Top-level Batch initialization registers synchronous Process
+and Complete callbacks sharing captured locals in a fresh worker/job. Message scripts
+retain their fresh-per-message behavior. Source working edits are captured, never
+mutated. Deferred copies retain source ordinals for parent boundary/envelope checks.
+Reports stream through bounded worker buffers into a Workspace snapshot journal;
+only the complete validated HL7 output opens. The user then exports selected CSV
+reports explicitly, through a flushed temporary file and no-replacement move.
+Failures/cancellation clean private artifacts; export failures preserve completed
+output and staged reports for retry. Last successful reports live in the editor
+session until replacement or model disposal, with read leases for pending exports.
+Version-1 scripts read as Message; atomic version-2 saves retain kind. The immutable
+identity example keeps at most 10,000 raw PID-3 keys in worker memory, rejects missing/
+ambiguous/diagnosed input and reports counts only. It is not complete de-identification.
+No new dependencies, Core changes, source mutation or report viewer are introduced.
+See `script-api.md`, ADR 0006 and `stage5b-batch-scripting-acceptance.md` for API,
+bounds, transaction guarantees, verification and the pending native gate.
+
+Stage 5B verification on 2026-10-15: locked restore and zero-warning/error Release
+build passed; all 714 tests passed (211 Core, 302 Workspace, 129 Desktop, 72 Scripting;
+78 added). Workspace stress passed 304 cases including 8,192 stateful messages and
+repeated patient references, plus existing 256/512 MiB fixtures. Folder publish,
+published Message/Batch worker smoke, worker Release/publish hashes and dependency
+isolation passed. `git diff --check` and full tracked/untracked inspection passed.
+The user subsequently accepted Stage 5B functionality and identified two final
+editor UX issues. Creation now uses New → Message/Batch; type changes use the
+secondary ⋯ → Change Script Type menu and preserve source. Library selection shows
+the actual draft kind, including unsaved/type-changed drafts. Retained CSV reports
+have session-only execution-time script name/kind/scope attribution, labeled Last
+successful run with origin tooltips. Switching scripts, renaming, cancellation and
+failure do not relabel prior reports. Runtime/API/CSV transactions are unchanged.
+Final polish native Windows acceptance is pending; all changes remain uncommitted.
+
+Final Script Editor UX polish verification on 2026-10-15: locked restore and a
+zero-warning/error Release build passed; all 722 tests passed (211 Core, 304 Workspace,
+135 Desktop, 72 Scripting; eight added). Focused editor/library checks passed 25/15
+cases. Workspace stress passed 306 cases. Folder publish was refreshed and published
+worker Message/Batch smoke, hashes and dependency isolation passed. No worker/API,
+Core, CSV transaction, dependency or packaging changes were made by the polish pass.
+`git diff --check` and all tracked/untracked file checks passed. The user's existing
+synthetic-summary.csv native export was inspected and left untouched. Stop for final
+native Windows UX acceptance; no commit/push/tag/release is authorized.
+
+## Accepted Stage 5A baseline and historical checkpoints
+
 The user authorized Stage 5A implementation only, following the revised Message/
 Batch/Generate architecture. Stage 5A implements Message scripts: fresh Roslyn worker
 per job, narrow Core facade, current/whole-document execution, captured unsaved edits,

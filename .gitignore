@@ -31,6 +31,8 @@ secrets.json
 # Private HL7 messages and generated data
 test-data/private/
 test-data/generated/
+# Native acceptance export; the reviewed HL7 fixture remains tracked.
+/samples/synthetic-only/synthetic-summary.csv
 *.hl7
 *.HL7
 

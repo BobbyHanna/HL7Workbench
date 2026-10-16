@@ -4,14 +4,15 @@
         xmlns:dock="using:Dock.Avalonia.Controls"
         Title="HL7 Workbench" Width="1200" Height="800"
         MinWidth="720" MinHeight="480">
-  <Grid RowDefinitions="Auto,*,Auto">
-    <Menu>
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Menu x:Name="MainMenu">
       <MenuItem Header="_File">
         <MenuItem Header="_Open File…" Click="OpenFile" />
         <MenuItem Header="_Save" Click="SaveDocument" InputGesture="Ctrl+S" />
         <MenuItem Header="Save _As…" Click="SaveDocumentAs" InputGesture="Ctrl+Shift+S" />
       </MenuItem>
       <MenuItem Header="_Settings">
+        <MenuItem Header="_Preferences…" Click="ShowPreferences" />
         <MenuItem x:Name="StartInEditMode" Header="Start in Edit Mode" ToggleType="CheckBox" Click="ChangeEditPreference" ToolTip.Tip="Apply to newly opened documents; existing documents keep their own Edit Mode" />
       </MenuItem>
       <MenuItem Header="_View">
@@ -22,14 +23,10 @@
         <MenuItem Header="Script _Editor" Click="ShowScripts" ToolTip.Tip="Create, save and run trusted local C# scripts" />
         <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
       </MenuItem>
-      <MenuItem Header="_Window">
-        <MenuItem Header="_Save Layout" Click="SaveLayout" ToolTip.Tip="Remember tool groups, tab order, sizes and floating positions" />
-        <MenuItem Header="_Restore Layout" Click="RestoreLayout" ToolTip.Tip="Restore saved tool placement without reopening previous source content" />
-        <MenuItem Header="_Reset Layout / Recover Windows" Click="ResetLayout" ToolTip.Tip="Restore default tool groups and recover unreachable windows" />
-      </MenuItem>
     </Menu>
-    <dock:DockControl x:Name="WorkspaceDock" Grid.Row="1" />
-    <DockPanel Grid.Row="2">
+    <ContentControl x:Name="RibbonHost" Grid.Row="1" />
+    <dock:DockControl x:Name="WorkspaceDock" Grid.Row="2" />
+    <DockPanel Grid.Row="3">
       <ContentControl x:Name="ActivityIndicatorHost" DockPanel.Dock="Right" />
       <Button x:Name="CancelOpening" DockPanel.Dock="Right" Content="Cancel opening" Click="CancelOpen" IsVisible="False" ToolTip.Tip="Cancel opening and indexing the selected files" />
       <TextBlock x:Name="Status" Margin="8,4" Text="HL7 Workbench • use File → Open File" />

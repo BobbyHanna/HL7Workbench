@@ -3,9 +3,10 @@ using System.Text.Json;
 
 namespace HL7Workbench.Scripting;
 
-internal enum FrameKind { Initialize, Ready, Message, Result, Finish, Finished, Cancel, Failure }
+internal enum FrameKind { Initialize, Ready, Message, Result, Finish, Finished, Cancel, Failure, Begin, Begun, Deferred }
 internal sealed record ScriptFrame(FrameKind Kind, ScriptDefinition? Definition = null, byte[]? Bytes = null,
-    int CodePage = 65001, int Number = 0, bool Excluded = false, ScriptDiagnostic[]? Diagnostics = null, int Version = 1);
+    int CodePage = 65001, int Number = 0, bool Excluded = false, ScriptDiagnostic[]? Diagnostics = null, int Version = 2,
+    ScriptReportChunk[]? Reports = null, int DeferredCount = 0);
 
 /// <summary>Single outstanding request; bounded frames provide backpressure and reject lengths before allocation.</summary>
 internal static class ScriptProtocol
@@ -25,8 +26,11 @@ internal static class ScriptProtocol
         if (length is < 1 or > MaxFrameBytes) throw new InvalidDataException();
         var bytes = new byte[length]; await stream.ReadExactlyAsync(bytes, token);
         var frame = JsonSerializer.Deserialize<ScriptFrame>(bytes) ?? throw new InvalidDataException();
-        if (frame.Version != 1 || !Enum.IsDefined(frame.Kind) || frame.Diagnostics?.Length > ScriptLimits.Diagnostics)
+        if (frame.Version != 2 || !Enum.IsDefined(frame.Kind) || frame.Diagnostics?.Length > ScriptLimits.Diagnostics)
             throw new InvalidDataException();
+        if (frame.Reports is { } reports && (reports.Length > ScriptLimits.ReportRows + ScriptLimits.Reports ||
+            reports.Any(r => r is null || r.Bytes is null || r.Name is null) ||
+            reports.Sum(r => (long)r.Bytes.Length) > ScriptLimits.ReportOperationBytes)) throw new InvalidDataException();
         return frame;
     }
 }

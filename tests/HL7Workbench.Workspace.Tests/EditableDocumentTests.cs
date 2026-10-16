@@ -149,14 +149,15 @@ public sealed class EditableDocumentTests
         var path = s.PathFor("locked.hl7"); await File.WriteAllTextAsync(path, "SYNTHETIC EXISTING", TestContext.Current.CancellationToken);
         await Assert.ThrowsAnyAsync<IOException>(() => doc.SaveAsync(s.PathFor("missing/dest.hl7"), TestContext.Current.CancellationToken));
         Assert.Null(doc.SavePath); Assert.True(doc.IsDirty); Assert.True(doc.CanUndo); Assert.False(doc.IsSaving);
+        var consent = await FileSaveDestination.CaptureAsync(path, TestContext.Current.CancellationToken);
         using (var held = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-            await Assert.ThrowsAnyAsync<IOException>(() => doc.SaveAsync(path, TestContext.Current.CancellationToken));
+            await Assert.ThrowsAnyAsync<IOException>(() => doc.SaveAsync(consent, TestContext.Current.CancellationToken));
         Assert.Equal("SYNTHETIC EXISTING", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
         using var cancel = new CancellationTokenSource(); cancel.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => doc.SaveAsync(path, cancel.Token));
         Assert.True(doc.IsDirty); Assert.Null(doc.SavePath); Assert.False(doc.IsSaving);
         Assert.Empty(Directory.GetFiles(s.Root, ".hl7-save-*"));
-        await doc.SaveAsync(path, TestContext.Current.CancellationToken); Assert.False(doc.IsDirty);
+        await doc.SaveAsync(await FileSaveDestination.CaptureAsync(path, TestContext.Current.CancellationToken), TestContext.Current.CancellationToken); Assert.False(doc.IsDirty);
         Assert.Contains("Retained", await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken));
     }
     [Theory]

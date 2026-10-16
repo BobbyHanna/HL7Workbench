@@ -16,6 +16,9 @@ public sealed class ScriptMessage
     internal ScriptMessage(Hl7Message message, CancellationToken cancellation) { this.message = message; this.cancellation = cancellation; }
 
     public bool CanEdit => message.CanEdit;
+    /// <summary>Whether Core reported any structural/encoding diagnostic. Conservative scripts can refuse malformed input before editing.</summary>
+    public bool HasDiagnostics => message.Diagnostics.Count != 0;
+    internal byte[] Serialize() => Hl7Serializer.Serialize(message);
     public ScriptValue Read(string path)
     {
         var value = message.Get(ParsePath(path));
@@ -101,7 +104,9 @@ public sealed class ScriptSegment
 
 public sealed class ScriptGlobals
 {
-    public ScriptMessage Message { get; }
+    /// <summary>The current Main invocation's message. Unavailable during initialization and Complete.</summary>
+    public ScriptMessage Message => Batch.CurrentMessage;
+    public ScriptBatch Batch { get; }
     public CancellationToken Cancellation { get; }
-    internal ScriptGlobals(ScriptMessage message, CancellationToken cancellation) { Message = message; Cancellation = cancellation; }
+    internal ScriptGlobals(ScriptBatch batch, CancellationToken cancellation) { Batch = batch; Cancellation = cancellation; }
 }

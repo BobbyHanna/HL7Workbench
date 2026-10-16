@@ -10,6 +10,7 @@ public sealed class WorkerTests
     private static string Host => Path.Combine(AppContext.BaseDirectory, "ScriptHost", "HL7Workbench.ScriptHost.dll");
     private const string Synthetic = "MSH|^~\\&|SYN|TEST|DEST|TEST|20261015120000||ADT^A01|SYN-1|T|2.5\rPID|1||SYN-001^^^TEST^MR||Example^Ada\r";
     private static byte[] Bytes(string text = Synthetic) => Encoding.UTF8.GetBytes(text);
+    private static ScriptDefinition MainScript(string body) => new("void Main()\n{\n" + body + "\n}");
     private static bool Exited(int id)
     {
         try { using var p = Process.GetProcessById(id); return p.HasExited; }
@@ -18,7 +19,7 @@ public sealed class WorkerTests
     [Fact]
     public async Task ControlledFacadeReadsEditsClearsAndReusesCompiledRunnerWithFreshLocals()
     {
-        await using var session = await ScriptWorkerSession.StartAsync(Host, new("""
+        await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript("""
             int invocationLocal = 0;
             invocationLocal++;
             if (invocationLocal != 1 || Message.Read("PID-3.1").Raw != "SYN-001") throw new Exception();
@@ -45,7 +46,7 @@ public sealed class WorkerTests
         var encoding = Encoding.GetEncoding(codePage);
         var text = Synthetic.Replace("\rPID", "\r\nPID", StringComparison.Ordinal) + "opaque malformed\nZZZ|||é";
         var bytes = encoding.GetPreamble().Concat(encoding.GetBytes(text)).ToArray();
-        await using var session = await ScriptWorkerSession.StartAsync(Host, new("// preserve"), token: TestContext.Current.CancellationToken);
+        await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript("// preserve"), token: TestContext.Current.CancellationToken);
         Assert.Equal(bytes, (await session.ProcessAsync(bytes, codePage, 1, TestContext.Current.CancellationToken)).Bytes);
     }
     [Theory]
@@ -55,14 +56,14 @@ public sealed class WorkerTests
         const string text = "MSH*$%!@*SYN\r\nPID*1***Example$Ada\nZZZ***tail";
         var encoding = Encoding.GetEncoding(codePage);
         var bytes = encoding.GetPreamble().Concat(encoding.GetBytes(text)).ToArray();
-        await using var session = await ScriptWorkerSession.StartAsync(Host, new("Message.SetText(\"PID-4.2\", \"SYN*VALUE\");"), token: TestContext.Current.CancellationToken);
+        await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript("Message.SetText(\"PID-4.2\", \"SYN*VALUE\");"), token: TestContext.Current.CancellationToken);
         Assert.Equal(encoding.GetPreamble().Concat(encoding.GetBytes(text.Replace("Ada", "SYN!F!VALUE", StringComparison.Ordinal))).ToArray(),
             (await session.ProcessAsync(bytes, codePage, 1, TestContext.Current.CancellationToken)).Bytes);
     }
     [Fact]
     public async Task ExclusionAndConsoleOutputDoNotPolluteProtocol()
     {
-        await using var session = await ScriptWorkerSession.StartAsync(Host, new("Console.WriteLine(\"SYNTHETIC PRIVATE\"); Console.Error.WriteLine(\"PRIVATE\"); Message.Exclude();"), token: TestContext.Current.CancellationToken);
+        await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript("Console.WriteLine(\"SYNTHETIC PRIVATE\"); Console.Error.WriteLine(\"PRIVATE\"); Message.Exclude();"), token: TestContext.Current.CancellationToken);
         var result = await session.ProcessAsync(Bytes(), 65001, 1, TestContext.Current.CancellationToken);
         Assert.True(result.Excluded); Assert.Null(result.Bytes);
     }
@@ -84,7 +85,7 @@ public sealed class WorkerTests
     [InlineData("Message.Read(\"SYNTHETIC-PRIVATE\");", "InvalidPath")]
     public async Task RuntimeErrorsNeverDiscloseImportedValues(string script, string code)
     {
-        await using var session = await ScriptWorkerSession.StartAsync(Host, new(script), token: TestContext.Current.CancellationToken);
+        await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript(script), token: TestContext.Current.CancellationToken);
         var failure = await Assert.ThrowsAsync<ScriptRunException>(() => session.ProcessAsync(Bytes(), 65001, 7, TestContext.Current.CancellationToken));
         Assert.Contains(failure.Diagnostics, d => d.Code == code && d.MessageNumber == 7);
         Assert.DoesNotContain("SYN-001", string.Join("", failure.Diagnostics));
@@ -95,7 +96,7 @@ public sealed class WorkerTests
     [InlineData("while (true) { }")]
     public async Task CancellationReapsCooperativeAndNoncooperativeWorkers(string script)
     {
-        var session = await ScriptWorkerSession.StartAsync(Host, new(script), token: TestContext.Current.CancellationToken);
+        var session = await ScriptWorkerSession.StartAsync(Host, MainScript(script), token: TestContext.Current.CancellationToken);
         var id = session.ProcessId;
         using var cancel = new CancellationTokenSource(TimeSpan.FromMilliseconds(400));
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.ProcessAsync(Bytes(), 65001, 1, cancel.Token));
@@ -104,7 +105,7 @@ public sealed class WorkerTests
     [Fact]
     public async Task TimeoutReapsInfiniteLoop()
     {
-        var session = await ScriptWorkerSession.StartAsync(Host, new("while (true) { }"), new() { MessageTimeout = TimeSpan.FromMilliseconds(350) }, TestContext.Current.CancellationToken);
+        var session = await ScriptWorkerSession.StartAsync(Host, MainScript("while (true) { }"), new() { MessageTimeout = TimeSpan.FromMilliseconds(350) }, TestContext.Current.CancellationToken);
         var id = session.ProcessId;
         var failure = await Assert.ThrowsAsync<ScriptRunException>(() => session.ProcessAsync(Bytes(), 65001, 1, TestContext.Current.CancellationToken));
         Assert.Contains(failure.Diagnostics, d => d.Code == "Timeout");
@@ -113,12 +114,12 @@ public sealed class WorkerTests
     [Fact]
     public async Task CrashIsSafeAndFreshJobsUseDifferentProcesses()
     {
-        var first = await ScriptWorkerSession.StartAsync(Host, new("Environment.Exit(23);"), token: TestContext.Current.CancellationToken);
+        var first = await ScriptWorkerSession.StartAsync(Host, MainScript("Environment.Exit(23);"), token: TestContext.Current.CancellationToken);
         var id = first.ProcessId;
         var failure = await Assert.ThrowsAsync<ScriptRunException>(() => first.ProcessAsync(Bytes(), 65001, 1, TestContext.Current.CancellationToken));
         Assert.Contains(failure.Diagnostics, d => d.Code == "WorkerStopped");
         await first.DisposeAsync(); Assert.True(Exited(id));
-        await using var second = await ScriptWorkerSession.StartAsync(Host, new(""), token: TestContext.Current.CancellationToken);
+        await using var second = await ScriptWorkerSession.StartAsync(Host, MainScript(""), token: TestContext.Current.CancellationToken);
         Assert.NotEqual(id, second.ProcessId);
     }
     [Fact]
@@ -126,15 +127,15 @@ public sealed class WorkerTests
     {
         foreach (var bytes in new[] { Bytes(Synthetic + new string('X', ScriptLimits.LineCharacters + 1)), new byte[] { 0xFF } })
         {
-            await using var session = await ScriptWorkerSession.StartAsync(Host, new(""), token: TestContext.Current.CancellationToken);
+            await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript(""), token: TestContext.Current.CancellationToken);
             var failure = await Assert.ThrowsAsync<ScriptRunException>(() => session.ProcessAsync(bytes, 65001, 1, TestContext.Current.CancellationToken));
             Assert.Contains(failure.Diagnostics, d => d.Code is "InputLimit" or "InvalidEncoding");
         }
     }
     [Fact]
-    public async Task FutureModesAndOversizedScriptsAreRejectedBeforeLaunch()
+    public async Task ObsoleteApiAndOversizedScriptsAreRejectedBeforeLaunch()
     {
-        foreach (var definition in new[] { new ScriptDefinition("", ScriptMode.Batch), new("", ScriptMode.Generate), new(new string(' ', ScriptLimits.ScriptCharacters + 1)) })
+        foreach (var definition in new[] { new ScriptDefinition("void Main() {}", ApiVersion: 1), new(new string(' ', ScriptLimits.ScriptCharacters + 1)) })
             await Assert.ThrowsAsync<ScriptRunException>(() => ScriptWorkerSession.StartAsync("unavailable", definition, token: TestContext.Current.CancellationToken));
     }
     [Fact]
@@ -148,9 +149,9 @@ public sealed class WorkerTests
     {
         Assert.True(File.Exists(Path.ChangeExtension(Host, ".runtimeconfig.json")));
         Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(Host)!, "Microsoft.CodeAnalysis.CSharp.Scripting.dll")));
-        await using var session = await ScriptWorkerSession.StartAsync(Host, new("// synthetic failure\nthrow new Exception(\"SYNTHETIC-PRIVATE\");"), token: TestContext.Current.CancellationToken);
+        await using var session = await ScriptWorkerSession.StartAsync(Host, MainScript("// synthetic failure\nthrow new Exception(\"SYNTHETIC-PRIVATE\");"), token: TestContext.Current.CancellationToken);
         var failure = await Assert.ThrowsAsync<ScriptRunException>(() => session.ProcessAsync(Bytes(), 65001, 1, TestContext.Current.CancellationToken));
-        Assert.Contains(failure.Diagnostics, d => d.Code == "RuntimeFailed" && d.Line == 2);
+        Assert.Contains(failure.Diagnostics, d => d.Code == "RuntimeFailed" && d.Line == 4);
         Assert.DoesNotContain(AppDomain.CurrentDomain.GetAssemblies(), a => a.GetName().Name == "Microsoft.CodeAnalysis.CSharp.Scripting");
     }
     [Fact]

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HL7Workbench.Workspace.Tests;
 
-public sealed class ScriptExecutionTests
+public sealed partial class ScriptExecutionTests
 {
     private const string First = "MSH|^~\\&|SYN|TEST|APP|TEST|20261015120000||ADT^A01|SYN-1|T|2.5\rPID|1||SYN-001||Example^Ada\r";
     private const string Second = "MSH|^~\\&|SYN|TEST|APP|TEST|20261015120000||ADT^A08|SYN-2|T|2.5\rPID|1||SYN-002||Other^Bea\r";
@@ -25,7 +25,7 @@ public sealed class ScriptExecutionTests
         }
         internal Task<ScriptExecutionResult> Run(MessageDocument source, string script = "", ScriptScope scope = ScriptScope.WholeDocument,
             ScriptExecutionOptions? options = null, IProgress<ScriptProgress>? progress = null) =>
-            new ScriptExecution(Manager, options ?? Options).RunAsync(source, new(script), scope, progress,
+            new ScriptExecution(Manager, options ?? Options).RunAsync(source, new("void Main()\n{\n" + script + "\n}"), scope, progress,
                 TestContext.Current.CancellationToken);
         internal void AssertNoStaging() => Assert.True(!Directory.Exists(Options.StorageRoot) || !Directory.EnumerateDirectories(Options.StorageRoot).Any());
         public async ValueTask DisposeAsync()
@@ -153,7 +153,7 @@ public sealed class ScriptExecutionTests
     {
         await using var s = new Session(); var source = await s.Open();
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
-        var run = new ScriptExecution(s.Manager, s.Options).RunAsync(source, new("while(true) { }"), ScriptScope.WholeDocument,
+        var run = new ScriptExecution(s.Manager, s.Options).RunAsync(source, new("void Main() { while(true) { } }"), ScriptScope.WholeDocument,
             new Progress(p => { if (p.Phase == "Compiling") cancellation.CancelAfter(1000); }), cancellation.Token);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => run); s.AssertNoStaging();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => s.Run(source, progress: new Progress(p =>

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
@@ -20,18 +21,29 @@ public sealed class ScriptEditorView : Grid
     private readonly ScriptEditorViewModel model;
     private bool synchronizing;
     private bool subscribed;
+    private bool wasRenaming;
+    private IReadOnlyList<ScriptLibraryItem>? libraryItems;
+    private ScriptLibraryItem? libraryDraft;
+    private IReadOnlyList<ScriptLibraryItem> displayedLibrary = [];
     internal ScriptSemanticHighlighting SymbolHighlighting { get; }
-    public Func<Task<UnsavedChangesDecision>> PromptUnsavedAsync { get; set; } = () => Task.FromResult(UnsavedChangesDecision.Cancel);
+    public Func<Task<UnsavedChangesDecision>> PromptUnsavedAsync { get => model.PromptUnsavedAsync; set => model.PromptUnsavedAsync = value; }
     public TextEditor Editor { get; } = new() { ShowLineNumbers = true, FontFamily = new("Consolas, monospace") };
     public ComboBox Library { get; } = new() { Width = 200 };
     public TextBox ScriptName { get; } = new() { Width = 180, MaxLength = 120, PlaceholderText = "Script name" };
+    public Button NameDisplay { get; } = new() { Width = 180, HorizontalContentAlignment = HorizontalAlignment.Left };
+    public Button Actions { get; } = new() { Content = "⋯" };
     public ComboBox ExecutionScope { get; } = new() { ItemsSource = new[] { "Current message", "Whole document" }, Width = 140 };
+    public TextBlock ScopeLabel { get; } = new() { Text = "Apply to:", VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public Button New { get; } = new() { Content = "New" };
     public Button Save { get; } = new() { Content = "Save Script" };
-    public Button Duplicate { get; } = new() { Content = "Duplicate" };
+    public MenuItem Duplicate { get; } = new() { Header = "Duplicate Script" };
+    public MenuItem Rename { get; } = new() { Header = "Rename Script" };
+    public MenuItem Delete { get; } = new() { Header = "Delete Script…" };
+    public MenuItem Reports { get; } = new() { Header = "Reports / Export CSV…" };
     public Button Run { get; } = new() { Content = "Run" };
     public Button Cancel { get; } = new() { Content = "Cancel" };
-    public Button Review { get; } = new() { Content = "Review Output" };
+    public MenuItem Review { get; } = new() { Header = "Review Output" };
+    public TextBlock ExecutionStatus { get; } = new() { MaxWidth = 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public TextBlock Status { get; } = new() { TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public TextBlock Target { get; } = new() { MaxWidth = 300, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public ListBox Diagnostics { get; } = new() { MaxHeight = 96 };
@@ -43,14 +55,22 @@ public sealed class ScriptEditorView : Grid
     public ScrollViewer ExecutionToolbar { get; }
     public ScriptEditorView(ScriptEditorViewModel model, Func<Task<UnsavedChangesDecision>>? prompt = null)
     {
-        this.model = model; PromptUnsavedAsync = prompt ?? (() => model.PromptUnsavedAsync());
+        this.model = model; if (prompt is not null) PromptUnsavedAsync = prompt;
         Margin = new(3); RowDefinitions = new("Auto,Auto,*,Auto,Auto");
         MinWidth = 260; MinHeight = 150;
         ScriptEditorPalette.Dark.Apply(Editor);
         SymbolHighlighting = new(Editor, ScriptEditorPalette.Dark);
-        LibraryToolbar = Toolbar(Library, New, Duplicate, ScriptName, Save);
+        AutomationProperties.SetName(New, "New script");
+        New.Command = model.NewCommand; Save.Command = model.SaveCommand; Duplicate.Command = model.DuplicateCommand;
+        Rename.Command = NameDisplay.Command = model.RenameCommand; Delete.Command = model.DeleteCommand;
+        Run.Command = model.RunCommand; Cancel.Command = model.CancelCommand; Review.Command = model.ReviewCommand; Reports.Command = model.ReportsCommand;
+        var actions = new MenuFlyout();
+        foreach (var item in new[] { Duplicate, Rename, Delete, Review, Reports }) actions.Items.Add(item);
+        Actions.Flyout = actions; AutomationProperties.SetName(Actions, "Script actions");
+        var nameHost = new Grid(); nameHost.Children.Add(NameDisplay); nameHost.Children.Add(ScriptName);
+        LibraryToolbar = Toolbar(Library, nameHost, New, Save, Actions);
         Children.Add(LibraryToolbar);
-        ExecutionToolbar = Toolbar(ExecutionScope, Run, Cancel, Review, Target);
+        ExecutionToolbar = Toolbar(ScopeLabel, ExecutionScope, Run, Cancel, ExecutionStatus);
         SetRow(ExecutionToolbar, 1); Children.Add(ExecutionToolbar);
         SetRow(Editor, 2); Children.Add(Editor);
         var footer = new Grid { ColumnDefinitions = new("*,Auto"), Margin = new(0, 1, 0, 0) };
@@ -65,11 +85,12 @@ public sealed class ScriptEditorView : Grid
         DiagnosticPanel.Content = Diagnostics;
         ToolTip.SetTip(DiagnosticPanel, "Expand diagnostics, then double-click an entry to navigate to its script line.");
         SetRow(DiagnosticPanel, 3); Children.Add(DiagnosticPanel);
-        Library.ItemTemplate = new FuncDataTemplate<ScriptLibraryItem>((item, _) => new TextBlock { Text = item?.Name ?? "" });
-        ToolTip.SetTip(ScriptName, "Rename this script, then Save Script. Its library identity stays unchanged.");
+        Library.ItemTemplate = new FuncDataTemplate<ScriptLibraryItem>((item, _) => new TextBlock { Text = item is null ? "" : (item.Obsolete ? "[Needs update] " : "") + item.Name });
+        ToolTip.SetTip(New, "Create one C# script with void Main() for either scope. Top-level state initializes once; optional void Complete() runs after all messages.");
+        ToolTip.SetTip(NameDisplay, "Click to rename. Enter confirms; Escape cancels. Save Script persists the name and code. Duplicate bundled examples first.");
+        ToolTip.SetTip(ScriptName, "Enter confirms the name; Escape cancels. Invalid names leave the previous name intact.");
         ToolTip.SetTip(Save, "Save script text and name locally (Ctrl+S). This does not save the HL7 document.");
         ToolTip.SetTip(Duplicate, "Save an editable copy, including the current draft, while retaining the original saved entry.");
-        ToolTip.SetTip(Library, "Script Library — bundled examples can be duplicated and edited.");
         ToolTip.SetTip(Run, "Run trusted local C# with your account permissions. Results open as a new unsaved HL7 document.");
         ToolTip.SetTip(ZoomIn, "Zoom in: Ctrl+MouseWheel, Ctrl++ or Ctrl+NumPad Add in the code editor.");
         ToolTip.SetTip(ZoomOut, "Zoom out: Ctrl+MouseWheel, Ctrl+− or Ctrl+NumPad Subtract in the code editor.");
@@ -110,17 +131,21 @@ public sealed class ScriptEditorView : Grid
             }
             model.Session.Source = Editor.Text;
         };
-        ScriptName.TextChanged += (_, _) => { if (!synchronizing) model.Session.Name = ScriptName.Text ?? ""; };
+        // TextChanged is deferred by the control. Track the property synchronously
+        // so Enter/focus loss cannot confirm the value from the previous key event.
+        ScriptName.PropertyChanged += (_, e) => { if (e.Property == TextBox.TextProperty && !synchronizing && model.IsRenaming) model.RenameDraft = ScriptName.Text ?? ""; };
+        ScriptName.KeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Enter) { model.CommitRename(); Editor.Focus(); e.Handled = true; }
+            else if (e.Key == Key.Escape) { model.CancelRename(); Editor.Focus(); e.Handled = true; }
+        };
+        ScriptName.LostFocus += (_, _) => { if (model.IsRenaming) model.CommitRename(); };
         ExecutionScope.SelectionChanged += (_, _) => { if (!synchronizing) model.Scope = ExecutionScope.SelectedIndex == 1 ? Scripting.ScriptScope.WholeDocument : Scripting.ScriptScope.CurrentMessage; };
         Library.SelectionChanged += async (_, _) =>
         {
-            if (synchronizing || model.IsBusy || Library.SelectedItem is not ScriptLibraryItem item || item.Id == model.Session.Id) return;
-            await model.Session.OpenAsync(item.Id, PromptUnsavedAsync); Refresh();
+            if (synchronizing || !model.CanManage || Library.SelectedItem is not ScriptLibraryItem item || item.Id == model.Session.Id) return;
+            await model.OpenLibraryAsync(item.Id); Refresh();
         };
-        New.Click += async (_, _) => { await model.Session.NewAsync(PromptUnsavedAsync); Refresh(); };
-        Duplicate.Click += (_, _) => { model.Session.Duplicate(); Refresh(); };
-        Save.Click += (_, _) => { model.Session.Save(); Refresh(); };
-        Run.Click += async (_, _) => await model.RunAsync(); Cancel.Click += (_, _) => model.Cancel(); Review.Click += (_, _) => model.Review();
         Diagnostics.DoubleTapped += (_, _) =>
         {
             if (Diagnostics.SelectedItem is Scripting.ScriptDiagnostic { Line: > 0 } diagnostic)
@@ -129,13 +154,15 @@ public sealed class ScriptEditorView : Grid
         AddHandler(KeyDownEvent, (_, e) =>
         {
             if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
-            { e.Handled = true; if (!model.IsBusy && !model.Session.IsBundled) { model.Session.Save(); Refresh(); } }
+            { e.Handled = true; model.SaveCommand.Execute(null); }
         }, RoutingStrategies.Tunnel);
-        AttachedToVisualTree += (_, _) => { if (!subscribed) { model.PropertyChanged += ModelChanged; subscribed = true; } Refresh(); SymbolHighlighting.Start(); };
-        DetachedFromVisualTree += (_, _) => { if (subscribed) { model.PropertyChanged -= ModelChanged; subscribed = false; } SymbolHighlighting.Stop(); };
+        AttachedToVisualTree += (_, _) => { if (!subscribed) { model.PropertyChanged += ModelChanged; model.EditorShown += FocusEditor; subscribed = true; } Refresh(); SymbolHighlighting.Start(); };
+        DetachedFromVisualTree += (_, _) => { if (subscribed) { model.PropertyChanged -= ModelChanged; model.EditorShown -= FocusEditor; subscribed = false; } SymbolHighlighting.Stop(); };
         SizeChanged += (_, _) => Target.IsVisible = Bounds.Width >= 650;
         Refresh();
     }
+    private void FocusEditor()
+    { if (model.IsRenaming) { ScriptName.Focus(); ScriptName.SelectAll(); } else Editor.Focus(); }
     private static ScrollViewer Toolbar(params Control[] controls)
     {
         var strip = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3 };
@@ -157,14 +184,38 @@ public sealed class ScriptEditorView : Grid
         try
         {
             if (Editor.Text != model.Session.Source) Editor.Text = model.Session.Source;
-            ScriptName.Text = model.Session.Name; Editor.IsReadOnly = model.Session.IsBundled || model.IsBusy;
-            ScriptName.IsReadOnly = model.Session.IsBundled || model.IsBusy;
-            if (!ReferenceEquals(Library.ItemsSource, model.Session.Items)) Library.ItemsSource = model.Session.Items;
-            Library.SelectedItem = model.Session.Items.FirstOrDefault(i => i.Id == model.Session.Id);
-            Library.IsEnabled = New.IsEnabled = Duplicate.IsEnabled = ExecutionScope.IsEnabled = !model.IsBusy;
-            Save.IsEnabled = !model.IsBusy && !model.Session.IsBundled;
+            var startingRename = model.IsRenaming && !wasRenaming;
+            wasRenaming = model.IsRenaming;
+            ScriptName.IsVisible = model.IsRenaming; NameDisplay.IsVisible = !model.IsRenaming;
+            ScriptName.Text = model.IsRenaming ? model.RenameDraft : model.Session.Name;
+            NameDisplay.Content = new TextBlock { Text = model.Session.DisplayName, TextTrimming = TextTrimming.CharacterEllipsis };
+            Editor.IsReadOnly = model.Session.IsBundled || !model.CanManage;
+            ScriptName.IsReadOnly = model.Session.IsBundled || !model.CanManage;
+            if (startingRename) Dispatcher.UIThread.Post(() => { if (model.IsRenaming && TopLevel.GetTopLevel(ScriptName) is not null) { ScriptName.Focus(); ScriptName.SelectAll(); } });
+            var draft = new ScriptLibraryItem(model.Session.Id, model.Session.DisplayName, model.Session.IsBundled, model.Session.IsObsolete);
+            if (!ReferenceEquals(libraryItems, model.Session.Items) || libraryDraft != draft)
+            {
+                libraryItems = model.Session.Items; libraryDraft = draft;
+                // Unsaved names/dirty state and obsolete-record warnings belong to this
+                // transient projection, never to a rewritten library record on load.
+                var items = libraryItems.Select(i => i.Id == draft.Id ? draft : i).ToList();
+                if (!items.Any(i => i.Id == draft.Id)) items.Insert(0, draft);
+                displayedLibrary = items;
+                Library.ItemsSource = displayedLibrary;
+            }
+            Library.SelectedItem = displayedLibrary.First(i => i.Id == model.Session.Id);
+            ToolTip.SetTip(Library, model.Session.IsObsolete ? ScriptEditorSession.MigrationNotice :
+                $"Script Library — {model.Session.DisplayName}. One Main script works with either Apply to scope. Bundled examples require Duplicate before editing.");
+            Library.IsEnabled = ExecutionScope.IsEnabled = model.CanManage;
+            New.IsEnabled = model.NewCommand.CanExecute(null); Save.IsEnabled = model.SaveCommand.CanExecute(null);
+            Duplicate.IsEnabled = model.DuplicateCommand.CanExecute(null); Rename.IsEnabled = NameDisplay.IsEnabled = model.RenameCommand.CanExecute(null);
+            Delete.IsEnabled = model.DeleteCommand.CanExecute(null); Reports.IsEnabled = model.ReportsCommand.CanExecute(null);
+            Run.IsEnabled = model.RunCommand.CanExecute(null); Cancel.IsEnabled = model.CancelCommand.CanExecute(null); Review.IsEnabled = model.ReviewCommand.CanExecute(null);
             ExecutionScope.SelectedIndex = model.Scope == Scripting.ScriptScope.WholeDocument ? 1 : 0;
-            Run.IsEnabled = model.CanRun; Cancel.IsEnabled = model.IsBusy; Review.IsEnabled = model.CanReview;
+            var origin = model.ReportOrigin?.Description ?? "No CSV reports from a successful run are available.";
+            ToolTip.SetTip(Reports, origin + " Existing files require explicit replacement confirmation.");
+            ExecutionStatus.Text = model.IsBusy ? "Running…" : model.Diagnostics.Count > 0 ? "Run failed" : model.Reports.Count > 0 ? $"{model.Reports.Count} reports available" : "Ready";
+            ToolTip.SetTip(ExecutionStatus, model.Status);
             Target.Text = model.Target;
             ToolTip.SetTip(ExecutionScope, model.Target);
             Status.Text = (model.Session.IsDirty ? "* Unsaved script · " : "") +

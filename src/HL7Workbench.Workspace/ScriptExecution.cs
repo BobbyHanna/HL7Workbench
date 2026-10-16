@@ -18,9 +18,10 @@ public sealed record ScriptExecutionOptions
     }
 }
 
-public sealed record ScriptExecutionResult(MessageDocument Document, int Processed, int Kept, long OutputBytes);
+/// <summary>Completed independent output. Caller owns Reports and must dispose it after export or abandonment.</summary>
+public sealed record ScriptExecutionResult(MessageDocument Document, int Processed, int Kept, long OutputBytes, ScriptReports? Reports = null);
 
-/// <summary>Message-mode coordinator. Only a completed, indexed artifact is published; input documents are never mutated or saved.</summary>
+/// <summary>Unified scripting coordinator. Only completed, indexed artifacts are published; input documents are never mutated or saved.</summary>
 public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOptions? options = null)
 {
     private static readonly SemaphoreSlim jobs = new(1, 1);
@@ -39,6 +40,8 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
         void Closed(object? sender, EventArgs e) => linked.Cancel();
         source.Closed += Closed;
         SourceSnapshot? output = null;
+        SourceSnapshot? reportJournal = null;
+        ScriptReports? reports = null;
         MessageDocument? pending = null;
         var entered = false;
         try
@@ -55,55 +58,85 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
             var canExtract = CanExtract(index);
             if (extracted && !canExtract) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "ContainerExtraction"));
             var targets = extracted ? new[] { index.Messages[sourceNumber - 1] } : index.Messages;
+            if (targets.Count > ScriptLimits.BatchMessages) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "BatchLimit"));
             var expected = new List<(ByteRange Payload, bool Framed)>();
             var kept = 0; var processed = 0;
             var progressClock = System.Diagnostics.Stopwatch.StartNew();
             progress?.Report(new("Compiling", 0, targets.Count, 0));
             await using var worker = await ScriptWorkerSession.StartAsync(settings.WorkerPath, script, settings.Worker, linked.Token);
-            output = await Task.Run(() => SourceSnapshot.CreateAsync(async (destination, cancellation) =>
+            var reportBuilder = new ScriptReportBuilder();
+            // Nest the output writer inside the report journal transaction. Either writer
+            // can fail while sealing; the outer ownership guard rolls both snapshots back.
+            reportJournal = await Task.Run(() => SourceSnapshot.CreateAsync(async (reportStream, reportToken) =>
             {
-                long cursor = 0;
-                if (extracted && index.BomLength > 0)
-                    await CopyAsync(capture, new(0, index.BomLength), destination, cancellation);
-                foreach (var entry in targets)
+                await reportBuilder.AppendAsync(reportStream, worker.DrainReports(), reportToken);
+                output = await SourceSnapshot.CreateAsync(async (destination, cancellation) =>
                 {
-                    cancellation.ThrowIfCancellationRequested();
-                    if (entry.PayloadRange.Length > ScriptLimits.MessageBytes)
-                        throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputLimit", MessageNumber: entry.Number));
-                    if (entry.Diagnostics.Any(d => d.Code is "IncompleteMllp" or "AmbiguousFraming" or "InteriorBom"))
-                        throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "BoundaryChange", MessageNumber: entry.Number));
-                    var original = capture.ReadBytes(entry.PayloadRange, ScriptLimits.MessageBytes);
-                    var result = await worker.ProcessAsync(original, index.Encoding.CodePage, entry.Number, cancellation);
-                    if (result.Excluded)
+                    long cursor = 0;
+                    if (extracted && index.BomLength > 0)
+                        await CopyAsync(capture, new(0, index.BomLength), destination, cancellation);
+                    foreach (var entry in targets)
                     {
-                        if (!canExtract) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Output, "ContainerExtraction", MessageNumber: entry.Number));
-                        if (!extracted)
+                        cancellation.ThrowIfCancellationRequested();
+                        if (entry.PayloadRange.Length > ScriptLimits.MessageBytes)
+                            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputLimit", MessageNumber: entry.Number));
+                        if (entry.Diagnostics.Any(d => d.Code is "IncompleteMllp" or "AmbiguousFraming" or "InteriorBom"))
+                            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "BoundaryChange", MessageNumber: entry.Number));
+                        var original = capture.ReadBytes(entry.PayloadRange, ScriptLimits.MessageBytes);
+                        var result = await worker.ProcessAsync(original, index.Encoding.CodePage, entry.Number, cancellation);
+                        await reportBuilder.AppendAsync(reportStream, worker.DrainReports(), cancellation);
+                        if (result.Excluded)
                         {
-                            await CopyAsync(capture, new(cursor, entry.SourceRange.Offset - cursor), destination, cancellation);
-                            cursor = entry.SourceRange.End;
+                            if (!canExtract) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Output, "ContainerExtraction", MessageNumber: entry.Number));
+                            if (!extracted)
+                            {
+                                await CopyAsync(capture, new(cursor, entry.SourceRange.Offset - cursor), destination, cancellation);
+                                cursor = entry.SourceRange.End;
+                            }
                         }
+                        else
+                        {
+                            var bytes = result.Bytes!;
+                            // Parent validation is independent of the worker. No new framing controls,
+                            // loss of required endings, or unsafe encoded boundaries may reach publication.
+                            ValidatePayload(original, bytes, index.Encoding, entry.Number);
+                            await CopyAsync(capture, new(extracted ? entry.SourceRange.Offset : cursor,
+                                entry.PayloadRange.Offset - (extracted ? entry.SourceRange.Offset : cursor)), destination, cancellation);
+                            expected.Add((new(destination.Length, bytes.Length), entry.Framed));
+                            await destination.WriteAsync(bytes, cancellation);
+                            if (extracted) await CopyAsync(capture, new(entry.PayloadRange.End, entry.SourceRange.End - entry.PayloadRange.End), destination, cancellation);
+                            else cursor = entry.PayloadRange.End;
+                            kept++;
+                        }
+                        processed++;
+                        if (processed == targets.Count || progressClock.ElapsedMilliseconds >= 100)
+                        { progress?.Report(new("Processing", processed, targets.Count, destination.Length)); progressClock.Restart(); }
                     }
-                    else
+                    if (!extracted) await CopyAsync(capture, new(cursor, capture.Length - cursor), destination, cancellation);
+                    progress?.Report(new("Completing", processed, targets.Count, destination.Length));
+                    await worker.CompleteAsync(cancellation);
+                    await reportBuilder.AppendAsync(reportStream, worker.DrainReports(), cancellation);
+                    long deferredBytes = 0;
+                    while (await worker.TakeDeferredAsync(cancellation) is { } copy)
                     {
-                        var bytes = result.Bytes!;
-                        // Parent validation is independent of the worker. No new framing controls,
-                        // loss of required endings, or unsafe encoded boundaries may reach publication.
-                        ValidatePayload(original, bytes, index.Encoding, entry.Number);
-                        await CopyAsync(capture, new(extracted ? entry.SourceRange.Offset : cursor,
-                            entry.PayloadRange.Offset - (extracted ? entry.SourceRange.Offset : cursor)), destination, cancellation);
-                        expected.Add((new(destination.Length, bytes.Length), entry.Framed));
-                        await destination.WriteAsync(bytes, cancellation);
-                        if (extracted) await CopyAsync(capture, new(entry.PayloadRange.End, entry.SourceRange.End - entry.PayloadRange.End), destination, cancellation);
-                        else cursor = entry.PayloadRange.End;
+                        if (!canExtract || copy.MessageNumber < 1 || copy.MessageNumber > index.Messages.Count ||
+                            extracted && copy.MessageNumber != sourceNumber)
+                            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Output, "ContainerExtraction"));
+                        deferredBytes += copy.Bytes.Length;
+                        if (deferredBytes > ScriptLimits.DeferredBytes || expected.Count >= ScriptLimits.BatchMessages)
+                            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Output, "DeferredLimit"));
+                        var entry = index.Messages[copy.MessageNumber - 1];
+                        var original = capture.ReadBytes(entry.PayloadRange, ScriptLimits.MessageBytes);
+                        ValidatePayload(original, copy.Bytes, index.Encoding, entry.Number);
+                        await CopyAsync(capture, new(entry.SourceRange.Offset, entry.PayloadRange.Offset - entry.SourceRange.Offset), destination, cancellation);
+                        expected.Add((new(destination.Length, copy.Bytes.Length), entry.Framed));
+                        await destination.WriteAsync(copy.Bytes, cancellation);
+                        await CopyAsync(capture, new(entry.PayloadRange.End, entry.SourceRange.End - entry.PayloadRange.End), destination, cancellation);
                         kept++;
                     }
-                    processed++;
-                    if (processed == targets.Count || progressClock.ElapsedMilliseconds >= 100)
-                    { progress?.Report(new("Processing", processed, targets.Count, destination.Length)); progressClock.Restart(); }
-                }
-                if (!extracted) await CopyAsync(capture, new(cursor, capture.Length - cursor), destination, cancellation);
-                await worker.CompleteAsync(cancellation);
-            }, settings.MaximumOutputBytes, linked.Token, settings.StorageRoot), linked.Token);
+                }, settings.MaximumOutputBytes, reportToken, settings.StorageRoot);
+            }, ScriptLimits.ReportBytes, linked.Token, settings.StorageRoot), linked.Token);
+            if (output is null) throw new InvalidOperationException("Output staging did not complete.");
             progress?.Report(new("Validating output", processed, targets.Count, output.Length));
             var outputIndex = await Task.Run(() => MessageFileIndex.Build(output, linked.Token, inheritedEncoding: encoding), linked.Token);
             if (outputIndex.Messages.Count != expected.Count || outputIndex.Messages.Where((m, i) =>
@@ -118,10 +151,12 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
             if (kept > 0) await pending.NavigateAsync(1, linked.Token);
             linked.Token.ThrowIfCancellationRequested();
             if (!documents.Documents.Contains(source)) throw new OperationCanceledException(linked.Token);
+            if (reportBuilder.Items.Count > 0) { reports = new(reportJournal, reportBuilder); reportJournal = null; }
             documents.Open(pending);
             var published = pending; pending = null;
             documents.Activity.Record(ActivityKind.ScriptCompleted, source.ActivityNumber, count: kept);
-            return new(published, processed, kept, published.Snapshot!.Length);
+            var result = new ScriptExecutionResult(published, processed, kept, published.Snapshot!.Length, reports);
+            reports = null; return result;
         }
         catch (OperationCanceledException) when (linked.IsCancellationRequested)
         {
@@ -140,6 +175,7 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
         {
             source.Closed -= Closed;
             output?.Dispose();
+            reportJournal?.Dispose(); reports?.Dispose();
             if (pending is not null) { pending.Dispose(); await pending.Disposal; }
             if (entered) jobs.Release();
         }

@@ -56,7 +56,9 @@ public sealed class RawInspectorSession : IDisposable
         return disposed ? null : result;
     }
     /// <summary>Writes encoded source content unchanged. Publishes only after the full stream succeeds.</summary>
-    public async Task ExportAsync(string destination, CancellationToken token = default)
+    public Task ExportAsync(string destination, CancellationToken token = default) => ExportAsync(FileSaveDestination.NewFile(destination), token);
+    /// <summary>Exports original bytes with explicit version-scoped replacement consent.</summary>
+    public async Task ExportAsync(FileSaveDestination destination, CancellationToken token = default)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         var owner = document!;
@@ -69,32 +71,23 @@ public sealed class RawInspectorSession : IDisposable
         catch (OperationCanceledException) { owner.RecordActivity(ActivityKind.ExportCanceled, messageNumber: MessageNumber); throw; }
         catch (Exception error) { owner.RecordActivity(ActivityKind.ExportFailed, failure: ActivityLog.Classify(error), messageNumber: MessageNumber); throw; }
     }
-    private async Task<long> ExportCoreAsync(MessageDocument owner, string destination, CancellationToken token)
+    private async Task<long> ExportCoreAsync(MessageDocument owner, FileSaveDestination destination, CancellationToken token)
     {
         var snapshot = owner.Snapshot ?? throw new InvalidOperationException("No exact original bytes.");
-        var path = Path.GetFullPath(destination);
+        var path = destination.Path;
         var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
         var physical = PhysicalPath(path);
         if (string.Equals(physical, snapshot.OriginalFilePath is { } original ? PhysicalPath(original) : null, comparison) ||
             string.Equals(physical, owner.SavePath is { } saved ? PhysicalPath(saved) : null, comparison) ||
             physical.StartsWith(PhysicalPath(snapshot.DirectoryPath) + Path.DirectorySeparatorChar, comparison))
             throw new IOException("Export cannot replace the original source or snapshot.");
-        var temporary = Path.Combine(Path.GetDirectoryName(path)!, ".hl7-export-" + Guid.NewGuid().ToString("N") + ".tmp");
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, token);
-        try
+        long bytes = 0;
+        await destination.WriteAsync(async (output, cancellation) =>
         {
-            long bytes;
-            await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, true))
-            { await owner.CopyOriginalAsync(Scope, output, linked.Token); await output.FlushAsync(linked.Token); bytes = output.Position; }
-            linked.Token.ThrowIfCancellationRequested();
-            File.Move(temporary, path, true);
-            return bytes;
-        }
-        finally
-        {
-            try { if (File.Exists(temporary)) File.Delete(temporary); }
-            catch (IOException) { } catch (UnauthorizedAccessException) { }
-        }
+            await owner.CopyOriginalAsync(Scope, output, cancellation); bytes = output.Position;
+        }, linked.Token);
+        return bytes;
     }
     private static string PhysicalPath(string path)
     {

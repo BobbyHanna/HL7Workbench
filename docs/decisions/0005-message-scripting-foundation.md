@@ -1,5 +1,10 @@
 # ADR 0005: Message-script worker foundation
 
+Historical decision: [ADR 0007](0007-unified-csharp-scripting.md) supersedes the
+per-message submission lifecycle and script kinds for the Stage 5B unified redesign.
+The foundation and historical acceptance below remain recorded; current work has
+no commit/push authorization.
+
 Status: Stage 5A native Windows functional and visual acceptance completed by the
 user, including the final Script Editor and tooltip discovery/dismissal refinements.
 The accepted milestone is authorized for one commit and normal push on main.
@@ -134,6 +139,9 @@ version 2 with FontSizePoints. All controls step one point. Two compact scrollab
 toolbar rows and collapsible diagnostics retain user-controlled docking proportions.
 
 ## Deferred
+
+Stage 5B amendment: ADR 0006 supersedes the Batch/state/CSV deferrals below;
+other exclusions and Stage 5A preservation/worker contracts remain in force.
 
 Batch callbacks/state, stable synthetic patient identities, CSV reports, generation,
 template cloning, structural insertion/removal, cross-document analysis, working-state

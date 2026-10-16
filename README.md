@@ -50,19 +50,44 @@ message requires reopening the saved file. See the
 for supported encodings, budgets, and save guarantees. Structural inspection and
 basic diagnostics do not provide HL7 version/profile conformance validation.
 
-## C# message scripting (Stage 5A)
+## C# scripting (Stages 5A–5B)
 
-Stage 5A adds trusted local C# Message scripts through a fresh Roslyn worker process,
-an independent unsaved output document, a persistent Script Library and a dockable/
-floating Script Editor. Native Windows functional and visual acceptance is complete; the
-[Script Editor visual checklist](docs/stage5a-script-editor-visual-acceptance.md)
-covers the accepted UX refinements. See the [Stage 5A checklist](docs/stage5a-scripting-acceptance.md)
-for execution scope and limits.
-The worker is not a security sandbox and runs with the user's permissions.
+Use New Script in the dockable/floating Script Editor and write `void Main()`.
+The same source runs against Apply to: Current message or Whole document. A fresh
+Roslyn worker initializes shared variables once, calls Main in source order and
+calls optional `void Complete()` once on success. Helpers and shared state work
+across messages and reset each Run. The worker executes trusted code with the
+user's permissions; it is not a security sandbox.
+
+The Script Library preserves names, dirty drafts and immutable duplicable examples.
+Old development records retain their source but show Needs update and require an
+explicit rewrite/save before Run. `Batch` supplies advanced reports and deferred
+output without a separate script type. The consistent synthetic-patient example
+maintains identities within a run and reports counts; it is not complete clinical
+de-identification. Successful runs open independent unsaved HL7 output, preserving
+source documents and unsaved input edits. CSV exports permit explicitly confirmed safe replacement,
+and retain the producing script name/scope in the editor even after switching scripts.
+Failures and cancellation publish no partial output or reports.
+
+See the [script API](docs/script-api.md), [unified scripting decision](docs/decisions/0007-unified-csharp-scripting.md)
+and [native Windows acceptance checklist](docs/stage5b-batch-scripting-acceptance.md).
+Stage 5B, including the unified redesign and final save/dialog corrections, passed
+native Windows acceptance on 2026-10-16.
+
+The permanent menu is File | Settings | View. The collapsible Scripts ribbon and compact
+editor share commands; Home contains Save/Restore/Reset Layout, including window recovery.
+Click the script name to rename; Delete Script protects bundled examples and prompts for
+dirty drafts/confirmation. Reports / Export CSV opens contextual retained results.
+Settings → Preferences controls new-document Edit Mode and saved ribbon visibility.
+HL7 schema controls are reserved/disabled until an interpretation engine exists; TCP/MLLP
+Sender/Listener are disabled Planned placeholders. See [desktop preferences](docs/desktop-preferences.md)
+and the [UI finishing checklist](docs/stage5b-ui-finishing-acceptance.md).
+See [save/export safety](docs/save-and-export-safety.md) for picker authorization,
+destination-version checks, transactional replacement and the final native retest.
 
 ## Planned capabilities
 
-Batch analysis, CSV reports, synthetic identities, message generation, template cloning,
+Message generation, template cloning, cross-document analysis,
 SQL-style querying, and TCP/MLLP transport remain planned. File-based MLLP framing support is available
 for inspection and preservation; it does not provide network transport. Synthetic
 message generation and additional analysis tools also remain future work.

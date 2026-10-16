@@ -1,10 +1,9 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using HL7Workbench.Core;
 using HL7Workbench.Workspace;
+using HL7Workbench.Desktop.Viewer;
 
 namespace HL7Workbench.Desktop;
 
@@ -12,20 +11,17 @@ public partial class MainWindow
 {
     private bool shutdownApproved;
     private bool promptingShutdown;
-    private readonly string preferencesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HL7Workbench", "editor-preferences.json");
+    private DocumentSaveWorkflow? documentSaves;
     private void LoadEditPreferences()
     {
-        try { documents.Preferences = EditorPreferences.Load(preferencesPath); }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
-        { Status.Text = "Editor preferences unavailable; new documents start read-only."; }
+        documents.Preferences = preferences.Current;
+        if (preferences.Status.Length > 0) Status.Text = preferences.Status;
         StartInEditMode.IsChecked = documents.Preferences.StartInEditMode;
     }
     private void ChangeEditPreference(object? sender, RoutedEventArgs e)
     {
-        var next = new EditorPreferences(StartInEditMode.IsChecked);
-        try { next.Save(preferencesPath); documents.Preferences = next; Status.Text = "Edit Mode preference saved for newly opened documents."; }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
-        { StartInEditMode.IsChecked = documents.Preferences.StartInEditMode; Status.Text = "Unable to save editor preferences; previous preference retained."; }
+        preferences.Apply(preferences.Current with { StartInEditMode = StartInEditMode.IsChecked });
+        StartInEditMode.IsChecked = preferences.Current.StartInEditMode; Status.Text = preferences.Status;
     }
     private async void SaveDocument(object? sender, RoutedEventArgs e)
     { if (documents.ActiveDocument is { } document) await SaveDocumentAsync(document, false); }
@@ -36,17 +32,11 @@ public partial class MainWindow
         if (document.IsSaving) return false;
         try
         {
-            string? path = null;
-            if (saveAs || document.SavePath is null)
-            {
-                if (!StorageProvider.CanSave) { Status.Text = "Local file saving is unavailable."; return false; }
-                using var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-                { Title = "Save HL7 document", SuggestedFileName = document.Title, ShowOverwritePrompt = true });
-                if (file is null) return false;
-                path = file.TryGetLocalPath() ?? throw new IOException("Local destination required.");
-            }
             Status.Text = "Saving document…";
-            await document.SaveAsync(path, lifetime.Token);
+            var saved = await (documentSaves ??= new(documents)).SaveAsync(document, saveAs,
+                () => SaveFilePicker.ChooseAsync(this, new FilePickerSaveOptions
+                { Title = "Save HL7 document", SuggestedFileName = document.Title }, lifetime.Token), lifetime.Token);
+            if (!saved) { Status.Text = "Save canceled; working text retained."; return false; }
             Status.Text = "Document saved."; return true;
         }
         catch (OperationCanceledException) { Status.Text = "Save canceled; working text retained."; return false; }
@@ -58,16 +48,7 @@ public partial class MainWindow
         UnsavedChanges.ConfirmAsync(document, PromptUnsavedAsync, d => SaveDocumentAsync(d, false));
     private async Task<UnsavedChangesDecision> PromptUnsavedAsync(MessageDocument document)
     {
-        var dialog = new Window { Title = "Unsaved changes", Width = 470, Height = 175, CanResize = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner };
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8 };
-        foreach (var (label, decision) in new[] { ("Save", UnsavedChangesDecision.Save), ("Discard", UnsavedChangesDecision.Discard), ("Cancel", UnsavedChangesDecision.Cancel) })
-        {
-            var button = new Button { Content = label, IsCancel = decision == UnsavedChangesDecision.Cancel };
-            button.Click += (_, _) => dialog.Close(decision); buttons.Children.Add(button);
-        }
-        dialog.Content = new StackPanel { Margin = new Thickness(16), Spacing = 20, Children =
-            { new TextBlock { Text = $"Save changes to {document.Title}?", TextWrapping = Avalonia.Media.TextWrapping.Wrap }, buttons } };
+        var dialog = ConfirmationDialog.Unsaved($"Save changes to {document.Title}?");
         return await dialog.ShowDialog<UnsavedChangesDecision>(this);
     }
     private async void ConfirmWindowClose(object? sender, WindowClosingEventArgs e)
@@ -100,16 +81,7 @@ public partial class MainWindow
 
     private async Task<UnsavedChangesDecision> PromptUnsavedScriptAsync()
     {
-        var dialog = new Window { Title = "Unsaved script", Width = 470, Height = 175, CanResize = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner };
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8 };
-        foreach (var (label, decision) in new[] { ("Save", UnsavedChangesDecision.Save), ("Discard", UnsavedChangesDecision.Discard), ("Cancel", UnsavedChangesDecision.Cancel) })
-        {
-            var button = new Button { Content = label, IsCancel = decision == UnsavedChangesDecision.Cancel };
-            button.Click += (_, _) => dialog.Close(decision); buttons.Children.Add(button);
-        }
-        dialog.Content = new StackPanel { Margin = new Thickness(16), Spacing = 20, Children =
-            { new TextBlock { Text = "Save changes to the script before continuing?", TextWrapping = Avalonia.Media.TextWrapping.Wrap }, buttons } };
+        var dialog = ConfirmationDialog.Unsaved("Save changes to the script before continuing?", script: true);
         return await dialog.ShowDialog<UnsavedChangesDecision>(this);
     }
 }

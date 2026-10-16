@@ -21,7 +21,7 @@ internal static class ScriptSymbolClassifier
         var root = tree.GetRoot(token);
         var compilation = CSharpCompilation.CreateScriptCompilation("EditorSymbols", tree, references.Value,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                usings: ["System", "System.Linq", "System.Threading", "HL7Workbench.Scripting"],
+                usings: ["System", "System.Linq", "System.Threading", "System.Collections.Generic", "HL7Workbench.Scripting"],
                 sourceReferenceResolver: null, metadataReferenceResolver: null), globalsType: typeof(ScriptGlobals));
         var model = compilation.GetSemanticModel(tree);
         var spans = new Dictionary<int, ScriptSymbolSpan>();

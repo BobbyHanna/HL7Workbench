@@ -26,12 +26,11 @@ public static class ViewerRequests
     {
         var top = TopLevel.GetTopLevel(control);
         if (top?.StorageProvider.CanSave != true) return false;
-        using var destination = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-        { Title = "Export original encoded/source content", SuggestedFileName = "original-source.hl7", ShowOverwritePrompt = true });
+        if (top is not Window owner) throw new IOException("Export requires a window owner.");
+        var destination = await SaveFilePicker.ChooseAsync(owner, new FilePickerSaveOptions
+        { Title = "Export original encoded/source content", SuggestedFileName = "original-source.hl7" }, token);
         if (destination is null) return false;
-        var path = destination.TryGetLocalPath();
-        if (path is null) throw new IOException("Exact export requires a local destination for safe publication.");
-        await session.ExportAsync(path, token);
+        await session.ExportAsync(destination, token);
         return true;
     }
     public static void AttachMenu(TextEditorTarget target)
