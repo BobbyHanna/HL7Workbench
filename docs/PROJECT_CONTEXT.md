@@ -6,6 +6,70 @@ All committed examples and tests must be synthetic.
 
 ## Current milestone and review boundary
 
+Stage 6A message search/filter, including the final Find Messages UX cleanup, passed
+native Windows acceptance and was explicitly accepted by the user on 2026-10-16.
+The user authorized one milestone commit on main from the accepted/pushed Stage 5B
+baseline 0497180b3799c5075f9fbc9dd6d778b48e68d279, followed by a normal push to origin/main.
+Commit message: `feat: add Stage 6A message search and filtering`.
+No additional features, source/test changes, history rewriting, force-push, tag, release,
+installer or distribution package is authorized. Earlier pending-acceptance/Git statements
+below record historical verification checkpoints and are superseded by this authorization.
+
+Find Messages is a dockable/floating optional tool with Text / HL7 Field literal search,
+case sensitivity, Contains/Equals, progress/cancel/clear and 200-row virtualized pages.
+HL7 Tools → Find Messages, View → Find Messages and Ctrl+F share one open/reveal/focus
+command; none executes a search. The redundant Focus Search ribbon entry is removed;
+Clear Search / Restore Navigator and the tool's Search/Clear buttons remain. The original
+`tool.search-results` ID preserves saved layouts and window recovery. Ctrl+F focuses the
+value input from main/floating roots. No new top-level menu, settings or query language.
+Field search uses Core's shared scanner over all matching segments/repetitions, respecting
+MSH conventions, raw values, custom delimiters and malformed-but-readable input.
+
+Workspace borrows the existing snapshot/index and immutable bounded draft strings;
+scans run off the UI thread with one message's text/structure resident. A content-only
+SearchRevision distinguishes edits from navigation; edits/undo/redo, switching, closure
+or replacement cancel/clear stale work and filters. Disposal drains borrowed readers
+before snapshot cleanup. Results retain bounded metadata only (no snippets/patient values)
+up to the existing 100,000-message ceiling; headers are capped and control IDs remain
+session-only. Filter Navigator restricts the existing file toolbar to original matching
+ordinals without copying/removing messages or changing source/dirty state.
+
+AGENTS.md now requires permanent regression-test/fixture/script retention and cleanup of
+owned disposable artifacts only, preserving user files, useful failure diagnostics and
+ignored build/publish outputs. See message-search.md, ADR 0008 and
+stage6a-search-acceptance.md for semantics, bounds, known limits and exact native steps.
+
+Stage 6A verification on 2026-10-16 passed locked restore, the Release solution build
+(0 warnings/errors), 60 focused search/UI cases, all 862 automated cases and all 387
+Workspace stress cases. Stress covers 50,000 result rows/paging, zero matches, in-flight
+cancellation and a 32 MiB field. A test-only negative-GC-delta assertion was corrected
+without relaxing either upper memory limit; focused, full and stress runs passed again.
+Worker/package/isolation boundaries are unchanged, so published-worker checks were not
+repeated. All 23 changed/new files were reviewed; whitespace/conflict checks and the
+synthetic fixture hash passed. Existing local artifacts/build outputs/user CSV remain;
+no Stage 6A disposable probes were created. At that checkpoint, main stayed at 0497180,
+nothing staged. The user subsequently confirmed both functional and final Find Messages
+UX native acceptance. Search/Workspace behavior is unchanged by that cleanup.
+
+The final UX cleanup passed locked restore, a zero-warning/error Release rebuild, 33
+focused Desktop cases (6 search + 27 shell/ribbon/editor) and all 862 automated cases
+(0 failed/skipped). It retains the original layout ID, removes the redundant focus alias
+and binds View/ribbon/Ctrl+F to the same open/focus command without automatic execution.
+Tests use the production Dock theme/template to check actual revealed input focus and
+verify existing results/filter state survives focus. Workspace source/tests are unchanged,
+so the prior 387-case stress pass was retained without another stress run. Thirteen files
+were updated within the existing 23-file Stage 6A working tree; whitespace/conflict and
+fixture-hash checks passed. No new disposable artifacts, staged files or Git operations.
+
+Final pre-commit review confirmed the expected 13 modified tracked / 10 new files and
+empty index on main at the baseline. All 17 changed C#/markup files match the existing
+verified Release portable-PDB source checksums (zero mismatches); the synthetic fixture
+hash is unchanged. Source/tests were not edited and expensive checks were not rerun.
+Only these existing milestone documents were updated to record final acceptance and
+Git authorization; the accepted 23-file inventory remains intact.
+
+### Accepted Stage 5B checkpoint and historical authorization
+
 On 2026-10-16 the user confirmed final native Windows acceptance of Stage 5B, including
 the safe overwrite and compact-dialog corrections, and explicitly authorized one
 milestone commit and a normal push to existing origin/main from baseline 6dfa9f4.

@@ -151,6 +151,7 @@ public sealed class UtilityRibbon : Grid
         {
             Add("Navigation", Row(Existing("Message Browser", "Browser", large: true), Existing("Segment Navigator", "Navigator", large: true)));
             Add("Inspection", Row(Existing("Field Inspector", "Inspect", large: true), Existing("Full Source Viewer", "Source", large: true), Existing("Activity Log", "Reports", large: true)));
+            Add("Search", TwoRows(Existing("Find Messages", "Inspect"), Existing("Clear Search / Restore Navigator", "Restore")));
         }
         else
         {
@@ -181,7 +182,12 @@ public sealed class UtilityRibbon : Grid
         button.Classes.Add("ribbon-command"); if (accent) button.Classes.Add("accent");
         AutomationProperties.SetName(button, label);
         button.Click += (_, _) => { if (!IsExpanded) TemporaryPopup.IsOpen = false; };
-        ToolTip.SetTip(button, label == "Reports" ? "Reports / Export CSV — results from the last successful run" : label); return button;
+        ToolTip.SetTip(button, label switch
+        {
+            "Reports" => "Reports / Export CSV — results from the last successful run",
+            "Find Messages" => "Open Find Messages and focus the search value (Ctrl+F)",
+            _ => label
+        }); return button;
     }
     private static void BindFluentResource(AvaloniaObject control, AvaloniaProperty property, string key) => control.Bind(property, new DynamicResourceExtension(key));
     private static StackPanel Row(params Control[] controls)

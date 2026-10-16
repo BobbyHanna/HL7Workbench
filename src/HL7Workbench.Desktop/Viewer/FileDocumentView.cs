@@ -23,6 +23,9 @@ public sealed class FileDocumentView : ContentControl
     private readonly ComboBox regions = new() { Width = 190 };
     private readonly Expander regionInspector = new() { Header = "Inspect source bytes" };
     private bool subscribed;
+    private bool updatingNavigation;
+    public ComboBox FilteredMessages { get; } = new() { Width = 175, PlaceholderText = "Matching ordinals", IsVisible = false,
+        MaxDropDownHeight = 256, ItemsPanel = new Avalonia.Controls.Templates.FuncTemplate<Panel?>(() => new VirtualizingStackPanel()) };
     private int displayedNumber;
     public TextBox MessageNumberInput { get; } = new() { Width = 90 };
     public MessageInspectionView? ActiveView { get; private set; }
@@ -40,14 +43,17 @@ public sealed class FileDocumentView : ContentControl
             button.Click += async (_, _) => await NavigateAsync(position());
             directions.Add(button); toolbar.Children.Add(button);
         }
-        Button("|<", "First message", () => 1); Button("<", "Previous message", () => document.MessageNumber - 1);
+        Button("|<", "First matching/original message", () => NavigatorTarget(0)); Button("<", "Previous matching/original message", () => NavigatorTarget(1));
         ToolTip.SetTip(MessageNumberInput, "Message number within this file"); ToolTip.SetTip(go, "Jump to message number");
         ToolTip.SetTip(retry, "Retry preparing the selected message"); ToolTip.SetTip(cancel, "Cancel preparing the selected message");
         ToolTip.SetTip(regions, "Select a retained unclassified source region"); ToolTip.SetTip(regionInspector, "Inspect original bytes outside classified messages");
         toolbar.Children.Add(MessageNumberInput); toolbar.Children.Add(count);
+        toolbar.Children.Add(FilteredMessages);
+        FilteredMessages.SelectionChanged += async (_, _) =>
+        { if (!updatingNavigation && FilteredMessages.SelectedItem is int number && number != document.MessageNumber) await NavigateAsync(number); };
         MessageNumberInput.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await JumpAsync(); } };
         go.Click += async (_, _) => await JumpAsync(); toolbar.Children.Add(go);
-        Button(">", "Next message", () => document.MessageNumber + 1); Button(">|", "Last message", () => document.MessageCount);
+        Button(">", "Next matching/original message", () => NavigatorTarget(2)); Button(">|", "Last matching/original message", () => NavigatorTarget(3));
         retry.Click += async (_, _) => await NavigateAsync(document.MessageNumber);
         toolbar.Children.Add(retry);
         cancel.Click += (_, _) => document.CancelScan(); toolbar.Children.Add(cancel);
@@ -72,6 +78,8 @@ public sealed class FileDocumentView : ContentControl
     public async Task NavigateAsync(int number)
     {
         if (document.IsSaving || number < 1 || number > document.MessageCount) return;
+        if (document.NavigationMatches is { } matches && (LowerBound(matches, number) is var at && (at >= matches.Count || matches[at] != number)))
+        { status.Text = "This original ordinal is outside the search filter. Choose a matching ordinal or clear the filter."; return; }
         try { await document.NavigateAsync(number); }
         catch (ObjectDisposedException) { }
     }
@@ -87,6 +95,7 @@ public sealed class FileDocumentView : ContentControl
     }
     private void Changed(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MessageDocument.NavigationMatches)) { UpdateNavigator(); return; }
         if (e.PropertyName == nameof(MessageDocument.PreparedBytes)) status.Text = $"Preparing message {document.MessageNumber}; {document.PreparedBytes:N0} bytes decoded…";
         else if (ActiveView is not null && displayedNumber == document.MessageNumber && !document.IsLoading && document.Source is null)
             status.Text = document.Failure ?? "";
@@ -94,13 +103,11 @@ public sealed class FileDocumentView : ContentControl
     }
     private void Refresh()
     {
-        MessageNumberInput.Text = document.MessageNumber.ToString(); count.Text = $"/ {document.MessageCount:N0}";
+        UpdateNavigator();
         MessageNumberInput.IsEnabled = document.MessageCount > 0;
         go.IsEnabled = document.MessageCount > 0;
         retry.IsVisible = document.Failure is not null && document.MessageCount > 0;
         cancel.IsVisible = document.IsLoading;
-        directions[0].IsEnabled = directions[1].IsEnabled = document.MessageNumber > 1;
-        directions[2].IsEnabled = directions[3].IsEnabled = document.MessageNumber > 0 && document.MessageNumber < document.MessageCount;
         status.Text = document.IsLoading ? $"Preparing message {document.MessageNumber}…" : document.Failure ??
             (regions.ItemCount > 0 ? "Source regions are retained for byte inspection." : "");
         regionInspector.IsVisible = regions.ItemCount > 0 || document.Failure is not null;
@@ -126,5 +133,44 @@ public sealed class FileDocumentView : ContentControl
                 regionInspector.IsExpanded = true;
             }
         }
+    }
+    private static int LowerBound(IReadOnlyList<int> values, int number)
+    {
+        var low = 0; var high = values.Count;
+        while (low < high) { var middle = low + (high - low) / 2; if (values[middle] < number) low = middle + 1; else high = middle; }
+        return low;
+    }
+    private int NavigatorTarget(int direction)
+    {
+        if (document.NavigationMatches is not { } matches)
+            return direction switch { 0 => 1, 1 => document.MessageNumber - 1, 2 => document.MessageNumber + 1, _ => document.MessageCount };
+        if (matches.Count == 0) return 0;
+        var at = LowerBound(matches, document.MessageNumber);
+        return direction switch
+        {
+            0 => matches[0], 3 => matches[^1],
+            1 => at > 0 ? matches[at - 1] : 0,
+            _ => at < matches.Count && matches[at] == document.MessageNumber ? (at + 1 < matches.Count ? matches[at + 1] : 0) : (at < matches.Count ? matches[at] : 0)
+        };
+    }
+    private void UpdateNavigator()
+    {
+        updatingNavigation = true;
+        try
+        {
+            MessageNumberInput.Text = document.MessageNumber.ToString();
+            count.Text = $"/ {document.MessageCount:N0}";
+            var matches = document.NavigationMatches; FilteredMessages.IsVisible = matches is not null;
+            if (!ReferenceEquals(FilteredMessages.ItemsSource, matches)) FilteredMessages.ItemsSource = matches;
+            if (matches is not null)
+            {
+                var at = LowerBound(matches, document.MessageNumber); var included = at < matches.Count && matches[at] == document.MessageNumber;
+                FilteredMessages.SelectedItem = included ? document.MessageNumber : null;
+                count.Text += $" · {matches.Count:N0} matches (original ordinals)" + (included ? "" : " · current message excluded");
+            }
+            for (var i = 0; i < directions.Count; i++)
+            { var target = NavigatorTarget(i); directions[i].IsEnabled = target > 0 && target <= document.MessageCount && target != document.MessageNumber; }
+        }
+        finally { updatingNavigation = false; }
     }
 }

@@ -57,10 +57,11 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     /// <summary>Session generation for UI intents that may outlive a context menu or native dialog.</summary>
     public long ContentVersion => generation;
     public MessageDocument(string id, string title, Hl7Message message)
-    { Id = id; Title = title; this.message = message; MessageNumber = 1; }
+    { Id = id; Title = title; this.message = message; MessageNumber = 1; searchEncoding = message.Encoding; }
     internal MessageDocument(string id, string title, SourceSnapshot snapshot, MessageFileIndex index, StructureScanOptions? inspectionOptions = null)
     {
         Id = id; Title = title; Snapshot = snapshot; Index = index;
+        searchEncoding = index.Encoding;
         this.inspectionOptions = inspectionOptions;
         if (index.Messages.Count == 0 && index.Diagnostics.Any(d => d.Code == "InvalidEncoding"))
             Failure = "Text unavailable: input cannot be decoded safely. Inspect retained source bytes.";
@@ -267,13 +268,17 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     {
         if (disposed) return;
         disposed = true; generation++; lifetime.Cancel(); request?.Cancel();
+        ClearSearchFilter(); searchChanges.Cancel();
         previousInspection = null;
         Closed?.Invoke(this, EventArgs.Empty); Closed = null;
         PropertyChanged = null;
         Disposal = Task.Run(async () =>
         {
+            // A search owns immutable draft references and borrows the original snapshot.
+            // Let cancellation drain that reader before deleting any source/spool files.
+            await DrainSearchReaders();
             await work.WaitAsync();
-            try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; buffers.Clear(); Snapshot?.Dispose(); editRefresh?.Dispose(); request?.Dispose(); lifetime.Dispose(); }
+            try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; buffers.Clear(); Snapshot?.Dispose(); editRefresh?.Dispose(); request?.Dispose(); lifetime.Dispose(); searchChanges.Dispose(); }
             finally { work.Release(); }
         });
     }

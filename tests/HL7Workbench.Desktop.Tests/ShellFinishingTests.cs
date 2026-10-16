@@ -21,7 +21,7 @@ namespace HL7Workbench.Desktop.Tests;
 public sealed partial class ScriptEditorTests
 {
     private static Dictionary<string, ICommand> RibbonActions() => new[] { "Open File…", "Save HL7", "Save HL7 As…", "Save Layout", "Restore Layout", "Reset Layout / Recover Windows", "Preferences…",
-        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log" }.ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
+        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator" }.ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
     private static void SendShellKey(Control control, Avalonia.Input.Key key) => control.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
 
     [Fact]
@@ -37,7 +37,7 @@ public sealed partial class ScriptEditorTests
                 var menus = menu.Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(new[] { "_File", "_Settings", "_View" }, menus.Select(i => i.Header));
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
-                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Full _Source Viewer" },
+                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "_Find Messages", "Full _Source Viewer" },
                     menus[2].Items.Cast<MenuItem>().Select(i => i.Header));
                 var file = menus[0].Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(Key.S, file[1].InputGesture!.Key); Assert.Equal(KeyModifiers.Control, file[1].InputGesture!.KeyModifiers);

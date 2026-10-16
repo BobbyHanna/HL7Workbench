@@ -4,6 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Input;
+using Dock.Avalonia.Controls;
+using Dock.Model.Core;
 using Avalonia.Threading;
 using HL7Workbench.Desktop.Docking;
 using HL7Workbench.Desktop.Viewer;
@@ -27,6 +30,12 @@ public partial class MainWindow
         };
         scripts.ConfirmDeleteAsync = ConfirmDeleteScriptAsync;
         scripts.ShowReportsAsync = () => new ScriptReportsWindow(scripts).ShowDialog(DialogOwner());
+        search.OpenRequested += () => { factory.ShowTool(WorkspaceDockFactory.SearchResultsId); Dispatcher.UIThread.Post(search.NotifyShown); };
+        FindMessagesMenu.Command = search.OpenCommand;
+        AttachSearchShortcut(this);
+        // Floating tool windows are separate routed-input roots. Use the same
+        // shortcut handler there without changing Dock's placement/restore model.
+        factory.HostWindowLocator![nameof(IDockWindow)] = () => { var host = new HostWindow(); AttachSearchShortcut(host); return host; };
         UiCommand Action(Action<object?, RoutedEventArgs> action, Func<bool>? enabled = null) => new(() => { action(this, new()); return Task.CompletedTask; }, enabled);
         var actions = new Dictionary<string, ICommand>
         {
@@ -36,12 +45,18 @@ public partial class MainWindow
             ["Save Layout"] = Action(SaveLayout), ["Restore Layout"] = Action(RestoreLayout), ["Preferences…"] = Action(ShowPreferences),
             ["Reset Layout / Recover Windows"] = Action(ResetLayout),
             ["Message Browser"] = Action(ShowBrowser), ["Segment Navigator"] = Action(ShowNavigator), ["Field Inspector"] = Action(ShowFields),
-            ["Full Source Viewer"] = Action(ShowRaw), ["Activity Log"] = Action(ShowActivity)
+            ["Full Source Viewer"] = Action(ShowRaw), ["Activity Log"] = Action(ShowActivity),
+            ["Find Messages"] = search.OpenCommand, ["Clear Search / Restore Navigator"] = search.ClearCommand
         };
         shellCommands = actions.Values.OfType<UiCommand>().ToArray();
         documents.PropertyChanged += ShellCommandsChanged;
         RibbonHost.Content = new UtilityRibbon(preferences, scripts, actions);
     }
+    private void AttachSearchShortcut(Window window) => window.AddHandler(InputElement.KeyDownEvent, (_, e) =>
+    {
+        if (e.Key == Key.F && e.KeyModifiers == KeyModifiers.Control)
+        { e.Handled = true; search.OpenCommand.Execute(null); }
+    }, RoutingStrategies.Tunnel);
     private void ShellCommandsChanged(object? sender, PropertyChangedEventArgs e)
     { foreach (var command in shellCommands) command.Refresh(); }
     private void PreferencesChanged(object? sender, PropertyChangedEventArgs e)

@@ -18,6 +18,8 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string NavigatorId = "tool.segment-navigator";
     public const string FieldInspectorId = "tool.field-inspector";
     public const string ScriptEditorId = "tool.script-editor";
+    // Keep the original Search Results identity so saved layouts restore Find Messages.
+    public const string SearchResultsId = "tool.search-results";
     private readonly DocumentManager documents;
     private readonly ToolWindowRegistry tools;
     private readonly Dictionary<string, IDockable> items = [];

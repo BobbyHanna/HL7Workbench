@@ -78,6 +78,7 @@ public sealed partial class MessageDocument
     }
     private void WorkingChanged()
     {
+        SearchContentChanged();
         editRefresh?.Cancel(); editRefresh?.Dispose();
         editRefresh = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         var version = ++generation;

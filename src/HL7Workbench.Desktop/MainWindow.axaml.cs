@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly InspectionToolViewModel navigator;
     private readonly InspectionToolViewModel fields;
     private readonly ScriptEditorViewModel scripts;
+    private readonly SearchViewModel search;
     private readonly CancellationTokenSource lifetime = new();
     private bool opening;
     private CancellationTokenSource? openingCancellation;
@@ -33,16 +34,19 @@ public partial class MainWindow : Window
         scripts = new(documents, new ScriptLibrary(Path.Combine(configurationDirectory, "Scripts")),
             preferencesPath: Path.Combine(configurationDirectory, "script-editor-preferences.json"));
         scripts.PromptUnsavedAsync = PromptUnsavedScriptAsync;
+        search = new(documents);
         registry.Register(new(WorkspaceDockFactory.BrowserId, "Message Browser", () => browser));
         registry.Register(new(WorkspaceDockFactory.ActivityLogId, "Activity Log", () => new ActivityLogViewModel(documents.Activity), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.NavigatorId, "Segment Navigator", () => navigator));
         registry.Register(new(WorkspaceDockFactory.FieldInspectorId, "Field Inspector", () => fields));
         // Retain the draft model when the tool closes or Dock reconstructs its view.
         registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
+        registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         factory = new(documents, registry);
         factory.ConfirmDocumentCloseAsync = ConfirmDocumentCloseAsync;
         factory.ConfirmScriptCloseAsync = () => scripts.ConfirmCloseAsync(PromptUnsavedScriptAsync);
         scripts.ReviewRequested += factory.OpenDocument;
+        search.Session.NavigationRequested += factory.OpenDocument;
         LoadEditPreferences();
         KeyDown += async (_, e) =>
         {
@@ -76,6 +80,7 @@ public partial class MainWindow : Window
             browser.Dispose();
             navigator.Dispose(); fields.Dispose();
             scripts.Dispose();
+            search.Dispose();
             preferences.PropertyChanged -= PreferencesChanged;
             documents.PropertyChanged -= ShellCommandsChanged;
             documents.Dispose();

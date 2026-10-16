@@ -85,6 +85,17 @@ and the [UI finishing checklist](docs/stage5b-ui-finishing-acceptance.md).
 See [save/export safety](docs/save-and-export-safety.md) for picker authorization,
 destination-version checks, transactional replacement and the final native retest.
 
+## Message search and filtering (Stage 6A)
+
+Use Ctrl+F, View → Find Messages, or HL7 Tools → Find Messages for read-only literal text and
+HL7 field/component searches across the current document, including unsaved edits.
+Results keep original ordinals, support double-click/Enter navigation and 200-row pages,
+and can filter the existing message navigator. Edits, switching and closure invalidate
+results safely. Opening/focusing never runs a search. No search terms or results are
+persisted or logged. Stage 6A, including the final Find Messages UX cleanup, passed
+native Windows acceptance on 2026-10-16. See
+[search semantics](docs/message-search.md) and [acceptance](docs/stage6a-search-acceptance.md).
+
 ## Planned capabilities
 
 Message generation, template cloning, cross-document analysis,
