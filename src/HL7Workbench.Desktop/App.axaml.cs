@@ -8,7 +8,11 @@ namespace HL7Workbench.Desktop;
 
 public partial class App : Application
 {
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        Viewer.ApplicationTheme.InitializeResources(this);
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {

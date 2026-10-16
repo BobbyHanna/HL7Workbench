@@ -127,6 +127,7 @@ public sealed class ViewerTestApplication : Application
         Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
         Styles.Add(new Avalonia.Markup.Xaml.Styling.StyleInclude(new Uri("avares://HL7Workbench.Desktop.Tests/"))
         { Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml") });
+        ApplicationTheme.InitializeResources(this);
     }
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<ViewerTestApplication>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
 }

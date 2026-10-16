@@ -23,6 +23,7 @@ public partial class MainWindow
     private void InitializeShell()
     {
         preferences.PropertyChanged += PreferencesChanged;
+        ApplicationTheme.Apply(preferences.Current.Theme);
         scripts.OpenEditorRequested += () =>
         {
             factory.ShowTool(WorkspaceDockFactory.ScriptEditorId);
@@ -31,6 +32,7 @@ public partial class MainWindow
         scripts.ConfirmDeleteAsync = ConfirmDeleteScriptAsync;
         scripts.ShowReportsAsync = () => new ScriptReportsWindow(scripts).ShowDialog(DialogOwner());
         search.OpenRequested += () => { factory.ShowTool(WorkspaceDockFactory.SearchResultsId); Dispatcher.UIThread.Post(search.NotifyShown); };
+        search.ConfirmDeleteAsync = name => ConfirmationDialog.DeleteSearch(name).ShowDialog<bool>(DialogOwner());
         FindMessagesMenu.Command = search.OpenCommand;
         AttachSearchShortcut(this);
         // Floating tool windows are separate routed-input roots. Use the same
@@ -62,6 +64,7 @@ public partial class MainWindow
     private void PreferencesChanged(object? sender, PropertyChangedEventArgs e)
     {
         documents.Preferences = preferences.Current; StartInEditMode.IsChecked = preferences.Current.StartInEditMode;
+        ApplicationTheme.Apply(preferences.Current.Theme);
         Status.Text = preferences.Status;
     }
     private Window DialogOwner() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Windows.FirstOrDefault(w => w.IsActive) ?? this;

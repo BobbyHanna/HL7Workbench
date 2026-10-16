@@ -53,7 +53,7 @@ public sealed class MessageInspectionView : Grid
         else
         {
             rawToolTips = new(editor, offset => HasCurrentInspection ? FieldToolTipTarget.From(this.inspection.ResolveOffset(offset)) : null, scheduleHover);
-            editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(() => HasCurrentInspection ? this.inspection : null));
+            editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(() => HasCurrentInspection ? this.inspection : null, () => Hl7EditorTheme.PaletteFor(editor)));
         }
         // Workspace owns history across navigation and view reconstruction. Limit
         // local retention before input starts: TextChanged can run inside AvaloniaEdit's
@@ -220,7 +220,7 @@ public sealed class MessageInspectionView : Grid
 
 }
 
-internal sealed class SelectionColorizer(Func<MessageInspection?> current, Func<long>? origin = null) : DocumentColorizingTransformer
+internal sealed class SelectionColorizer(Func<MessageInspection?> current, Func<Hl7EditorPalette> palette, Func<long>? origin = null) : DocumentColorizingTransformer
 {
     protected override void ColorizeLine(DocumentLine line)
     {
@@ -229,6 +229,6 @@ internal sealed class SelectionColorizer(Func<MessageInspection?> current, Func<
         var end = Math.Min(line.EndOffset, range.End - (origin?.Invoke() ?? 0));
         // A persistent background remains visible when keyboard focus moves into the inspector.
         if (start < end) ChangeLinePart(checked((int)start), checked((int)end),
-            element => element.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.Parse("#384A65"))));
+            element => element.TextRunProperties.SetBackgroundBrush(palette().StructuralSelectionBackground));
     }
 }

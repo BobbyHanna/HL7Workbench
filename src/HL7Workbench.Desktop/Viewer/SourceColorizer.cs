@@ -6,7 +6,7 @@ using HL7Workbench.Core;
 namespace HL7Workbench.Desktop.Viewer;
 
 /// <summary>Window-only spans over shared Core structure. No payload-sized highlight map.</summary>
-internal sealed class SourceColorizer(Hl7Structure? structure, Func<long> origin, HL7Workbench.Workspace.MessagePresentation? presentation = null) : DocumentColorizingTransformer
+internal sealed class SourceColorizer(Hl7Structure? structure, Func<long> origin, Func<Hl7EditorPalette> palette, HL7Workbench.Workspace.MessagePresentation? presentation = null) : DocumentColorizingTransformer
 {
     protected override void ColorizeLine(DocumentLine line)
     {
@@ -22,8 +22,8 @@ internal sealed class SourceColorizer(Hl7Structure? structure, Func<long> origin
             }
             else ChangeLinePart(checked((int)(a - offset)), checked((int)(b - offset)), e =>
             {
-                e.TextRunProperties.SetForegroundBrush(Brushes.LightSlateGray);
-                e.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.Parse("#32303A")));
+                e.TextRunProperties.SetForegroundBrush(palette().OmissionForeground);
+                e.TextRunProperties.SetBackgroundBrush(palette().OmissionBackground);
                 e.TextRunProperties.SetTypeface(new Typeface("Consolas, monospace", FontStyle.Italic));
             });
         }
@@ -42,32 +42,32 @@ internal sealed class SourceColorizer(Hl7Structure? structure, Func<long> origin
         {
             var segment = structure.Segments[i];
             if (!segment.CanEdit && segment.Fields.Count == 0) continue;
-            Mark(segment.Range.Offset, segment.Identifier.Length, Brushes.DeepSkyBlue);
-            if (segment.Range.Length > 3) Mark(segment.Range.Offset + 3, 1, Brushes.Gold);
+            Mark(segment.Range.Offset, segment.Identifier.Length, palette().SegmentForeground);
+            if (segment.Range.Length > 3) Mark(segment.Range.Offset + 3, 1, palette().FieldSeparatorForeground);
             foreach (var field in Relevant(segment.Fields))
             {
                 if (segment.Identifier == "MSH" && field.Number <= 2)
                 {
                     if (field.Number == 2)
                     {
-                        var colors = new IBrush[] { Brushes.LightGreen, Brushes.Orange, Brushes.LightSalmon, Brushes.Plum };
+                        var colors = new[] { palette().ComponentSeparatorForeground, palette().RepetitionSeparatorForeground, palette().EscapeForeground, palette().SubcomponentSeparatorForeground };
                         for (var j = 0; j < Math.Min(4, field.Range.Length); j++) Mark(field.Range.Offset + j, 1, colors[j]);
                     }
                     continue;
                 }
-                if (field.Number > 1) Mark(field.Range.Offset - 1, 1, Brushes.Gold);
+                if (field.Number > 1) Mark(field.Range.Offset - 1, 1, palette().FieldSeparatorForeground);
                 Visit(field);
                 // Escape accents do not infer structure. Only the loaded characters are examined;
                 // the scanner has already established global pairing and structural boundaries.
                 if (structure.Delimiters.Escape is { } escape)
                     for (var p = Math.Max(start, field.Range.Offset); p < Math.Min(end, field.Range.End); p++)
-                        if (CurrentContext.Document.GetCharAt(checked((int)(p - offset))) == escape) Mark(p, 1, Brushes.LightSalmon);
+                        if (CurrentContext.Document.GetCharAt(checked((int)(p - offset))) == escape) Mark(p, 1, palette().EscapeForeground);
             }
         }
         void Visit(StructureNode node)
         {
             if (node.Range.End < start || node.Range.Offset > end) return;
-            var brush = node.Kind switch { StructureKind.Field => Brushes.Orange, StructureKind.Repetition => Brushes.LightGreen, _ => Brushes.Plum };
+            var brush = node.Kind switch { StructureKind.Field => palette().RepetitionSeparatorForeground, StructureKind.Repetition => palette().ComponentSeparatorForeground, _ => palette().SubcomponentSeparatorForeground };
             foreach (var child in Relevant(node.Children))
             {
                 if (child.Number > 1) Mark(child.Range.Offset - 1, 1, brush);

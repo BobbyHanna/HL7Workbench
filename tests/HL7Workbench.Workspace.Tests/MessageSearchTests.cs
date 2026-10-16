@@ -74,7 +74,7 @@ public sealed class MessageSearchTests
     }
     [Theory]
     [InlineData("", "X")] [InlineData("   ", "X")] [InlineData("pid-3", "X")] [InlineData("PID-0", "X")]
-    [InlineData("PID-3[1]", "X")] [InlineData("PID-3.1.1", "X")] [InlineData("PID-3", "")]
+    [InlineData("PID-3[1]", "X")] [InlineData("PID-3.1.1.1", "X")] [InlineData("PID-3", "")]
     [InlineData("PID-3", " \r\n\t")]
     public async Task InvalidOrBlankInputsHaveSafeValidationWithoutSearching(string path, string value)
     {

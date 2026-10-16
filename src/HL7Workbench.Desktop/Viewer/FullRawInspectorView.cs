@@ -60,7 +60,7 @@ public sealed class FullRawInspectorView : Grid, IDisposable
         };
         controls.Children.Add(export); controls.Children.Add(cancel); controls.Children.Add(Status); SetRow(controls, 2); Children.Add(controls);
         session.Closed += SessionClosed;
-        Editor.TextArea.TextView.LineTransformers.Add(new SourceColorizer(session.Structure, () => session.Scope.Offset + Position));
+        Editor.TextArea.TextView.LineTransformers.Add(new SourceColorizer(session.Structure, () => session.Scope.Offset + Position, () => Hl7EditorTheme.PaletteFor(Editor)));
         Editor.TextArea.AddHandler(PointerPressedEvent, (_, e) =>
         {
             if (e.ClickCount != 2 || !e.GetCurrentPoint(Editor).Properties.IsLeftButtonPressed) return;

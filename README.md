@@ -12,7 +12,8 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 - **Structural inspection:** Delimiter-aware syntax highlighting, Segment
   Navigator, and Field Inspector expose fields, repetitions, components, and
   subcomponents. Raw-editor hover shows structural paths; double-click reveals
-  the corresponding structure.
+  the corresponding structure. Field Inspector → Copy Path copies a search-compatible
+  segment/field/component/subcomponent coordinate without its value.
 - **Source-backed large-message handling:** Immutable file snapshots, bounded
   previews, and virtualized display blocks support inspection without loading
   entire large payloads into editor strings. The optional Full Source Viewer
@@ -78,23 +79,40 @@ The permanent menu is File | Settings | View. The collapsible Scripts ribbon and
 editor share commands; Home contains Save/Restore/Reset Layout, including window recovery.
 Click the script name to rename; Delete Script protects bundled examples and prompts for
 dirty drafts/confirmation. Reports / Export CSV opens contextual retained results.
-Settings → Preferences controls new-document Edit Mode and saved ribbon visibility.
+Settings → Preferences controls new-document Edit Mode, saved ribbon visibility and
+Appearance: Follow System (default), Light or Dark, applied without restarting. HL7 editors
+and source views follow the effective theme while retaining drafts, undo and selection.
 HL7 schema controls are reserved/disabled until an interpretation engine exists; TCP/MLLP
 Sender/Listener are disabled Planned placeholders. See [desktop preferences](docs/desktop-preferences.md)
 and the [UI finishing checklist](docs/stage5b-ui-finishing-acceptance.md).
 See [save/export safety](docs/save-and-export-safety.md) for picker authorization,
 destination-version checks, transactional replacement and the final native retest.
 
-## Message search and filtering (Stage 6A)
+## Message search and filtering (Stages 6A–6B)
 
 Use Ctrl+F, View → Find Messages, or HL7 Tools → Find Messages for read-only literal text and
 HL7 field/component searches across the current document, including unsaved edits.
 Results keep original ordinals, support double-click/Enter navigation and 200-row pages,
 and can filter the existing message navigator. Edits, switching and closure invalidate
-results safely. Opening/focusing never runs a search. No search terms or results are
-persisted or logged. Stage 6A, including the final Find Messages UX cleanup, passed
-native Windows acceptance on 2026-10-16. See
-[search semantics](docs/message-search.md) and [acceptance](docs/stage6a-search-acceptance.md).
+results safely. Opening/focusing never runs a search. Queries are saved only by explicit
+library actions; results stay ephemeral and query values are never logged. Stage 6A,
+including the final Find Messages UX cleanup, passed
+native Windows acceptance on 2026-10-16.
+
+Stage 6B adds a Simple/Advanced selector, up to 16 visual conditions in nested ALL/ANY
+groups (16 groups, four levels including the root),
+negative literal comparisons and field/segment existence checks. The separate Search
+Library explicitly saves/updates named queries with a nonmodal local unencrypted-storage
+disclosure; sensitive queries are allowed. Version-1 flat definitions migrate safely to
+version-2 trees on explicit update. Loading never runs
+a search. Query edits cancel/clear stale results and filters. Clear retains the query.
+Advanced has a draggable query/results splitter (initially 60/40), with its proportion
+saved independently of compact Simple mode; resizing never runs or invalidates a search.
+Stage 6B passed native Windows acceptance and is accepted; the user authorized its
+milestone commit and normal push to main. See
+[search semantics](docs/message-search.md) and [Stage 6A acceptance](docs/stage6a-search-acceptance.md).
+The [Stage 6B acceptance checklist](docs/stage6b-advanced-search-acceptance.md) covers the
+builder, local library, restart persistence and compatibility checks.
 
 ## Planned capabilities
 

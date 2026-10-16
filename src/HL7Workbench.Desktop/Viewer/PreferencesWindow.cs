@@ -11,12 +11,13 @@ public sealed class PreferencesWindow : Window
 {
     public CheckBox EditByDefault { get; } = new() { Content = "Open documents in Edit Mode by default" };
     public ComboBox RibbonVisibility { get; } = new() { ItemsSource = new[] { "Collapsed", "Expanded" }, Width = 170 };
+    public ComboBox ThemeSelection { get; } = new() { ItemsSource = new[] { "Follow System", "Light", "Dark" }, Width = 170 };
     public ComboBox SchemaMode { get; } = new() { ItemsSource = new[] { "Use message-declared schema", "Use selected target schema" }, IsEnabled = false, MinWidth = 290 };
     public TextBox TargetSchema { get; } = new() { IsEnabled = false, PlaceholderText = "No schema engine installed" };
     public Button ApplyButton { get; } = new() { Content = "Apply" };
     public Button OkButton { get; } = new() { Content = "OK", IsDefault = true };
     public Button CancelButton { get; } = new() { Content = "Cancel", IsCancel = true };
-    public ListBox Categories { get; } = new() { ItemsSource = new[] { "General", "HL7" }, SelectedIndex = 0, Width = 140 };
+    public ListBox Categories { get; } = new() { ItemsSource = new[] { "General", "HL7", "Appearance" }, SelectedIndex = 0, Width = 140 };
     public TextBlock Feedback { get; } = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ApplicationPreferences preferences;
     public PreferencesWindow(ApplicationPreferences preferences)
@@ -26,6 +27,9 @@ public sealed class PreferencesWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         EditByDefault.IsChecked = preferences.Current.StartInEditMode;
         RibbonVisibility.SelectedIndex = preferences.Current.RibbonExpanded ? 1 : 0;
+        ThemeSelection.SelectedIndex = (int)preferences.Current.Theme;
+        Avalonia.Automation.AutomationProperties.SetName(ThemeSelection, "Application theme");
+        ToolTip.SetTip(ThemeSelection, "Apply Follow System, Light or Dark without restarting");
         SchemaMode.SelectedIndex = (int)preferences.Current.SchemaMode; TargetSchema.Text = preferences.Current.TargetSchema;
         var general = new StackPanel { Spacing = 14, Children =
         {
@@ -42,7 +46,9 @@ public sealed class PreferencesWindow : Window
             Explanation("Schema interpretation and target-schema validation are not implemented. These controls are reserved and disabled. Current inspection is structural; no conformance or version-conflict results are produced. Preferences never rewrite MSH-12 or source bytes.")
         } };
         var panel = new ContentControl { Content = general, Margin = new Thickness(20, 0, 0, 0) };
-        Categories.SelectionChanged += (_, _) => panel.Content = Categories.SelectedIndex == 1 ? hl7 : general;
+        var appearance = new StackPanel { Spacing = 14, Children = { Heading("Appearance"), new TextBlock { Text = "Application theme" }, ThemeSelection,
+            Explanation("Follow System tracks the operating system's light/dark preference where supported. Apply changes all windows immediately; no restart is required.") } };
+        Categories.SelectionChanged += (_, _) => panel.Content = Categories.SelectedIndex switch { 1 => hl7, 2 => appearance, _ => general };
         var scroll = new ScrollViewer { Content = panel, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
             VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         var body = new Grid { ColumnDefinitions = new("Auto,*") }; body.Children.Add(Categories); Grid.SetColumn(scroll, 1); body.Children.Add(scroll);
@@ -56,7 +62,9 @@ public sealed class PreferencesWindow : Window
     public bool Apply()
     {
         // Leave reserved schema metadata and unknown future fields intact.
-        var result = preferences.Apply(preferences.Current with { StartInEditMode = EditByDefault.IsChecked == true, RibbonExpanded = RibbonVisibility.SelectedIndex == 1 });
+        var result = preferences.Apply(preferences.Current with { StartInEditMode = EditByDefault.IsChecked == true, RibbonExpanded = RibbonVisibility.SelectedIndex == 1,
+            Theme = (ApplicationThemePreference)Math.Max(0, ThemeSelection.SelectedIndex) });
+        if (result) ApplicationTheme.Apply(preferences.Current.Theme);
         Feedback.Text = preferences.Status; return result;
     }
     private static TextBlock Heading(string text) => new() { Text = text, FontSize = 18, FontWeight = FontWeight.SemiBold };

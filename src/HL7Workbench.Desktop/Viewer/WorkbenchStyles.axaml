@@ -1,0 +1,15 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource WorkbenchPanelBackground}" />
+  </Style>
+  <Style Selector="ListBox.workbench-surface, TreeView.workbench-surface">
+    <Setter Property="Background" Value="{DynamicResource WorkbenchSurfaceBackground}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource WorkbenchBorder}" />
+  </Style>
+  <Style Selector="GridSplitter.workbench-splitter">
+    <Setter Property="Background" Value="{DynamicResource WorkbenchBorder}" />
+  </Style>
+  <Style Selector="GridSplitter.workbench-splitter:pointerover, GridSplitter.workbench-splitter:focus-visible">
+    <Setter Property="Background" Value="{DynamicResource WorkbenchAccent}" />
+  </Style>
+</Styles>

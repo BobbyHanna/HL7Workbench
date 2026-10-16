@@ -8,13 +8,19 @@ public enum MessageSearchMode { Text, Field }
 public enum MessageSearchComparison { Contains, Equals }
 
 /// <summary>Literal session-only input. ToString never includes a search term.</summary>
-public sealed record MessageSearchQuery(MessageSearchMode Mode, string Value, bool CaseSensitive = false,
+public sealed partial record MessageSearchQuery(MessageSearchMode Mode, string Value, bool CaseSensitive = false,
     string FieldPath = "", MessageSearchComparison Comparison = MessageSearchComparison.Contains)
 {
     public const int MaximumQueryCharacters = 1024;
     public override string ToString() => "Message search query";
     public string? ValidationError()
     {
+        if (Version != CurrentVersion) return "Unsupported search query version.";
+        if (!Enum.IsDefined(BuilderMode) || !Enum.IsDefined(Combination)) return "Choose a supported builder mode and combination.";
+        if (BuilderMode == SearchBuilderMode.Advanced)
+        {
+            return ValidateTree(EffectiveRoot);
+        }
         if (!Enum.IsDefined(Mode) || !Enum.IsDefined(Comparison)) return "Choose a supported search mode and comparison.";
         if (string.IsNullOrWhiteSpace(Value)) return "Enter a nonblank search value.";
         if (Value.Length > MaximumQueryCharacters) return "Search values are limited to 1,024 characters.";
@@ -23,7 +29,7 @@ public sealed record MessageSearchQuery(MessageSearchMode Mode, string Value, bo
             try
             {
                 var path = Hl7Path.Parse((FieldPath ?? "").Trim());
-                if (FieldPath?.Contains('[') == true || path.Subcomponent is not null) return "Use SEG-field or SEG-field.component; all segments and repetitions are searched.";
+                if (FieldPath?.Contains('[') == true) return "Use an unindexed field/component/subcomponent path; all segments and repetitions are searched.";
             }
             catch (Exception e) when (e is ArgumentException or FormatException) { return "Enter a valid field/component path, for example PID-3.1."; }
         }
@@ -34,6 +40,7 @@ public sealed record MessageSearchQuery(MessageSearchMode Mode, string Value, bo
 /// <summary>Bounded display metadata only. No matched value/snippet is retained. Control IDs stay session-only.</summary>
 public sealed record MessageSearchMatch(int MessageNumber, string MessageType, string ControlId, string Location, long MatchCount)
 {
+    public string ConditionSummary { get; init; } = "";
     public override string ToString() => $"Message {MessageNumber}: {MatchCount} matches";
 }
 public sealed record MessageSearchProgress(int Scanned, int Total, int Matches, int Skipped);
@@ -59,12 +66,12 @@ public sealed class MessageSearchResults
 
 /// <summary>Read-only scans over the original byte index plus immutable unsaved drafts.
 /// Only one message's bounded text/structure is resident. All scans run off the caller's UI thread.</summary>
-public sealed class MessageSearch
+public sealed partial class MessageSearch
 {
     public Task<MessageSearchResults> SearchAsync(MessageDocument document, MessageSearchQuery query,
         IProgress<MessageSearchProgress>? progress = null, CancellationToken token = default)
     {
-        if (query.ValidationError() is { } error) throw new ArgumentException(error, nameof(query));
+        query = query.Snapshot();
         var capture = document.CaptureSearch();
         // Do not pass token to Task.Run: its delegate must run the finally block even
         // for a pre-canceled request, to release the document's source read lease.
@@ -78,7 +85,12 @@ public sealed class MessageSearch
     private static MessageSearchResults Scan(MessageDocument.SearchCapture capture, MessageSearchQuery query,
         IProgress<MessageSearchProgress>? progress, CancellationToken token)
     {
-        var path = query.Mode == MessageSearchMode.Field ? Hl7Path.Parse(query.FieldPath.Trim()) : null;
+        Criterion Compile(SearchCondition c) => new(c.Canonical(),
+            c.Target == SearchTarget.Field ? Hl7Path.Parse(c.Path.Trim()) : null,
+            new MessageSearchQuery(MessageSearchMode.Text, c.Value, c.CaseSensitive));
+        var expressionRoot = query.BuilderMode == SearchBuilderMode.Advanced ? (SearchExpression)query.EffectiveRoot : query.EffectiveConditions()[0];
+        var leaves = query.EffectiveConditions();
+        var compiled = leaves.Distinct().ToDictionary(c => c, Compile);
         var matches = new List<MessageSearchMatch>(); var skipped = 0; var clock = Stopwatch.StartNew();
         for (var i = 0; i < capture.Count; i++)
         {
@@ -100,45 +112,45 @@ public sealed class MessageSearch
                     }
                     else source = decoded = DecodedMessageSource.Create(capture.Snapshot, range, encoding, bom, token);
                 }
-                Hl7Structure? structure = null; long count = 0, first = -1; string location = "Text";
-                if (path is null)
+                Hl7Structure? structure = null;
+                Hl7Structure Structure() => structure ??= Hl7StructureScanner.Scan(source, capture.Encoding, cancellationToken: token);
+                var advanced = query.BuilderMode == SearchBuilderMode.Advanced;
+                long count = 0, first = -1; var location = "Text"; var summary = ""; var leafIndex = 0; var groups = 0;
+                bool Visit(SearchExpression expression, int depth)
                 {
-                    (count, first) = Count(source, new(0, source.Length), query, token);
-                    if (count > 0)
+                    token.ThrowIfCancellationRequested();
+                    if (expression is SearchGroup group)
                     {
-                        try { structure = Hl7StructureScanner.Scan(source, capture.Encoding, cancellationToken: token); }
-                        catch (Hl7LimitException) { } // Text still matches if structural metadata exceeds its independent budget.
-                        if (structure is not null) location = TextLocation(structure, first);
+                        // Defense in depth: evaluation cannot walk an unbounded or empty tree.
+                        if (++groups > MessageSearchQuery.MaximumGroups || depth > MessageSearchQuery.MaximumDepth || group.Children.Count == 0) throw new ArgumentException("Invalid search tree.");
+                        var all = group.Combination == SearchCombination.All;
+                        foreach (var child in group.Children)
+                            if (Visit(child, child is SearchGroup ? depth + 1 : depth) != all) return !all;
+                        return all;
                     }
-                }
-                else
-                {
-                    structure = Hl7StructureScanner.Scan(source, capture.Encoding, cancellationToken: token);
-                    var occurrence = 0;
-                    foreach (var segment in structure.Segments.Where(s => s.Identifier == path.Segment))
+                    if (++leafIndex > MessageSearchQuery.MaximumConditions) throw new ArgumentException("Invalid search tree.");
+                    var criterion = compiled[(SearchCondition)expression];
+                    var evaluated = Evaluate(source, Structure, criterion, !advanced, token);
+                    if (evaluated.Matches)
                     {
-                        occurrence++;
-                        var field = segment.Fields.FirstOrDefault(f => f.Number == path.Field);
-                        if (field is null) continue;
-                        foreach (var repetition in field.Children)
-                        {
-                            var node = path.Component is { } component ? repetition.Children.FirstOrDefault(c => c.Number == component) : repetition;
-                            if (node is null) continue;
-                            var hits = query.Comparison == MessageSearchComparison.Equals ?
-                                (node.Range.Length == query.Value.Length && string.Equals(source.Read(node.Range), query.Value, Comparison(query)) ? 1L : 0L) :
-                                Count(source, node.Range, query, token).Count;
-                            if (hits > 0 && count == 0) location = new Hl7Path(path.Segment, path.Field, occurrence, repetition.Number, path.Component).ToString();
-                            count += hits;
-                        }
+                        if (count == 0) { location = evaluated.Location; first = evaluated.First; }
+                        count += advanced ? 1 : evaluated.Count;
                     }
+                    return evaluated.Matches;
                 }
-                if (count > 0)
+                var accepted = Visit(expressionRoot, 1);
+                if (accepted)
                 {
+                    // Optional headers must not turn a valid literal match into a skip.
+                    // Required structural conditions propagate their budget failure above.
+                    if (structure is null) { try { _ = Structure(); } catch (Hl7LimitException) { } }
+                    if (first >= 0 && structure is not null) location = TextLocation(structure, first);
+                    if (advanced) summary = query.Root is null ? (query.Combination == SearchCombination.All ? $"All {leaves.Count} conditions" : $"Condition {leafIndex} (first ANY match)") : $"{count} satisfied evaluated conditions";
                     // The existing index permits at most 100,000 messages. One bounded
                     // row per ordinal, with capped headers, bounds resident metadata;
                     // the desktop exposes only a 200-row page to its virtualized list.
                     if (matches.Count >= MessageFileIndex.MaxIndexedMessages) throw new Hl7LimitException("SearchResults");
-                    matches.Add(new(i + 1, Header(structure, source, 9, 48), Header(structure, source, 10, 96), location, count));
+                    matches.Add(new(i + 1, Header(structure, source, 9, 48), Header(structure, source, 10, 96), location, count) { ConditionSummary = summary });
                 }
             }
             catch (Exception e) when (e is DecoderFallbackException or Hl7LimitException) { skipped++; }
@@ -151,7 +163,7 @@ public sealed class MessageSearch
         return new(capture.Document, capture.Revision, matches, skipped);
     }
     private static StringComparison Comparison(MessageSearchQuery query) => query.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-    private static (long Count, long First) Count(IHl7TextSource source, CharacterRange range, MessageSearchQuery query, CancellationToken token)
+    private static (long Count, long First) Count(IHl7TextSource source, CharacterRange range, MessageSearchQuery query, CancellationToken token, bool firstOnly = false)
     {
         long count = 0, first = -1, next = range.Offset; var carry = "";
         for (var offset = range.Offset; offset < range.End;)
@@ -165,6 +177,7 @@ public sealed class MessageSearch
                 if (found < 0) break;
                 if (first < 0) first = origin + found;
                 count++; next = origin + found + query.Value.Length; start = found + query.Value.Length;
+                if (firstOnly) return (count, first);
             }
             carry = window[^Math.Min(query.Value.Length - 1, window.Length)..]; offset += size;
         }

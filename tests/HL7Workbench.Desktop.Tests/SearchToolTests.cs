@@ -77,7 +77,8 @@ public sealed class SearchToolTests
                 view.FieldPath.Text = "PID-3"; model.SearchCommand.Execute(null); Assert.True(view.Cancel.IsEffectivelyEnabled);
                 model.CancelCommand.Execute(null); await model.SearchingTask;
                 Assert.Null(model.Session.Results); Assert.Contains("canceled", view.Status.Text!); Assert.False(view.Cancel.IsEffectivelyEnabled);
-                model.ClearCommand.Execute(null); Assert.Empty(model.Value); Assert.Null(doc.NavigationMatches);
+                // Stage 6B Clear retains the authored query while clearing discovery state.
+                model.ClearCommand.Execute(null); Assert.Equal("SYN-TWO", model.Value); Assert.Null(doc.NavigationMatches); Assert.Null(model.Session.Results);
                 Assert.Equal(window.ActualThemeVariant, view.ActualThemeVariant);
                 window.Content = null; var reconstructed = new SearchResultsView(model); window.Content = reconstructed;
                 Assert.Same(model.SearchCommand, reconstructed.Search.Command);
@@ -187,6 +188,11 @@ public sealed class SearchToolTests
                     var beforeFocus = focusRequests; Key(floatingInputRoot, Avalonia.Input.Key.F, KeyModifiers.Control); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
                     Assert.Equal(beforeFocus + 1, focusRequests); Assert.DoesNotContain(tool, factory.Root.HiddenDockables!); Assert.Same(model, tool.Context);
                     Assert.Same(idleSearch, model.SearchingTask); Assert.False(model.Session.IsBusy);
+                    model.BuilderMode = SearchBuilderMode.Advanced; window.UpdateLayout();
+                    var advancedView = Assert.Single(window.GetVisualDescendants().OfType<SearchResultsView>());
+                    var condition = (SearchConditionEditor)advancedView.ConditionRows.Children[0]; condition.Value.Text = "SYN-ADVANCED";
+                    Key(floatingInputRoot, Avalonia.Input.Key.F, KeyModifiers.Control); Dispatcher.UIThread.RunJobs();
+                    Assert.True(condition.Value.IsFocused); Assert.Same(idleSearch, model.SearchingTask); Assert.False(model.Session.IsBusy);
                 }
                 finally { floatingInputRoot.Close(); }
             }

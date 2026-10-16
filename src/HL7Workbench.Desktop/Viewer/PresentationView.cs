@@ -41,7 +41,7 @@ public sealed class PresentationView : ContentControl
         if (!presentation.RequiresVirtualization) { Content = editor; Setup(editor, new(0, presentation.Length)); }
         else
         {
-            blocks = new ListBox { ItemsSource = presentation.Blocks, Background = editor.Background,
+            blocks = new ListBox { ItemsSource = presentation.Blocks,
                 ItemTemplate = new FuncDataTemplate<PresentationBlock>((block, _) =>
                 {
                     if (block is null) return new TextBlock();
@@ -52,6 +52,9 @@ public sealed class PresentationView : ContentControl
                     return new StackPanel { Children = { new TextBlock { Text = $"Display block {block.Number + 1:N0} · continuation boundaries are presentation only", FontSize = 10, Opacity = .65, IsHitTestVisible = false }, text } };
                 }) };
             Content = blocks;
+            // The primary editor is not mounted in virtual mode; resolve against
+            // the mounted list rather than copying that detached editor's theme.
+            blocks.Bind(BackgroundProperty, new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension(WorkbenchThemeResources.EditorBackground));
         }
     }
     private void Setup(TextEditor editor, CharacterRange display)
@@ -68,8 +71,8 @@ public sealed class PresentationView : ContentControl
         }, scheduleHover);
         var loading = 0L;
         CancellationTokenSource? cancel = null;
-        editor.TextArea.TextView.LineTransformers.Add(new SourceColorizer(document.Structure, () => display.Offset, presentation));
-        editor.TextArea.TextView.LineTransformers.Add(new PresentationSelectionColorizer(inspection, presentation, display.Offset));
+        editor.TextArea.TextView.LineTransformers.Add(new SourceColorizer(document.Structure, () => display.Offset, () => Hl7EditorTheme.PaletteFor(editor), presentation));
+        editor.TextArea.TextView.LineTransformers.Add(new PresentationSelectionColorizer(inspection, presentation, display.Offset, () => Hl7EditorTheme.PaletteFor(editor)));
         async Task Load()
         {
             var version = ++loading; cancel?.Cancel(); cancel?.Dispose(); cancel = new();
@@ -160,7 +163,7 @@ public sealed class PresentationView : ContentControl
     { attached = false; inspection.SelectionChanged -= SelectionChanged; base.OnDetachedFromVisualTree(e); }
 }
 
-internal sealed class PresentationSelectionColorizer(MessageInspection inspection, MessagePresentation presentation, long origin) : DocumentColorizingTransformer
+internal sealed class PresentationSelectionColorizer(MessageInspection inspection, MessagePresentation presentation, long origin, Func<Hl7EditorPalette> palette) : DocumentColorizingTransformer
 {
     protected override void ColorizeLine(DocumentLine line)
     {
@@ -174,7 +177,7 @@ internal sealed class PresentationSelectionColorizer(MessageInspection inspectio
             { a = f.Display.Offset; b = f.Display.End; }
             else continue;
             a = Math.Max(a, origin + line.Offset); b = Math.Min(b, origin + line.EndOffset);
-            if (a < b) ChangeLinePart((int)(a - origin), (int)(b - origin), e => e.TextRunProperties.SetBackgroundBrush(new SolidColorBrush(Color.Parse("#384A65"))));
+            if (a < b) ChangeLinePart((int)(a - origin), (int)(b - origin), e => e.TextRunProperties.SetBackgroundBrush(palette().StructuralSelectionBackground));
         }
     }
 }

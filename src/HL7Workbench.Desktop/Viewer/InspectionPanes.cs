@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -30,6 +31,11 @@ public sealed class InspectionPanes : Grid
     private InspectionNode? revealedNode;
     public ListBox Navigator { get; } = new();
     public TreeView Inspector { get; } = new();
+    public MenuItem CopyPath { get; } = new() { Header = "Copy Path", IsEnabled = false };
+    public MenuItem CopySegmentPath { get; } = new() { Header = "Copy Path", IsEnabled = false };
+    public Control SegmentPathHeader => fieldStatus;
+    private object? copyTarget, copySegmentTarget;
+    internal Task CopyPathTask { get; private set; } = Task.CompletedTask;
     public long ValueOffset { get; private set; }
     public TextBlock ValueStatus { get; } = new();
     public WrapPanel ValueNavigation { get; } = new() { Orientation = Orientation.Horizontal, IsVisible = false };
@@ -51,6 +57,7 @@ public sealed class InspectionPanes : Grid
         ValueOffset = inspection.PreviewOffset;
         ColumnDefinitions = new("25*,6,75*"); ColumnDefinitions[0].MinWidth = 100; ColumnDefinitions[2].MinWidth = 180;
         Navigator.ItemsSource = inspection.Segments;
+        Navigator.Classes.Add("workbench-surface"); Inspector.Classes.Add("workbench-surface");
         // RevealNode handles structural navigation explicitly. Framework auto-scroll
         // would also run when new parse nodes are rebound and shift the user's viewport.
         Inspector.AutoScrollToSelectedItem = false;
@@ -58,6 +65,24 @@ public sealed class InspectionPanes : Grid
             (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty });
         Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
             (node, _) => CreateInspectorRow(node), node => node?.VisibleChildren ?? []);
+        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { CopyPath } };
+        fieldStatus.ContextMenu = new ContextMenu { ItemsSource = new[] { CopySegmentPath } };
+        Avalonia.Automation.AutomationProperties.SetName(CopyPath, "Copy structural path");
+        Avalonia.Automation.AutomationProperties.SetName(CopySegmentPath, "Copy segment path");
+        ToolTip.SetTip(CopyPath, "Copy field/component/subcomponent path; searches include all occurrences and repetitions");
+        ToolTip.SetTip(CopySegmentPath, "Copy selected segment identifier");
+        Inspector.AddHandler(ContextRequestedEvent, (_, e) =>
+        {
+            // Right-click addresses the row under the pointer; keyboard context menus
+            // address the current selection. Never copy a preview/value or stale coordinate.
+            var row = (e.Source as Visual)?.GetSelfAndVisualAncestors().OfType<TreeViewItem>().FirstOrDefault();
+            copyTarget = row?.DataContext ?? (!e.TryGetPosition(Inspector, out var position) ? Inspector.SelectedItem : null);
+            CopyPath.IsEnabled = HasCurrentInspection && InspectionSearchPath.For(copyTarget) is not null;
+        }, RoutingStrategies.Tunnel);
+        fieldStatus.AddHandler(ContextRequestedEvent, (_, _) =>
+        { copySegmentTarget = this.inspection.SelectedSegment; CopySegmentPath.IsEnabled = HasCurrentInspection && InspectionSearchPath.For(copySegmentTarget) is not null; }, RoutingStrategies.Tunnel);
+        CopyPath.Click += (_, _) => CopyPathTask = CopyStructuralPathAsync(copyTarget);
+        CopySegmentPath.Click += (_, _) => CopyPathTask = CopyStructuralPathAsync(copySegmentTarget);
         var navigatorPane = Pane("Segment Navigator", Navigator);
         var inspectorPane = new Grid { RowDefinitions = new("Auto,Auto,*,Auto,Auto,80"), Margin = new(8) };
         fieldStatus.FontWeight = FontWeight.SemiBold;
@@ -145,6 +170,12 @@ public sealed class InspectionPanes : Grid
         foreach (var child in Children) SetRow(child, 1);
         SetColumnSpan(SnapshotStatus, ColumnDefinitions.Count); Children.Add(SnapshotStatus);
         UpdateSnapshotState();
+    }
+
+    private async Task CopyStructuralPathAsync(object? item)
+    {
+        if (HasCurrentInspection && InspectionSearchPath.For(item) is { } path && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+            await clipboard.SetTextAsync(path);
     }
 
     private void GuardStructuralInput(Control control)
@@ -295,7 +326,7 @@ public sealed class InspectionPanes : Grid
                 null => inspection.Segments.Count == 0 ? "Field Inspector · no segments" : "Field Inspector · select a segment",
                 { HasFieldPaths: false } => "Field Inspector · opaque segment; no parsed fields",
                 { CanEdit: false } => "Field Inspector · provisional structure; see Activity Log",
-                _ => "Field Inspector · expand fields for structure"
+                _ => $"Field Inspector · {inspection.SelectedSegment.Identifier} · expand fields (right-click here to Copy Path)"
             };
             var node = inspection.SelectedNode;
             ValueNavigation.IsVisible = document?.Source is not null && node?.Range64 is { Length: > 4096 };

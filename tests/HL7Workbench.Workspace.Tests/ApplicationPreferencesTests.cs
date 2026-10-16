@@ -11,6 +11,43 @@ public sealed class ApplicationPreferencesTests : IDisposable
     private string PathFor(string name = "preferences.json") => Path.Combine(root, name);
     public ApplicationPreferencesTests() => Directory.CreateDirectory(root);
     public void Dispose() => Directory.Delete(root, true);
+    [Theory]
+    [InlineData(0.1)] [InlineData(0.6)] [InlineData(0.9)]
+    public void SearchSplitIsVersionedPlacementOnlyAndPreservesExistingPreferences(double fraction)
+    {
+        var state = new ApplicationPreferences(PathFor()); Assert.Null(state.Current.SearchLayout);
+        Assert.True(state.Apply(state.Current with { Theme = ApplicationThemePreference.Light, RibbonExpanded = true,
+            SearchLayout = new(AdvancedBuilderFraction: fraction) }));
+        var loaded = EditorPreferences.Load(PathFor()); Assert.Equal(fraction, loaded.SearchLayout!.AdvancedBuilderFraction);
+        Assert.Equal(1, loaded.SearchLayout.Version); Assert.True(loaded.RibbonExpanded); Assert.Equal(ApplicationThemePreference.Light, loaded.Theme);
+        var json = File.ReadAllText(PathFor()); Assert.DoesNotContain("Value", json); Assert.DoesNotContain("Results", json); Assert.DoesNotContain("Document", json);
+        Assert.Empty(Directory.GetFiles(root, "*.tmp"));
+    }
+    [Theory]
+    [InlineData(-1)] [InlineData(0)] [InlineData(1)] [InlineData(5)] [InlineData(double.NaN)] [InlineData(double.PositiveInfinity)]
+    public void InvalidSearchSplitValuesFallBackWithoutAffectingOtherSettings(double fraction)
+    {
+        Assert.Equal(0.6, new SearchPaneLayout(AdvancedBuilderFraction: fraction).Validated().AdvancedBuilderFraction);
+        Assert.Equal(0.6, new SearchPaneLayout(99, 0.7).Validated().AdvancedBuilderFraction);
+        File.WriteAllText(PathFor(), "{\"RibbonExpanded\":true,\"SearchLayout\":{\"Version\":99,\"AdvancedBuilderFraction\":0.8}}");
+        var loaded = EditorPreferences.Load(PathFor()); Assert.True(loaded.RibbonExpanded); Assert.Equal(0.6, loaded.SearchLayout!.AdvancedBuilderFraction);
+        File.WriteAllText(PathFor(), "{\"StartInEditMode\":true,\"SearchLayout\":{\"Version\":1,\"AdvancedBuilderFraction\":-1}}");
+        loaded = EditorPreferences.Load(PathFor()); Assert.True(loaded.StartInEditMode); Assert.Equal(0.6, loaded.SearchLayout!.AdvancedBuilderFraction);
+        File.WriteAllText(PathFor(), "{\"SearchLayout\":{\"AdvancedBuilderFraction\":\"broken\"}}");
+        var corrupt = new ApplicationPreferences(PathFor()); Assert.Null(corrupt.Current.SearchLayout); Assert.Contains("defaults", corrupt.Status);
+    }
+    [Theory]
+    [InlineData(ApplicationThemePreference.FollowSystem)] [InlineData(ApplicationThemePreference.Light)] [InlineData(ApplicationThemePreference.Dark)]
+    public void ThemeDefaultsLegacyCompatibilityAndExplicitPersistence(ApplicationThemePreference theme)
+    {
+        Assert.Equal(ApplicationThemePreference.FollowSystem, new EditorPreferences().Theme);
+        File.WriteAllText(PathFor(), "{\"StartInEditMode\":true,\"FutureOption\":17}");
+        var state = new ApplicationPreferences(PathFor()); Assert.Equal(ApplicationThemePreference.FollowSystem, state.Current.Theme);
+        Assert.True(state.Apply(state.Current with { Theme = theme })); var restarted = new ApplicationPreferences(PathFor());
+        Assert.Equal(theme, restarted.Current.Theme); Assert.True(restarted.Current.StartInEditMode); Assert.Equal(17, restarted.Current.AdditionalSettings!["FutureOption"].GetInt32());
+        File.WriteAllText(PathFor(), "{\"Theme\":99,\"RibbonExpanded\":true}");
+        restarted = new(PathFor()); Assert.Equal(ApplicationThemePreference.FollowSystem, restarted.Current.Theme); Assert.True(restarted.Current.RibbonExpanded);
+    }
 
     [Fact]
     public void DefaultsLegacySettingsAndUnknownFieldsRoundTripIndependentlyOfLibraryAndLayout()

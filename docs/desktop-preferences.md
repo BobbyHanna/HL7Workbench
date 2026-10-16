@@ -26,7 +26,7 @@ dynamically to the attached window's dark/light variant, including changes while
 Script Library, Execution and Results use aligned icon controls, subtle dividers and an
 accent Run tile. Standard Fluent control themes retain hover/press/focus/disabled states.
 
-Settings → Preferences opens a dedicated window with General/HL7 category navigation.
+Settings → Preferences opens a dedicated window with General/HL7/Appearance category navigation.
 Apply saves without closing; OK saves and closes only on success; Cancel/close abandons
 changes since the last Apply. General contains two fully functional preferences:
 
@@ -36,6 +36,81 @@ changes since the last Apply. General contains two fully functional preferences:
   Start in Edit Mode checkbox uses the same state.
 - Ribbon visibility: Collapsed by default, or Expanded. Pin/unpin and Preferences use
   the same persisted value. A failed save retains the previous active preference.
+
+Appearance has one mutually exclusive theme selector: **Follow System** (default),
+**Light**, **Dark**. Apply/OK saves and changes the existing Avalonia application-wide
+RequestedThemeVariant immediately; no restart is required. Follow System uses Default,
+including live OS theme notifications where supported. Explicit Light/Dark overrides
+the system. Main/docked/floating tools, menus, context menus, dialogs, ribbons and Find
+Messages inherit the same resources. Cancel/close discards only unapplied changes.
+HL7 editors resolve a shared palette from the effective variant, including source-backed
+previews, virtualized blocks and Full Source Viewer. Switching themes repaints existing
+visual lines without reopening/replacing documents, discarding edits, resetting history,
+moving caret/selection/scroll or starting search/scripts/source reads.
+
+## Editor and application palette foundation
+
+The selected preference remains Follow System/Light/Dark. Avalonia resolves the effective
+Light/Dark variant. Dynamic resources then resolve **Hl7EditorPalette** for the existing
+materialized and source-backed colorizers. WorkbenchThemeResources/WorkbenchStyles reuse
+Fluent control themes with semantic panel/surface/group/border/accent/validation resources.
+Light uses a pale application canvas, white editing/result/inspection surfaces and subtly
+tinted child groups. Dark keeps existing Fluent surfaces and the established HL7 canvas
+and syntax accents. Hover, disabled, selected and focus states retain Fluent behavior;
+errors also retain explanatory text. No replacement theme framework or packages are added.
+
+| Supported HL7 color | Light | Dark (preserved) |
+| --- | --- | --- |
+| Background / default text | #FFFFFF / #20242B | #18212B / #F5F5F5 |
+| Segment identifier | #005A9E | DeepSkyBlue |
+| Field separator | #825600 | Gold |
+| Component separator | #146B35 | LightGreen |
+| Subcomponent separator | #7B287D | Plum |
+| Repetition separator | #924400 | Orange |
+| Escape delimiter accents | #9A3D22 | LightSalmon |
+| Line numbers / caret | #626A76 / #20242B | #A0A0A0 / #F5F5F5 |
+| Text selection background / foreground | #CCE3FC / #142338 | #264F78 / #F5F5F5 |
+| Structural selection background | #DCEAF8 | #384A65 |
+| Omission background / text | #F0EEF5 / #62596F | #32303A / #778899 |
+
+These categories reflect actual Core-backed syntax spans. Escape delimiters are accented;
+escape bodies are not separately classified/decoded. There is no separate search-highlight
+layer; ordinary selection and structural selection keep their established meanings.
+Current-line colors are provided if that existing option is enabled; the option is not
+newly enabled. Read-only uses the same readable syntax palette; Edit Mode/status still
+communicates editability. The C# Script Editor retains its existing independent Stage 5B
+VS Dark palette and compiler overlays in this correction pass.
+
+Permanent tests check Light normal/syntax/line-number text and text-selection/omission
+contrast at WCAG AA's 4.5:1 threshold, rendered syntax for both delimiter sets, live state
+preservation and inherited effective-variant changes. Native DPI, OS notifications,
+Fluent selection/hover/focus/disabled contrast and complete window appearance still need
+Windows visual acceptance.
+
+A later milestone can supply a named/custom immutable Hl7EditorPalette through the same
+WorkbenchHl7EditorPalette dynamic resource and replace semantic application resources per
+Light/Dark variant. Renderers already read the resolved palette; they need no new scanner
+or rendering logic. A virtualized canvas uses the corresponding WorkbenchEditorBackground
+resource. Future profile storage/validation, editing/preview, color pickers and import/
+export remain deferred. No custom profile fields are added to Preferences now.
+
+## Find Messages split position
+
+Advanced has an internal horizontal splitter, approximately 60/40 initially. Builder and
+results scroll independently while common commands remain outside both regions. It can
+give the builder most of the available height. Simple stays compact with automatic height;
+its layout does not overwrite the Advanced fraction. Resizing/group expansion does not
+execute/invalidate search or move outer Dock splitters.
+
+Existing editor-preferences.json stores only `SearchLayout: { Version: 1,
+AdvancedBuilderFraction: 0.6 }`, not query/results/document state. A finite .1–.9 fraction
+is accepted; missing/unsupported/out-of-range values use .6. Malformed records follow the
+existing safe-default/feedback policy. Saves occur after completed drag/keyboard gestures,
+using the existing flushed temporary-file/atomic-move convention. Continuous deltas and
+ordinary window resizing cause no writes. Save failure keeps the chosen split for the
+current session and reports failure through existing Preferences feedback; restart uses
+the last successfully saved value. Hide/reopen/float/reset retain the shared model's split,
+and old placement-only layouts remain compatible with tool.search-results.
 
 ## Declared version and future schema choices
 
@@ -59,9 +134,9 @@ normalize values or alter original bytes.
 General/schema metadata use the existing per-user
 `%LOCALAPPDATA%\HL7Workbench\editor-preferences.json`, separate from Scripts,
 workspace-layout.json and script-editor-preferences.json (code font preferences).
-Old files containing only StartInEditMode retain it; missing fields use defaults.
+Old files containing only StartInEditMode retain it; missing Theme defaults to Follow System.
 Unknown JSON fields in a valid record survive subsequent saves. Unknown enum values
-fall back to declared mode. Missing files cause no write; malformed/oversized records
+fall back to declared schema mode / Follow System. Missing files cause no write; malformed/oversized records
 use safe defaults with fixed feedback and remain untouched until explicit Apply/pin.
 
 Records remain bounded to 4 KiB. Save writes and flushes a unique same-directory

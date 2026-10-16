@@ -6,6 +6,83 @@ All committed examples and tests must be synthetic.
 
 ## Current milestone and review boundary
 
+Stage 6B Advanced Search & Saved Searches has passed native Windows acceptance and is
+accepted by the user. The user explicitly authorized one milestone commit on main from
+Stage 6A baseline dbcd6284eabb01220046109a1f01f2e94626edcd and a normal push to origin/main,
+with message `feat: add Stage 6B advanced search and saved searches`. Authorization covers
+the accepted 44-file milestone only; no new implementation, history rewriting, tag,
+release, installer or distribution package. Any earlier pending-acceptance/Git restrictions
+are historical and superseded by this authorization. Stage 7 requires separate authorization.
+
+Find Messages keeps its shared open/reveal/focus command and tool.search-results ID.
+Simple retains Stage 6A matching and adds subcomponent paths. Advanced uses an ordered
+ALL/ANY Boolean tree: 1–16 leaves, 16 groups and depth 4 including the fixed root.
+Every group must be nonempty. Validation, deep snapshots and evaluation guards bound
+work; children short-circuit in displayed order. Negative field comparisons require
+presence and no matching value across any applicable segment/repetition. Segment targets
+accept PV1 without a field; Field targets accept PV1-1 / PID-3.1 / PID-3.1.2.
+The existing capture/scanner/session/paging/filter pipeline remains authoritative.
+Core/source bytes, worker/packaging and Dock architecture are unchanged. Query edits
+cancel/clear stale results and filters; collapse/expand only changes presentation.
+Clear retains the authored query. No source values are added to result metadata/logs.
+
+Search Library is separate local versioned JSON in the configuration root's Searches
+folder (%LOCALAPPDATA%\HL7Workbench\Searches by default). Explicit Save/Update use a
+nonmodal local unencrypted-storage disclosure, with no repeated confirmation or PHI
+prohibition. Load never runs, Rename preserves the stored query, and Delete confirms.
+Schema/query 2 stores ordered trees. Schema/query 1 flat definitions migrate in memory
+without changing names/literals/semantics or rewriting on Load/List; explicit writes
+use the original revision hash. GUID filenames, corrupt-entry isolation, bounded strict
+schema, revision/lock checks and FileSaveDestination safe publication remain intact.
+No history, results, document paths/contents, control IDs or ordinals are persisted.
+
+Field Inspector Copy Path uses existing Core-backed node paths, supports subcomponents
+and copies segment identifiers from the selected-segment heading. It omits unsupported
+occurrence/repetition addressing, never values; stale/nonstructural nodes are disabled.
+Preferences adds Appearance: Follow System (default), Light, Dark, using the existing
+Avalonia application theme and preference file. Apply/OK changes all inherited windows
+immediately; Cancel abandons unapplied changes. Default receives supported OS theme
+notifications; older files default to Follow System. No separate theme system is added.
+See message-search.md, ADR 0009, desktop-preferences.md and the Stage 6B acceptance
+checklist for semantics, migration, storage, bounds and native verification.
+
+Find Messages now has an internal horizontal splitter in Advanced, defaulting near
+60/40 builder/results. Common commands stay outside both scrolling regions; minimums
+shrink in short panes. Simple remains compact/automatic. Completed drag/keyboard gestures
+save a version-1 SearchLayout fraction (.1–.9, default .6) in existing editor preferences;
+continuous deltas/window resize/group expansion cause no writes or search invalidation.
+The shared model retains the split through floating/hiding/reset, with no outer Dock
+rewrite or tool identity/layout change and no query/results/document details persisted.
+
+The HL7 editor now follows the effective theme too: a small immutable Hl7EditorPalette
+resolves via Avalonia dynamic resources for both existing colorizers, structural/text
+selections, caret, line numbers, current-line/omission colors and source/virtualized/full
+source views. Theme changes redraw existing lines only, preserving draft/history/caret/
+selection/scroll and source bytes, with no search/script/reload. Light uses a white editor
+and dark syntax accents; Dark preserves the established canvas/accents. Semantic
+panel/surface/group/border/accent/validation resources layer over Fluent for consistent
+Light working surfaces and inherited floating/menu/dialog themes. Future custom palettes
+can replace resources without rewriting renderers; no theme editor, profiles, import/
+export, parallel framework, packages or new theme preference fields are implemented.
+The C# Script Editor retains its independent Stage 5B VS Dark palette in this pass.
+
+Historical correction verification passed 998 automated / 510 Workspace stress cases.
+The current layout/theme pass adds 20 permanent cases: nine Workspace and eleven Desktop.
+Fresh locked restore and Release build pass with 0 warnings/errors; 192 focused Workspace
+and 88 focused Desktop cases pass. The full suite passes all 1,018 cases and fresh
+Workspace stress passes all 519 cases, with no failures/skips. Whitespace/conflict review
+passes across all 44 changed/new files; the synthetic fixture hash is unchanged. The
+acceptance checklist records exact commands, palette/split behavior, the file inventory
+and focused native retest. The user subsequently confirmed native Windows acceptance.
+All permanent tests/fixtures and existing ignored artifacts are retained; no new disposable
+probes/exports were created. Final pre-commit recovery confirmed main at dbcd628, exactly
+23 modified tracked / 21 untracked additions, an empty index, and origin/main at the same
+baseline. Source/tests remain unchanged from the verified build; final whitespace checks
+and the fixture hash pass. The accepted suites are retained without an unnecessary rerun.
+Only documentation acceptance records changed during finalization.
+
+### Accepted Stage 6A checkpoint
+
 Stage 6A message search/filter, including the final Find Messages UX cleanup, passed
 native Windows acceptance and was explicitly accepted by the user on 2026-10-16.
 The user authorized one milestone commit on main from the accepted/pushed Stage 5B

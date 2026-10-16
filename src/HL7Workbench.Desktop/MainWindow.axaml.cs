@@ -34,7 +34,7 @@ public partial class MainWindow : Window
         scripts = new(documents, new ScriptLibrary(Path.Combine(configurationDirectory, "Scripts")),
             preferencesPath: Path.Combine(configurationDirectory, "script-editor-preferences.json"));
         scripts.PromptUnsavedAsync = PromptUnsavedScriptAsync;
-        search = new(documents);
+        search = new(documents, new SearchLibrary(Path.Combine(configurationDirectory, "Searches")), preferences);
         registry.Register(new(WorkspaceDockFactory.BrowserId, "Message Browser", () => browser));
         registry.Register(new(WorkspaceDockFactory.ActivityLogId, "Activity Log", () => new ActivityLogViewModel(documents.Activity), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.NavigatorId, "Segment Navigator", () => navigator));
