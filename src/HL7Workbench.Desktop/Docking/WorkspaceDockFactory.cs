@@ -20,6 +20,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string ScriptEditorId = "tool.script-editor";
     // Keep the original Search Results identity so saved layouts restore Find Messages.
     public const string SearchResultsId = "tool.search-results";
+    public const string ComparisonId = "tool.message-comparison";
     private readonly DocumentManager documents;
     private readonly ToolWindowRegistry tools;
     private readonly Dictionary<string, IDockable> items = [];
@@ -122,7 +123,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
         }
         foreach (var tool in tools.Definitions)
             items.Add(tool.Id, new Tool { Id = tool.Id, Title = tool.Title, Context = tool.Optional ? null : tools.GetContent(tool.Id),
-                CanDockAsDocument = false, CanFloat = true, CanClose = true, CanPin = false });
+                CanDockAsDocument = tool.Id == ComparisonId, CanFloat = true, CanClose = true, CanPin = false });
         DockableLocator = items.ToDictionary(p => p.Key, p => (Func<IDockable?>)(() => p.Value));
     }
 
@@ -212,6 +213,20 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     {
         var item = items[id];
         item.Context ??= tools.GetContent(id);
+        // Comparison starts at document size and can subsequently dock/float as a tool.
+        // Tool focus intentionally retains the active HL7 document for source-selection commands.
+        if (id == ComparisonId && (item.Owner is IDocumentDock || !placements.ContainsKey(id) &&
+            (item.Owner is null || Root.HiddenDockables?.Contains(item) == true)))
+        {
+            if (item.Owner is not IDocumentDock)
+            {
+                Root.HiddenDockables?.Remove(item);
+                var documentsDock = FindDockable(Root, d => d is IDocumentDock) as IDocumentDock
+                    ?? throw new InvalidOperationException("Missing document workspace.");
+                AddDockable(documentsDock, item);
+            }
+            SetActiveDockable(item); ActivateWindow(item); return;
+        }
         var alreadyVisible = item.Owner is IToolDock dockOwner && dockOwner.VisibleDockables?.Contains(item) == true;
         if (!alreadyVisible && placements.TryGetValue(id, out var placement))
         {
@@ -283,6 +298,10 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private bool IsFloating(IDockable item) => FindWindow(item) is not null;
     private IToolDock? FindGroup(string id) => FindDockable(Root, d => d is IToolDock && d.Id == id) as IToolDock ??
         Root.Windows?.Select(w => w.Layout is null ? null : FindDockable(w.Layout, d => d is IToolDock && d.Id == id)).OfType<IToolDock>().FirstOrDefault();
+    // Floating a tool directly from a document group creates an Unset Dock alignment.
+    // Persist a supported recovery edge, keeping the existing bounded metadata schema.
+    private static string SavedAlignment(IToolDock group) => group.Alignment is Alignment.Left or Alignment.Right or Alignment.Top or Alignment.Bottom
+        ? group.Alignment.ToString() : nameof(Alignment.Bottom);
     private void Remember(ITool item)
     {
         NormalizeGroupIdentities();
@@ -296,7 +315,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
                 (parent.Owner as IDock)?.VisibleDockables?.IndexOf(parent) ?? 0)); current = parent;
         }
         var window = FindWindow(item); window?.Save();
-        placements[item.Id!] = new(item.Id!, Identity(group), group.Alignment.ToString(),
+        placements[item.Id!] = new(item.Id!, Identity(group), SavedAlignment(group),
             double.IsFinite(group.Proportion) && group.Proportion > 0 ? group.Proportion : null,
             group.VisibleDockables!.IndexOf(item), group.VisibleDockables.OfType<ITool>().Where(t => t != item).Select(t => t.Id!).ToArray(),
             containers.ToArray(), window is null ? null : new(window.X, window.Y, window.Width, window.Height),
@@ -358,7 +377,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
                 _ => throw new InvalidDataException("Unsupported dock type.") };
             var proportion = double.IsFinite(item.Proportion) && item.Proportion > 0 ? item.Proportion : (double?)null;
             return new(kind, Identity(item), proportion,
-                (item as IDock)?.ActiveDockable?.Id, (item as IToolDock)?.Alignment.ToString(),
+                (item as IDock)?.ActiveDockable?.Id, item is IToolDock toolGroup ? SavedAlignment(toolGroup) : null,
                 (item as IDock)?.VisibleDockables?.Select(Node).ToArray(),
                 item is IProportionalDock split && split.Orientation == Orientation.Vertical);
         }
@@ -420,7 +439,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
             if (result is IDock dock)
             {
                 var children = (node.Children ?? []).Select(Node).OfType<IDockable>().ToArray();
-                if (node.Kind == "documents" && children.Any(c => c.Context is not MessageDocument) ||
+                if (node.Kind == "documents" && children.Any(c => c.Context is not MessageDocument && c.Id != ComparisonId) ||
                     node.Kind == "tools" && children.Any(c => c is not ITool)) throw new InvalidDataException("Invalid tab group.");
                 dock.VisibleDockables = CreateList(children);
                 if (node.Kind == "tools" && children.Length == 0) return null;

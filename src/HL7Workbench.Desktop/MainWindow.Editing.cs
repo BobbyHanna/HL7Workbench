@@ -16,12 +16,6 @@ public partial class MainWindow
     {
         documents.Preferences = preferences.Current;
         if (preferences.Status.Length > 0) Status.Text = preferences.Status;
-        StartInEditMode.IsChecked = documents.Preferences.StartInEditMode;
-    }
-    private void ChangeEditPreference(object? sender, RoutedEventArgs e)
-    {
-        preferences.Apply(preferences.Current with { StartInEditMode = StartInEditMode.IsChecked });
-        StartInEditMode.IsChecked = preferences.Current.StartInEditMode; Status.Text = preferences.Status;
     }
     private async void SaveDocument(object? sender, RoutedEventArgs e)
     { if (documents.ActiveDocument is { } document) await SaveDocumentAsync(document, false); }

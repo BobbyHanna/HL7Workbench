@@ -13,7 +13,6 @@
       </MenuItem>
       <MenuItem Header="_Settings">
         <MenuItem Header="_Preferences…" Click="ShowPreferences" />
-        <MenuItem x:Name="StartInEditMode" Header="Start in Edit Mode" ToggleType="CheckBox" Click="ChangeEditPreference" ToolTip.Tip="Apply to newly opened documents; existing documents keep their own Edit Mode" />
       </MenuItem>
       <MenuItem Header="_View">
         <MenuItem Header="Message _Browser" Click="ShowBrowser" />

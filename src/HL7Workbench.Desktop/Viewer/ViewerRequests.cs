@@ -18,6 +18,16 @@ public sealed class RawInspectorRequestEventArgs(MessageDocument document, Chara
 /// <summary>View-to-shell intent, without coupling viewer controls to Dock.</summary>
 public static class ViewerRequests
 {
+    public static readonly RoutedEvent<RawInspectorRequestEventArgs> CompareOriginalEvent =
+        RoutedEvent.Register<Control, RawInspectorRequestEventArgs>("CompareOriginal", RoutingStrategies.Bubble);
+    public static void AttachComparisonMenu(Control control, MessageDocument document)
+    {
+        var compare = new MenuItem { Header = "Compare With Original" };
+        compare.Click += (_, _) => control.RaiseEvent(new RawInspectorRequestEventArgs(document, null, null) { RoutedEvent = CompareOriginalEvent });
+        var menu = control.ContextMenu ??= new();
+        var items = menu.ItemsSource?.Cast<MenuItem>().ToList() ?? [];
+        items.Add(compare); menu.ItemsSource = items;
+    }
     public static readonly RoutedEvent<RawInspectorRequestEventArgs> OpenInspectorEvent =
         RoutedEvent.Register<Control, RawInspectorRequestEventArgs>("OpenInspector", RoutingStrategies.Bubble);
     public static void Open(Control control, MessageDocument document, CharacterRange? range = null, string? path = null) =>
@@ -55,6 +65,7 @@ public static class ViewerRequests
         var entries = ((IEnumerable<MenuItem>)menu.ItemsSource!).ToList();
         entries.RemoveAll(item => Equals(item.Header, "Copy Visible Preview"));
         entries.Add(inspect); entries.Add(preview); entries.Add(export); entries.Add(cancelExport); entries.Add(full); menu.ItemsSource = entries;
+        AttachComparisonMenu(editor, target.Document);
         editor.AddHandler(Control.ContextRequestedEvent, (_, e) =>
         {
             if (!Current()) { inspect.IsEnabled = export.IsEnabled = full.IsEnabled = false; return; }

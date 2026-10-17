@@ -26,7 +26,7 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
   message contents, patient identifiers, filenames, paths, and exception text.
 - **Per-document Edit Mode:** Documents start read-only by default. Enable editing
   for a supported message without changing other documents. A persistent
-  Settings → Start in Edit Mode preference applies only to newly opened documents.
+  Settings → Preferences → General edit-mode preference applies only to newly opened documents.
 - **Undo/redo and dirty tracking:** Document-owned edit history and modified-tab
   indicators survive message navigation and view reconstruction. Turning Edit
   Mode off retains unsaved work. Inspection stays visible while edits are parsed;
@@ -114,9 +114,39 @@ milestone commit and normal push to main. See
 The [Stage 6B acceptance checklist](docs/stage6b-advanced-search-acceptance.md) covers the
 builder, local library, restart persistence and compatibility checks.
 
+## Message comparison (Stage 7)
+
+HL7 Tools → Message Comparison opens a document-sized, dockable/floating workspace.
+The default **Side-by-Side** view immediately shows both syntax-highlighted source panes,
+ready for temporary pasted text even with no documents open. **Differences** groups
+readable before/after changes by segment through the existing view toggle.
+Switching views retains results, selection and loaded source panes. Copy and ignore
+settings live in compact menus, alongside Next/Previous (F7/Shift+F7) and the count.
+
+With no documents open, paste directly into the A/B panes, or focus the A/B source control
+and press Ctrl+V. Results update after a short pause. Each source control offers
+Open Message, Original Message and editable temporary Pasted Text; switching kinds
+preserves that side's pasted draft. Document-backed sources remain read-only and use
+original message ordinals, including with search filters. Compare With Original on
+the ribbon/raw-editor context menu compares an unsaved draft with its initially loaded
+content. Comparison never changes document content, history or save state.
+
+Pasted text is retained exactly, including line endings, within the existing complete
+editor limits (1 Mi UTF-16 characters, 16 Ki per line). Paste one message per side;
+multiple MSH messages receive an explicit explanation. Temporary pasted text is cleared
+when the comparison workspace closes. Large document-backed messages retain bounded
+source windows. Settings now contains Preferences only; its edit-mode default remains
+persisted and applies to newly opened documents.
+
+Implementation, automated verification and user-confirmed native Windows acceptance
+are complete. See [comparison instructions](docs/message-comparison.md),
+[architecture decision](docs/decisions/0010-read-only-message-comparison.md) and the
+[Stage 7 acceptance checklist](docs/stage7-message-comparison-acceptance.md), including
+the reproducible synthetic sample generator. No comparison content/history is persisted.
+
 ## Planned capabilities
 
-Message generation, template cloning, cross-document analysis,
+Message generation, template cloning, additional batch analysis,
 SQL-style querying, and TCP/MLLP transport remain planned. File-based MLLP framing support is available
 for inspection and preservation; it does not provide network transport. Synthetic
 message generation and additional analysis tools also remain future work.

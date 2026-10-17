@@ -21,7 +21,7 @@ namespace HL7Workbench.Desktop.Tests;
 public sealed partial class ScriptEditorTests
 {
     private static Dictionary<string, ICommand> RibbonActions() => new[] { "Open File…", "Save HL7", "Save HL7 As…", "Save Layout", "Restore Layout", "Reset Layout / Recover Windows", "Preferences…",
-        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator" }.ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
+        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator", "Message Comparison", "Compare With Original" }.ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
     private static void SendShellKey(Control control, Avalonia.Input.Key key) => control.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
 
     [Fact]

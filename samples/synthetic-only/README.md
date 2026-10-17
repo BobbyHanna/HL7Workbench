@@ -21,3 +21,8 @@ synthetic during the hardening pass:
 
 These fixtures exercise syntax and preservation, not clinical/profile conformance.
 Tests also create CR/LF/CRLF/mixed and UTF-16 variants in memory. Core has no file I/O.
+
+`New-Stage7ComparisonSamples.ps1` independently authors an invented comparison pair
+and three-message batch in ignored `test-data/generated/stage7/`. It writes UTF-8
+without BOM with CR terminators and refuses existing filenames. It does not change
+the reviewed fixtures above. See `docs/stage7-message-comparison-acceptance.md` for use.

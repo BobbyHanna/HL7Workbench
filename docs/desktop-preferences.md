@@ -32,8 +32,10 @@ changes since the last Apply. General contains two fully functional preferences:
 
 - Open documents in Edit Mode by default: Off for new installations. Only subsequently
   opened documents use the preference. Existing documents retain mode, drafts and undo;
-  all existing edit eligibility and save protections apply. The existing Settings →
-  Start in Edit Mode checkbox uses the same state.
+  all existing edit eligibility and save protections apply. Start in Edit Mode is
+  configured in Preferences → General. The redundant Settings
+  dropdown checkbox was removed in the Stage 7 refinement; its persisted value and
+  new-document startup behavior are unchanged.
 - Ribbon visibility: Collapsed by default, or Expanded. Pin/unpin and Preferences use
   the same persisted value. A failed save retains the previous active preference.
 

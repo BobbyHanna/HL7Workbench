@@ -48,11 +48,19 @@ public partial class MainWindow
             ["Reset Layout / Recover Windows"] = Action(ResetLayout),
             ["Message Browser"] = Action(ShowBrowser), ["Segment Navigator"] = Action(ShowNavigator), ["Field Inspector"] = Action(ShowFields),
             ["Full Source Viewer"] = Action(ShowRaw), ["Activity Log"] = Action(ShowActivity),
-            ["Find Messages"] = search.OpenCommand, ["Clear Search / Restore Navigator"] = search.ClearCommand
+            ["Find Messages"] = search.OpenCommand, ["Clear Search / Restore Navigator"] = search.ClearCommand,
+            ["Message Comparison"] = new UiCommand(() => { OpenComparison(); return Task.CompletedTask; }),
+            ["Compare With Original"] = new UiCommand(() => { OpenComparison().CompareWithOriginal(); return Task.CompletedTask; }, () => documents.ActiveDocument is { MessageNumber: > 0 })
         };
         shellCommands = actions.Values.OfType<UiCommand>().ToArray();
         documents.PropertyChanged += ShellCommandsChanged;
         RibbonHost.Content = new UtilityRibbon(preferences, scripts, actions);
+    }
+    private ComparisonViewModel OpenComparison()
+    {
+        var model = (ComparisonViewModel)registry.GetContent(WorkspaceDockFactory.ComparisonId);
+        factory.ShowTool(WorkspaceDockFactory.ComparisonId);
+        return model;
     }
     private void AttachSearchShortcut(Window window) => window.AddHandler(InputElement.KeyDownEvent, (_, e) =>
     {
@@ -63,7 +71,7 @@ public partial class MainWindow
     { foreach (var command in shellCommands) command.Refresh(); }
     private void PreferencesChanged(object? sender, PropertyChangedEventArgs e)
     {
-        documents.Preferences = preferences.Current; StartInEditMode.IsChecked = preferences.Current.StartInEditMode;
+        documents.Preferences = preferences.Current;
         ApplicationTheme.Apply(preferences.Current.Theme);
         Status.Text = preferences.Status;
     }

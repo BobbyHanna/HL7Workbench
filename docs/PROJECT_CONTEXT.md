@@ -6,6 +6,110 @@ All committed examples and tests must be synthetic.
 
 ## Current milestone and review boundary
 
+Stage 7 Message Comparison has passed native Windows acceptance, including the UX/paste/
+settings refinements and Side-by-Side default, as confirmed by the user on 2026-10-16.
+The user explicitly authorized one Stage 7 commit on main from the Stage 6B baseline
+`d7ad3e12ae63d8f42f1a26a743803ac081d5e6eb`, with message
+`feat: add Stage 7 HL7-aware message comparison`, and a normal push to origin/main.
+Authorization covers only the accepted 32-file milestone. No new features, unrelated
+refactors, history rewriting, tags, releases, installers or distribution packages.
+Earlier pending-acceptance/Git restrictions in the historical checkpoints below are
+superseded by this authorization. Stop after commit/push; Stage 8 requires separate authorization.
+
+The Stage 7 native UX correction defaults new sessions to Side-by-Side, with both empty
+pasted-text panes immediately visible/editable. Differences remains a grouped summary of
+the same result/selection through the existing checked view toggle; mode
+changes do not recapture or reload sources. A/B controls offer Open Message, Original
+Message and editable temporary Pasted Text, with direct pane Ctrl+V and Differences
+empty-state paste buttons. Each Workspace ComparisonInput retains its independent pasted draft across
+kind/mode changes. Immutable pasted-string captures need no documents or disk snapshots.
+Typing debounces 250 ms, cancels superseded work and preserves a selected coordinate
+where possible. Exact clipboard insertion avoids AvaloniaEdit's newline conversion.
+Pasted inputs have the existing 1 Mi UTF-16 / 16 Ki-line editor bounds; rejection retains
+the previous draft. The shared scanner rejects multiple-MSH pasted input explicitly,
+rather than silently selecting one message. Malformed/incomplete single-message text
+is retained and diagnosed. Source slots, pasted text and results clear on tool closure.
+Options and Copy move to compact menus; selected detail previews are bounded to 4,096
+characters. Document-backed sources remain read-only, with independent 64 Ki windows;
+pasted sources use complete editable bounded text. No source edits, saves or history changes.
+
+Settings now contains Preferences only. The General edit-mode default, its existing
+JSON persistence and application to newly opened documents are unchanged. Menu-only
+StartInEditMode synchronization/click wiring is removed. The separate Script Editor
+VS Dark palette remains deferred.
+
+Core's read-only comparison engine uses the shared structural scanner and message-local
+UTF-16 source ranges. Deterministic bounded lookahead aligns repeated segments (64)
+and repetitions (32), with exact content fingerprints followed by name anchors for
+unmatched different segment names. Both sides retain independent occurrence coordinates;
+Set IDs are ordinary values. MSH declarations stay literal, supported escape spelling
+differences are distinguished from changed values, and missing/empty/null remain distinct.
+Show all is the default; MSH-7, MSH-10, trailing-empty-field and terminator ignores are
+explicit and excluded from active counts. Scanner limits remain intact; 20,000 differences
+is an explicit failure boundary, with no partial result presented as complete.
+
+Workspace captures only two selected original ordinals from immutable original snapshots
+or exact current/original draft strings. Captures share the existing snapshot-read drain
+boundary with search, own private decoded spools and release them after bounded reads
+drain. No whole-document materialization, navigation, source writes, history changes,
+worker changes or new dependencies. Content revision/closure invalidates results;
+generation checks reject stale completions. Saving alone does not redefine the original.
+
+Desktop's optional `tool.message-comparison` starts in the document group, can float/dock
+and releases all feature state on close/reset. Only placement metadata survives. HL7 Tools
+and raw-editor Compare With Original open the same workspace. Independent 64 Ki UTF-16
+source windows use the existing syntax/theme palette; navigator selections intentionally
+locate both sides, with nearest same-name context when a side is absent. Clipboard actions
+read exact ranges, bounded to 1 Mi UTF-16 units, never abbreviated preview values. No
+comparison content enters logs/settings/layout/history. See message-comparison.md,
+ADR 0010 and stage7-message-comparison-acceptance.md for limits, tests and native checks.
+
+Initial Stage 7 automated verification on 2026-10-16: locked restore and Release build passed
+with zero warnings/errors. All 1,084 tests passed (66 new ordinary comparison cases),
+and all 536 Workspace stress cases passed, including the additional 32 MiB comparison
+variant and existing 256/512 MiB tests. Full and stress suites must run sequentially:
+their pre-existing generated fixture filenames are shared. All eight HL7 fixture byte
+hashes are unchanged. Tracked/untracked whitespace/conflict checks passed. The permanent
+synthetic generator was verified; its three disposable verification outputs were removed.
+Existing ignored artifacts/user exports are retained. Working tree: 13 modified tracked,
+12 new, nothing staged, still on main at the Stage 6B baseline. Native acceptance and
+separate Git authorization remain pending; automated/headless checks do not replace them.
+That initial UI checkpoint used several async-void Headless Dispatch callbacks. The
+refinement corrects them to awaited Task<bool> callbacks, strengthens their real UI
+assertions and reruns all coverage; its final results supersede the initial UI evidence.
+
+Final Stage 7 refinement verification on 2026-10-16 passed locked restore, a Release
+solution build with zero warnings/errors, all 1,121 automated cases, all 103 focused
+comparison cases (43 Core / 33 Workspace / 27 Desktop), and all 553 Workspace stress
+cases including the existing 256/512 MiB checks. The refinement adds 37 ordinary cases.
+Ten isolated Skia mode/theme/size/empty-state rendering checks passed and their synthetic
+previews were inspected. The final full and stress suites ran sequentially. All eight
+existing HL7 fixture blobs/hashes are unchanged; tracked/new whitespace, conflict and
+secret-pattern checks passed across 32 files. Git remains on main at the same baseline,
+16 modified tracked / 16 new files, nothing staged. The 10 ignored comparison-visual
+PNGs are retained for review; no new disposable source/CSV files remain. Documentation,
+ADR 0010 and the acceptance checklist describe the current modes, exact paste behavior,
+limits and Preferences-only edit default. Native Windows acceptance and Git authorization
+remain pending. Do not stage, commit, push, tag, release or publish.
+
+The subsequent native default-view correction on 2026-10-16 initializes Presentation
+to SideBySide once per ComparisonViewModel session. Existing Dock/reveal/reparent
+operations retain the model's selected view; true close/reset/restart releases it and
+reopens empty in Side-by-Side. No engine, paste limit, memory ceiling, layout schema or
+dependency changes. The reported approximately 100 MiB message with an embedded Base64
+PDF remains outside the 1 Mi UTF-16 paste limit; atomic rejection retains the prior draft.
+Large embedded-payload comparison, streaming/hashing and ED-aware handling remain future work.
+Locked restore and Release build passed (0 warnings/errors), all 1,124 solution cases
+and 106 focused Stage 7 cases passed (43 Core / 33 Workspace / 30 Desktop), with 0
+failures/skips. Ten isolated Skia checks passed; the updated empty Light/Dark previews
+were inspected. Three new permanent cases add direct default-pane paste/typing and both
+presentation choices through hide/reveal/float/resize/dock; existing tests additionally
+assert independent scroll/caret, source/options/result/selection retention and fresh defaults.
+The earlier 553-case stress result above is retained historical evidence; stress was not
+rerun for this Desktop initializer correction. All eight HL7 fixture blobs remain unchanged;
+whitespace/conflict checks passed across the same 32 unstaged files. Native acceptance
+and separate Git authorization remain pending.
+
 Stage 6B Advanced Search & Saved Searches has passed native Windows acceptance and is
 accepted by the user. The user explicitly authorized one milestone commit on main from
 Stage 6A baseline dbcd6284eabb01220046109a1f01f2e94626edcd and a normal push to origin/main,

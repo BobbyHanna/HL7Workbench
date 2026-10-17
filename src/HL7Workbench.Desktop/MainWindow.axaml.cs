@@ -42,6 +42,7 @@ public partial class MainWindow : Window
         // Retain the draft model when the tool closes or Dock reconstructs its view.
         registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
+        registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);
         factory.ConfirmDocumentCloseAsync = ConfirmDocumentCloseAsync;
         factory.ConfirmScriptCloseAsync = () => scripts.ConfirmCloseAsync(PromptUnsavedScriptAsync);
@@ -64,6 +65,10 @@ public partial class MainWindow : Window
             var model = (FullRawInspectorViewModel)registry.GetContent(WorkspaceDockFactory.FullRawId);
             model.Open(e.Document, e.Range, e.Path); factory.ShowTool(WorkspaceDockFactory.FullRawId); e.Handled = true;
             e.Document.RecordActivity(ActivityKind.SourceViewerOpened);
+        });
+        AddHandler(Viewer.ViewerRequests.CompareOriginalEvent, (_, e) =>
+        {
+            OpenComparison().CompareWithOriginal(e.Document); e.Handled = true;
         });
         browser.OpenRequested += factory.OpenDocument;
         WorkspaceDock.Layout = factory.CreateLayout();

@@ -1,5 +1,15 @@
 # Architecture
 
+Stage 7 adds a dependency-free Core structural comparison engine, Workspace selected-message
+captures/read leases, and an ordinary Desktop feature model with a document-sized Dock
+tool adapter. Sources remain immutable and independent of the active/filtered navigator;
+content revisions, cancellation and drain-before-disposal protect results and snapshots.
+The Stage 7 refinement adds Workspace-owned temporary pasted input slots and immutable
+string captures, with debounced Desktop updates. Differences/Side-by-Side are presentations
+of one result/selection, not separate comparison sessions. Document sources remain read-only.
+No source content/history is persisted. See [ADR 0010](decisions/0010-read-only-message-comparison.md)
+and [comparison workflows](message-comparison.md). Native Windows acceptance is user confirmed.
+
 Stage 5A adds Workspace -> Scripting -> Core and a separate ScriptHost -> Scripting
 worker executable. ScriptHost alone references Roslyn's scripting/execution packages;
 Desktop references the matching compiler-only package for background editor symbol

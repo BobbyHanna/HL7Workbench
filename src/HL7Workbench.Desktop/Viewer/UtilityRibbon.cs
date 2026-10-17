@@ -152,6 +152,7 @@ public sealed class UtilityRibbon : Grid
             Add("Navigation", Row(Existing("Message Browser", "Browser", large: true), Existing("Segment Navigator", "Navigator", large: true)));
             Add("Inspection", Row(Existing("Field Inspector", "Inspect", large: true), Existing("Full Source Viewer", "Source", large: true), Existing("Activity Log", "Reports", large: true)));
             Add("Search", TwoRows(Existing("Find Messages", "Inspect"), Existing("Clear Search / Restore Navigator", "Restore")));
+            Add("Comparison", TwoRows(Existing("Message Comparison", "Inspect"), Existing("Compare With Original", "Restore")));
         }
         else
         {

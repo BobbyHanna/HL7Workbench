@@ -14,6 +14,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     private long generation;
     private bool disposed;
     private Hl7Message? message;
+    private readonly string? initialComparisonText;
     private readonly StructureScanOptions? inspectionOptions;
     private DecodedMessageSource? cachedSource;
     private int cachedNumber;
@@ -57,7 +58,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     /// <summary>Session generation for UI intents that may outlive a context menu or native dialog.</summary>
     public long ContentVersion => generation;
     public MessageDocument(string id, string title, Hl7Message message)
-    { Id = id; Title = title; this.message = message; MessageNumber = 1; searchEncoding = message.Encoding; }
+    { Id = id; Title = title; this.message = message; MessageNumber = 1; searchEncoding = message.Encoding; initialComparisonText = message.HasDecodedText ? message.RawText : null; }
     internal MessageDocument(string id, string title, SourceSnapshot snapshot, MessageFileIndex index, StructureScanOptions? inspectionOptions = null)
     {
         Id = id; Title = title; Snapshot = snapshot; Index = index;
