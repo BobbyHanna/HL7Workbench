@@ -1,5 +1,43 @@
 # Architecture
 
+Stage 8B.1–8B.4, the window-root keyboard correction and Script Output Naming have
+passed user native Windows acceptance as of the 2026-10-17 checkpoint request.
+The user authorized one local commit only; older pending acceptance notes below
+are historical. No Stage 8C/8D or push/tag/publish/release is authorized.
+
+Script output naming adds a captured script-name default and an optional bounded
+Batch.SetOutputFileName suggestion. Filename-only validation is shared in Scripting
+and repeated by the parent at the worker boundary. An optional version-1 naming field
+extends the version-2 Finished frame; lifecycle, payload validation and publication
+remain unchanged. Workspace keeps the unsuffixed suggested Title and disambiguates
+unsaved generated DisplayTitles; Desktop's existing Save As flow uses Title.
+See [naming acceptance](script-output-naming-acceptance.md).
+
+Stage 8B.1–8B.3 adds Workspace stable MessageIds, explicit File/Memory/Inserted
+provenance, a bounded metadata-only logical sequence, document-wide chronological
+history and structural save points. Original snapshots/indexes and lazy access stay
+immutable. Save remains mutation-locked and asynchronous: a bounded plan streams
+the original partition plus payloads, then the shared byte indexer and byte mapping
+verify staged output before atomic publication. Associated destination baselines
+now start at open or the last publication. See [ADR 0011](decisions/0011-structural-editing-foundation.md)
+and [Stage 8B acceptance](stage8b-structural-editing-acceptance.md).
+Stage 8B.4 replaces the temporary membership guards with stable-ID search results,
+ID-based filters and comparison sources, plus immutable logical script captures.
+Search copies metadata/bounded draft references and scans unchanged originals lazily.
+Comparison retains unavailable selections through Undo and resolves the same ID on
+Redo; Original still means the initial source. Script capture reuses the save plan's
+partition/membership validation and records job-ordinal-to-ID/provenance mappings.
+After capture, edits/history changes preserve independent output with explicit
+stale-source attribution and its captured revision. Tab switches never retarget the
+job. Closure, cancellation and failures still roll back through existing owners;
+queued revision conflicts before capture are refused.
+Diagnostics retain stable IDs, captured logical positions and original provenance
+separately. Saved-search/library schemas and the isolated worker protocol are unchanged.
+The foundation and root keyboard correction have passed native acceptance; 8B.4
+native acceptance and Git authorization remain pending. No insertion UI, Next append,
+generator, general deletion/reordering, new dependency or Dock schema is added.
+See [8B.4 compatibility acceptance](stage8b4-compatibility-acceptance.md).
+
 Stage 7 adds a dependency-free Core structural comparison engine, Workspace selected-message
 captures/read leases, and an ordinary Desktop feature model with a document-sized Dock
 tool adapter. Sources remain immutable and independent of the active/filtered navigator;

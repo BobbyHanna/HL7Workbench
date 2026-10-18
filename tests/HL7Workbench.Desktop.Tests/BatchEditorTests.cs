@@ -51,7 +51,11 @@ public sealed partial class ScriptEditorTests
                 var reportsWindow = new ScriptReportsWindow(model); reportsWindow.Show();
                 Assert.Single(model.Reports); Assert.Equal("summary", ((ScriptReportInfo)reportsWindow.Reports.SelectedItem!).Name);
                 Assert.True(reportsWindow.Export.IsEnabled);
-                Assert.Equal(new ScriptReportOrigin(model.Session.DisplayName, model.Scope), model.ReportOrigin);
+                var origin = Assert.IsType<ScriptReportOrigin>(model.ReportOrigin);
+                Assert.Equal(model.Session.DisplayName, origin.ScriptName); Assert.Equal(model.Scope, origin.Scope);
+                Assert.Equal(source.Id, origin.Input!.DocumentId); Assert.Equal(source.SearchRevision, origin.Input.Revision);
+                Assert.Equal(source.ActivityNumber, origin.SourceDocumentNumber);
+                Assert.False(origin.SourceChangedDuringRun); Assert.Same(origin, model.OutputOrigin);
                 Assert.Equal(model.ReportOrigin!.Description, reportsWindow.Origin.Text); reportsWindow.Close();
                 var output = docs.Documents.Single(d => d != source); Assert.Equal(messages, output.MessageCount); Assert.True(output.IsDirty);
                 var path = Path.Combine(files.Root, "summary.csv");

@@ -97,7 +97,9 @@ public sealed class MessageSearchSession : INotifyPropertyChanged, IDisposable
         if (disposed || Document is not { } document || Results?.IsCurrent(document) != true || !Results.Matches.Contains(match)) return;
         NavigationRequested?.Invoke(document.Id);
         if (!ReferenceEquals(document, documents.ActiveDocument) || Results?.IsCurrent(document) != true) return;
-        try { await document.NavigateAsync(match.MessageNumber, token); }
+        if (document.GetLogicalPosition(match.MessageId) == 0)
+        { Status = "The matching message is no longer available. Run the search again."; Changed(); return; }
+        try { await document.NavigateAsync(match.MessageId, token); }
         catch (OperationCanceledException) { }
         catch (ObjectDisposedException) { }
     }

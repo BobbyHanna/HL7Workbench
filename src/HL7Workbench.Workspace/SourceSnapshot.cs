@@ -12,6 +12,8 @@ public sealed class SourceSnapshot : IDisposable
     private bool disposed;
     public string DirectoryPath { get; }
     internal string? OriginalFilePath { get; }
+    internal FileSaveDestination? OriginalDestination { get; private set; }
+    internal string? CapturedHash { get; private set; }
     public long Length => file.Length;
     public const long MaxFileBytes = 16L * 1024 * 1024 * 1024;
     private SourceSnapshot(string directory, FileStream lease, FileStream file, string? originalPath)
@@ -21,8 +23,10 @@ public sealed class SourceSnapshot : IDisposable
         IProgress<long>? progress = null, string? storageRoot = null)
     {
         var expected = source.CanSeek ? source.Length - source.Position : (long?)null;
+        var captureDestination = source is FileStream opened && source.Position == 0 ? FileSaveDestination.BeginSnapshotCapture(opened) : null;
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var sourceWriteTime = source is FileStream original ? File.GetLastWriteTimeUtc(original.Name) : (DateTime?)null;
-        return await CreateAsync(async (output, cancellation) =>
+        var snapshot = await CreateAsync(async (output, cancellation) =>
         {
             var buffer = new byte[65536]; long length = 0;
             while (true)
@@ -31,6 +35,7 @@ public sealed class SourceSnapshot : IDisposable
                 if (read == 0) break;
                 length = checked(length + read);
                 if (length > MaxFileBytes) throw new Hl7LimitException(nameof(MaxFileBytes));
+                hash.AppendData(buffer, 0, read);
                 await output.WriteAsync(buffer.AsMemory(0, read), cancellation).ConfigureAwait(false);
                 progress?.Report(length);
             }
@@ -38,7 +43,14 @@ public sealed class SourceSnapshot : IDisposable
                 throw new IOException("Source length changed during capture.");
             if (sourceWriteTime is { } time && source is FileStream originalFile && File.GetLastWriteTimeUtc(originalFile.Name) != time)
                 throw new IOException("Source modification detected during capture.");
-        }, MaxFileBytes, token, storageRoot, (source as FileStream)?.Name);
+        }, MaxFileBytes, token, storageRoot, captureDestination is null ? null : (source as FileStream)?.Name);
+        try
+        {
+            snapshot.CapturedHash = Convert.ToHexString(hash.GetHashAndReset());
+            snapshot.OriginalDestination = captureDestination?.Invoke(snapshot.CapturedHash);
+            return snapshot;
+        }
+        catch { snapshot.Dispose(); throw; }
     }
 
     /// <summary>Builds a bounded private snapshot, then seals it read-only. Ownership transfers only after successful completion.</summary>

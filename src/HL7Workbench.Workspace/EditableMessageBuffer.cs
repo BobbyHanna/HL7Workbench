@@ -7,8 +7,6 @@ namespace HL7Workbench.Workspace;
 internal sealed class EditableMessageBuffer
 {
     internal sealed record Change(int Offset, string Removed, string Inserted);
-    private readonly List<Change> undo = [];
-    private readonly List<Change> redo = [];
     private readonly byte[] originalBytes;
     private readonly Encoding encoding;
     private readonly byte[] bom;
@@ -18,14 +16,9 @@ internal sealed class EditableMessageBuffer
     public string SavedText { get; private set; }
     public bool IsDirty => Text != SavedText;
     public bool DiffersFromOriginal => Text != OriginalText;
-    public bool CanUndo => undo.Count > 0;
-    public bool CanRedo => redo.Count > 0;
     // Reserve both working/save-point strings at the largest retained revision size,
     // so Undo and Save cannot exceed a budget that was checked only on forward edits.
-    public long RetainedCharacters => OriginalText.Length + 2L * maximumVersionLength +
-        undo.Concat(redo).Sum(c => (long)c.Removed.Length + c.Inserted.Length);
-    public int HistoryCount => undo.Count + redo.Count;
-    public int HistoryCountAfterReplace => undo.Count + 1;
+    public long RetainedCharacters => OriginalText.Length + 2L * maximumVersionLength;
     public EditableMessageBuffer(Hl7Message message)
     {
         OriginalText = Text = SavedText = message.RawText;
@@ -33,6 +26,12 @@ internal sealed class EditableMessageBuffer
         originalBytes = Hl7Serializer.Serialize(message);
         encoding = message.Encoding; encoding.EncoderFallback = EncoderFallback.ExceptionFallback;
         bom = message.ByteOrderMark;
+    }
+    public EditableMessageBuffer(string text, Encoding encoding)
+    {
+        OriginalText = ""; Text = SavedText = text; maximumVersionLength = text.Length;
+        originalBytes = []; bom = [];
+        this.encoding = (Encoding)encoding.Clone(); this.encoding.EncoderFallback = EncoderFallback.ExceptionFallback;
     }
     public Change Plan(string text)
     {
@@ -45,19 +44,11 @@ internal sealed class EditableMessageBuffer
         if (suffix > 0 && char.IsLowSurrogate(Text[Text.Length - suffix])) suffix--;
         return new(prefix, Text.Substring(prefix, Text.Length - prefix - suffix), text.Substring(prefix, text.Length - prefix - suffix));
     }
-    public long CostAfter(string text, Change change) => RetainedCharacters + 2L * (Math.Max(maximumVersionLength, text.Length) - maximumVersionLength) -
-        redo.Sum(c => (long)c.Removed.Length + c.Inserted.Length) + change.Removed.Length + change.Inserted.Length;
-    public void Replace(string text, Change change) { undo.Add(change); redo.Clear(); Text = text; maximumVersionLength = Math.Max(maximumVersionLength, text.Length); }
-    public void Undo()
-    {
-        var change = undo[^1]; undo.RemoveAt(undo.Count - 1);
-        Text = string.Concat(Text.AsSpan(0, change.Offset), change.Removed, Text.AsSpan(change.Offset + change.Inserted.Length)); redo.Add(change);
-    }
-    public void Redo()
-    {
-        var change = redo[^1]; redo.RemoveAt(redo.Count - 1);
-        Text = string.Concat(Text.AsSpan(0, change.Offset), change.Inserted, Text.AsSpan(change.Offset + change.Removed.Length)); undo.Add(change);
-    }
+    public long CostAfter(string text) => OriginalText.Length + 2L * Math.Max(maximumVersionLength, text.Length);
+    public void Replace(string text) { Text = text; maximumVersionLength = Math.Max(maximumVersionLength, text.Length); }
+    public void Apply(Change change, bool forward) => Replace(string.Concat(Text.AsSpan(0, change.Offset),
+        forward ? change.Inserted : change.Removed,
+        Text.AsSpan(change.Offset + (forward ? change.Removed.Length : change.Inserted.Length))));
     public void MarkSaved() => SavedText = Text;
     public byte[] Serialize(string? workingText = null)
     {

@@ -14,7 +14,10 @@ public sealed class RawInspectorSession : IDisposable
     private bool disposed;
     public CharacterRange Scope { get; }
     public string Label { get; }
+    /// <summary>Logical position when opened. MessageId, not this captured position, identifies its source.</summary>
     public int MessageNumber { get; }
+    public MessageId MessageId { get; }
+    public int? OriginalOrdinal { get; }
     public long MessageLength { get; }
     public long WindowOffset { get; set; }
     public bool IsClosed => disposed;
@@ -25,11 +28,13 @@ public sealed class RawInspectorSession : IDisposable
     public void ReportReadFailure() => document?.RecordActivity(ActivityKind.SourceReadFailed, messageNumber: MessageNumber);
     public RawInspectorSession(MessageDocument document, CharacterRange? scope = null, string? path = null)
     {
+        if (!document.HasOriginalMessage) throw new InvalidOperationException("Inserted messages have no original byte source.");
         if (document.HasWorkingSourceChanges) throw new InvalidOperationException("Original-source ranges are unavailable for edited working text. Inspect an unchanged message or reopen the saved file.");
         if (document.IsLoading || document.Source is null && document.MaterializedMessage?.HasDecodedText != true) throw new InvalidOperationException("Active source unavailable.");
         this.document = document; Scope = scope ?? new(0, document.TextLength);
         if (Scope.Offset < 0 || Scope.Length < 0 || Scope.End > document.TextLength) throw new ArgumentOutOfRangeException(nameof(scope));
         MessageNumber = document.MessageNumber;
+        MessageId = document.ActiveMessageId!.Value; OriginalOrdinal = document.ActiveEntry?.SourceOrdinal;
         MessageLength = document.TextLength;
         Label = $"{path ?? "Full Message"} — Message {MessageNumber}";
         document.PropertyChanged += Changed; document.Closed += DocumentClosed;

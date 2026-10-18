@@ -10,7 +10,7 @@ public sealed class ComparisonInput : INotifyPropertyChanged
     public const int MaximumPastedCharacters = MessagePresentation.MaximumEditorCharacters;
     private ComparisonSourceKind kind = ComparisonSourceKind.PastedText;
     private MessageDocument? document;
-    private int ordinal = 1;
+    private MessageId? messageId;
     private string pastedText = "";
     public event PropertyChangedEventHandler? PropertyChanged;
     public long Revision { get; private set; }
@@ -20,19 +20,22 @@ public sealed class ComparisonInput : INotifyPropertyChanged
         set { if (!Enum.IsDefined(value)) throw new ArgumentOutOfRangeException(nameof(value)); if (kind == value) return; kind = value; Changed(); }
     }
     public MessageDocument? Document => document;
-    public int Ordinal => ordinal;
+    public MessageId? MessageId => messageId;
+    /// <summary>Current logical position of the retained ID; zero when undone/unavailable.</summary>
+    public int Ordinal => document is not null && messageId is { } id ? document.GetLogicalPosition(id) : 1;
     public string PastedText => pastedText;
     public ComparisonSource? Source => kind == ComparisonSourceKind.PastedText ?
         string.IsNullOrWhiteSpace(pastedText) ? null : ComparisonSource.FromPastedText(pastedText) :
-        document is null ? null : new(document, ordinal, kind == ComparisonSourceKind.OriginalMessage);
+        document is null || messageId is null ? null : new(document, messageId.Value, kind == ComparisonSourceKind.OriginalMessage);
     public string Label => kind == ComparisonSourceKind.PastedText ?
         pastedText.Length == 0 ? "Paste HL7 text…" : $"Pasted Text · temporary · {pastedText.Length:N0} characters" :
-        document is null ? "Choose an open message…" : new ComparisonSource(document, ordinal, kind == ComparisonSourceKind.OriginalMessage).Label;
+        document is null ? "Choose an open message…" : Source!.Label;
     public void SelectDocument(MessageDocument? value, int messageOrdinal = 1)
     {
         if (value is not null && (messageOrdinal < 1 || messageOrdinal > value.MessageCount)) throw new ArgumentOutOfRangeException(nameof(messageOrdinal));
-        if (ReferenceEquals(document, value) && ordinal == messageOrdinal) return;
-        document = value; ordinal = messageOrdinal; Changed();
+        var selected = value?.GetMessageId(messageOrdinal);
+        if (ReferenceEquals(document, value) && messageId == selected) return;
+        document = value; messageId = selected; Changed();
     }
     /// <summary>Reject oversized edits atomically; never truncate or normalize clipboard text.</summary>
     public void SetPastedText(string text, bool activate = true)
@@ -46,7 +49,7 @@ public sealed class ComparisonInput : INotifyPropertyChanged
     public void SelectSource(ComparisonSource? source)
     {
         if (source?.PastedText is { } text) { SetPastedText(text); return; }
-        document = source?.Document; ordinal = source?.Ordinal ?? 1;
+        document = source?.Document; messageId = source?.MessageId;
         kind = source?.Original == true ? ComparisonSourceKind.OriginalMessage : ComparisonSourceKind.OpenMessage;
         Changed();
     }
@@ -64,7 +67,7 @@ public sealed class ComparisonInput : INotifyPropertyChanged
     }
     private void Changed() { Revision++; PropertyChanged?.Invoke(this, new(null)); }
     public void Clear()
-    { pastedText = ""; document = null; ordinal = 1; kind = ComparisonSourceKind.PastedText; Changed(); }
+    { pastedText = ""; document = null; messageId = null; kind = ComparisonSourceKind.PastedText; Changed(); }
 }
 
 /// <summary>Fixed user-facing input guidance; never includes pasted content.</summary>

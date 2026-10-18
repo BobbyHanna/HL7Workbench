@@ -25,6 +25,7 @@ public sealed class EditableViewerTests
             using var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
             var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
             var window = new Window { Width = 1100, Height = 800, Content = view }; window.Show();
+            DocumentHistoryShortcuts.Attach(window, () => document);
             try
             {
                 Assert.True(view.Editor.IsReadOnly);
@@ -46,9 +47,12 @@ public sealed class EditableViewerTests
                 var rebuilt = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document)); window.Content = rebuilt;
                 Assert.Contains("LongAlpha", rebuilt.Editor.Text); Assert.True(rebuilt.Editor.IsReadOnly);
                 document.IsEditMode = true;
-                rebuilt.Editor.TextArea.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Z, KeyModifiers = KeyModifiers.Control });
+                window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); Assert.True(rebuilt.Editor.TextArea.Focus());
+                window.KeyPress(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, null);
+                window.KeyRelease(Key.Z, RawInputModifiers.Control, PhysicalKey.Z, null);
                 await document.EditRefresh; Assert.Equal(text, rebuilt.Editor.Text); Assert.False(document.IsDirty);
-                rebuilt.Editor.TextArea.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Y, KeyModifiers = KeyModifiers.Control });
+                window.KeyPress(Key.Y, RawInputModifiers.Control, PhysicalKey.Y, null);
+                window.KeyRelease(Key.Y, RawInputModifiers.Control, PhysicalKey.Y, null);
                 await document.EditRefresh; Assert.Contains("LongAlpha", rebuilt.Editor.Text); Assert.True(document.IsDirty);
                 Assert.Equal(2, rebuilt.Editor.TextArea.TextView.LineTransformers.OfType<AvaloniaEdit.Rendering.DocumentColorizingTransformer>().Count());
             }

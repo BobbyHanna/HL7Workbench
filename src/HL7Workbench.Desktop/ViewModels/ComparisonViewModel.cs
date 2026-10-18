@@ -103,6 +103,7 @@ public sealed class ComparisonViewModel : INotifyPropertyChanged, IDisposable
     {
         var d = document ?? documents.ActiveDocument;
         if (d is null || d.MessageNumber < 1) return;
+        if (!d.HasOriginalMessage) { ReportStatus("An inserted message has no Original Message during this open session, including after Save."); return; }
         SetSources(new(d, d.MessageNumber, true), new(d, d.MessageNumber)); Start();
     }
     public void SetOptions(Hl7ComparisonOptions options)

@@ -14,8 +14,12 @@ public sealed partial class MessageDocument
     /// <summary>Content-only revision: navigating, saving and changing inspection selection do not invalidate a search.</summary>
     public long SearchRevision => Interlocked.Read(ref searchRevision);
     internal bool IsSearchCurrent(long revision) => !disposed && SearchRevision == revision;
-    /// <summary>Original ordinals permitted in the navigator, or null for the complete document. Session-only.</summary>
+    /// <summary>Current logical positions for display compatibility. NavigationMatchIds supplies identity.</summary>
     public IReadOnlyList<int>? NavigationMatches { get; private set; }
+    /// <summary>Stable identities permitted in the navigator, or null for the complete document. Session-only.</summary>
+    public IReadOnlyList<MessageId>? NavigationMatchIds { get; private set; }
+    private HashSet<MessageId>? navigationIds;
+    public bool IsNavigationMatch(MessageId id) => GetLogicalPosition(id) > 0 && (navigationIds is null || navigationIds.Contains(id));
     internal void SearchContentChanged()
     {
         Interlocked.Increment(ref searchRevision);
@@ -23,12 +27,21 @@ public sealed partial class MessageDocument
         ClearSearchFilter(); PropertyChanged?.Invoke(this, new(nameof(SearchRevision)));
     }
     public void ClearSearchFilter()
-    { if (NavigationMatches is null) return; NavigationMatches = null; PropertyChanged?.Invoke(this, new(nameof(NavigationMatches))); }
+    {
+        if (NavigationMatchIds is null) return;
+        NavigationMatches = null; NavigationMatchIds = null; navigationIds = null;
+        PropertyChanged?.Invoke(this, new(nameof(NavigationMatches)));
+        PropertyChanged?.Invoke(this, new(nameof(NavigationMatchIds)));
+    }
     public void ApplySearchFilter(MessageSearchResults results)
     {
         if (!results.IsCurrent(this)) throw new InvalidOperationException("Search is no longer current. Run it again.");
-        NavigationMatches = Array.AsReadOnly(results.Matches.Select(m => m.MessageNumber).ToArray());
+        var ids = results.Matches.Select(m => m.MessageId).ToArray();
+        if (ids.Any(id => GetLogicalPosition(id) == 0)) throw new InvalidOperationException("A matching message is no longer available. Run the search again.");
+        NavigationMatchIds = Array.AsReadOnly(ids); navigationIds = ids.ToHashSet();
+        NavigationMatches = Array.AsReadOnly(ids.Select(GetLogicalPosition).ToArray());
         PropertyChanged?.Invoke(this, new(nameof(NavigationMatches)));
+        PropertyChanged?.Invoke(this, new(nameof(NavigationMatchIds)));
     }
     internal SearchCapture CaptureSearch()
     {
@@ -37,14 +50,11 @@ public sealed partial class MessageDocument
             ObjectDisposedException.ThrowIf(disposed, this);
             // Immutable strings reuse the bounded Workspace drafts without reserialization,
             // so even a malformed or temporarily unencodable unsaved draft is searchable.
-            var drafts = buffers.ToDictionary(p => p.Key, p => p.Value.Text);
-            if (Index is null && !drafts.ContainsKey(1))
-            {
-                if (message?.HasDecodedText != true) throw new InvalidOperationException("Readable text is unavailable.");
-                drafts[1] = message.RawText;
-            }
+            var entries = CaptureLogicalMessages();
+            if (entries.Any(e => e.Entry.Origin == MessageOrigin.Memory && e.Text is null))
+                throw new InvalidOperationException("Readable text is unavailable.");
             if (++searchReaders == 1) searchDrained = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            return new(this, Snapshot, Index, drafts, searchEncoding, SearchRevision, lifetime.Token, searchChanges.Token, ReleaseSearch);
+            return new(this, Snapshot, Index, entries, searchEncoding, SearchRevision, lifetime.Token, searchChanges.Token, ReleaseSearch);
         }
     }
     private void ReleaseSearch()
@@ -52,15 +62,15 @@ public sealed partial class MessageDocument
     private Task DrainSearchReaders() { lock (searchGate) return searchReaders == 0 ? Task.CompletedTask : searchDrained!.Task; }
 
     internal sealed class SearchCapture(MessageDocument document, SourceSnapshot? snapshot, MessageFileIndex? index,
-        IReadOnlyDictionary<int, string> drafts, Encoding encoding, long revision, CancellationToken lifetime, CancellationToken changes, Action release) : IDisposable
+        CapturedMessage[] entries, Encoding encoding, long revision, CancellationToken lifetime, CancellationToken changes, Action release) : IDisposable
     {
         private Action? releaseLease = release;
         public MessageDocument Document => document;
         public SourceSnapshot? Snapshot => snapshot;
         public MessageFileIndex? Index => index;
-        public IReadOnlyDictionary<int, string> Drafts => drafts;
+        public IReadOnlyList<CapturedMessage> Entries => entries;
         public long Revision => revision;
-        public int Count => index?.Messages.Count ?? 1;
+        public int Count => entries.Length;
         public Encoding Encoding => (Encoding)encoding.Clone();
         public CancellationToken Lifetime => lifetime;
         public CancellationToken Changes => changes;

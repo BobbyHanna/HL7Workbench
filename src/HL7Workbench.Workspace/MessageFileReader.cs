@@ -12,8 +12,7 @@ public static class MessageFileReader
         var number = activityDocumentNumber ?? documents.Activity.BeginFileOpen();
         try
         {
-            var document = await OpenCoreAsync(documents, filename, source, number, token, progress, inspectionOptions);
-            if (localPath is not null) document.SetInitialSavePath(Path.GetFullPath(localPath));
+            var document = await OpenCoreAsync(documents, filename, source, number, token, progress, inspectionOptions, localPath);
             documents.Activity.Record(ActivityKind.FileOpened, number); return document;
         }
         catch (OperationCanceledException) { documents.Activity.Record(ActivityKind.FileOpenCanceled, number); throw; }
@@ -21,7 +20,7 @@ public static class MessageFileReader
         { documents.Activity.Record(ActivityKind.FileOpenFailed, number, failure: ActivityLog.Classify(error)); throw; }
     }
     private static async Task<MessageDocument> OpenCoreAsync(DocumentManager documents, string filename, Stream source,
-        int activityNumber, CancellationToken token, IProgress<long>? progress, StructureScanOptions? inspectionOptions)
+        int activityNumber, CancellationToken token, IProgress<long>? progress, StructureScanOptions? inspectionOptions, string? localPath)
     {
         var snapshot = await SourceSnapshot.CaptureAsync(source, token, progress);
         MessageDocument? document = null;
@@ -32,7 +31,11 @@ public static class MessageFileReader
             for (var occurrence = 2; documents.Documents.Any(d => string.Equals(d.Title, title, StringComparison.OrdinalIgnoreCase)); occurrence++)
                 title = $"{filename} ({occurrence})";
             document = new(Guid.NewGuid().ToString("N"), title, snapshot, index, inspectionOptions);
-            document.SetInitialSavePath(snapshot.OriginalFilePath);
+            var destination = snapshot.OriginalDestination;
+            if (localPath is not null)
+                destination = destination is not null ? destination.AtSameLocation(localPath) :
+                    await FileSaveDestination.MatchSnapshotAsync(localPath, snapshot.CapturedHash!, token);
+            document.SetInitialSaveDestination(destination);
             document.ActivityNumber = activityNumber;
             documents.Activity.Record(ActivityKind.FileIndexed, activityNumber, count: index.Messages.Count);
             if (index.Messages.Count > 0) await document.NavigateAsync(1, token);

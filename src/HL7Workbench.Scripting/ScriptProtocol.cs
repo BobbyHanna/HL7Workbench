@@ -6,7 +6,7 @@ namespace HL7Workbench.Scripting;
 internal enum FrameKind { Initialize, Ready, Message, Result, Finish, Finished, Cancel, Failure, Begin, Begun, Deferred }
 internal sealed record ScriptFrame(FrameKind Kind, ScriptDefinition? Definition = null, byte[]? Bytes = null,
     int CodePage = 65001, int Number = 0, bool Excluded = false, ScriptDiagnostic[]? Diagnostics = null, int Version = 2,
-    ScriptReportChunk[]? Reports = null, int DeferredCount = 0);
+    ScriptReportChunk[]? Reports = null, int DeferredCount = 0, ScriptOutputNaming? OutputNaming = null);
 
 /// <summary>Single outstanding request; bounded frames provide backpressure and reject lengths before allocation.</summary>
 internal static class ScriptProtocol

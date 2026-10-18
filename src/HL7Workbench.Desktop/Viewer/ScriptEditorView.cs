@@ -45,6 +45,7 @@ public sealed class ScriptEditorView : Grid
     public MenuItem Review { get; } = new() { Header = "Review Output" };
     public TextBlock ExecutionStatus { get; } = new() { MaxWidth = 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public TextBlock Status { get; } = new() { TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
+    public TextBlock OutputAttribution { get; } = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
     public TextBlock Target { get; } = new() { MaxWidth = 300, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public ListBox Diagnostics { get; } = new() { MaxHeight = 96 };
     public Expander DiagnosticPanel { get; } = new() { IsExpanded = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -56,7 +57,7 @@ public sealed class ScriptEditorView : Grid
     public ScriptEditorView(ScriptEditorViewModel model, Func<Task<UnsavedChangesDecision>>? prompt = null)
     {
         this.model = model; if (prompt is not null) PromptUnsavedAsync = prompt;
-        Margin = new(3); RowDefinitions = new("Auto,Auto,*,Auto,Auto");
+        Margin = new(3); RowDefinitions = new("Auto,Auto,*,Auto,Auto,Auto");
         MinWidth = 260; MinHeight = 150;
         ScriptEditorPalette.Dark.Apply(Editor);
         SymbolHighlighting = new(Editor, ScriptEditorPalette.Dark);
@@ -73,18 +74,19 @@ public sealed class ScriptEditorView : Grid
         ExecutionToolbar = Toolbar(ScopeLabel, ExecutionScope, Run, Cancel, ExecutionStatus);
         SetRow(ExecutionToolbar, 1); Children.Add(ExecutionToolbar);
         SetRow(Editor, 2); Children.Add(Editor);
+        SetRow(OutputAttribution, 3); Children.Add(OutputAttribution);
         var footer = new Grid { ColumnDefinitions = new("*,Auto"), Margin = new(0, 1, 0, 0) };
         footer.Children.Add(Status);
         var zoomBar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 1 };
         foreach (var button in new[] { ZoomOut, ZoomReset, ZoomIn })
         { button.Padding = new(5, 0); button.MinHeight = 22; button.FontSize = 12; zoomBar.Children.Add(button); }
         SetColumn(zoomBar, 1); footer.Children.Add(zoomBar);
-        SetRow(footer, 4); Children.Add(footer);
+        SetRow(footer, 5); Children.Add(footer);
         Diagnostics.ItemTemplate = new FuncDataTemplate<HL7Workbench.Scripting.ScriptDiagnostic>((d, _) =>
-            new TextBlock { Text = d?.ToString() ?? "", TextWrapping = TextWrapping.Wrap });
+            new TextBlock { Text = d is null ? "" : model.FormatDiagnostic(d), TextWrapping = TextWrapping.Wrap });
         DiagnosticPanel.Content = Diagnostics;
         ToolTip.SetTip(DiagnosticPanel, "Expand diagnostics, then double-click an entry to navigate to its script line.");
-        SetRow(DiagnosticPanel, 3); Children.Add(DiagnosticPanel);
+        SetRow(DiagnosticPanel, 4); Children.Add(DiagnosticPanel);
         Library.ItemTemplate = new FuncDataTemplate<ScriptLibraryItem>((item, _) => new TextBlock { Text = item is null ? "" : (item.Obsolete ? "[Needs update] " : "") + item.Name });
         ToolTip.SetTip(New, "Create one C# script with void Main() for either scope. Top-level state initializes once; optional void Complete() runs after all messages.");
         ToolTip.SetTip(NameDisplay, "Click to rename. Enter confirms; Escape cancels. Save Script persists the name and code. Duplicate bundled examples first.");
@@ -214,6 +216,9 @@ public sealed class ScriptEditorView : Grid
             ExecutionScope.SelectedIndex = model.Scope == Scripting.ScriptScope.WholeDocument ? 1 : 0;
             var origin = model.ReportOrigin?.Description ?? "No CSV reports from a successful run are available.";
             ToolTip.SetTip(Reports, origin + " Existing files require explicit replacement confirmation.");
+            OutputAttribution.IsVisible = model.OutputOrigin is not null;
+            OutputAttribution.Text = model.OutputOrigin is { } output ? $"Last output · {output.ScriptName} · {output.SourceDescription}" : "";
+            ToolTip.SetTip(OutputAttribution, model.OutputOrigin?.Description);
             ExecutionStatus.Text = model.IsBusy ? "Running…" : model.Diagnostics.Count > 0 ? "Run failed" : model.Reports.Count > 0 ? $"{model.Reports.Count} reports available" : "Ready";
             ToolTip.SetTip(ExecutionStatus, model.Status);
             Target.Text = model.Target;

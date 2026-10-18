@@ -40,6 +40,9 @@ public sealed partial record MessageSearchQuery(MessageSearchMode Mode, string V
 /// <summary>Bounded display metadata only. No matched value/snippet is retained. Control IDs stay session-only.</summary>
 public sealed record MessageSearchMatch(int MessageNumber, string MessageType, string ControlId, string Location, long MatchCount)
 {
+    /// <summary>Identity within the originating document; MessageNumber is its position at capture.</summary>
+    public MessageId MessageId { get; init; }
+    public int? OriginalOrdinal { get; init; }
     public string ConditionSummary { get; init; } = "";
     public override string ToString() => $"Message {MessageNumber}: {MatchCount} matches";
 }
@@ -98,10 +101,11 @@ public sealed partial class MessageSearch
             try
             {
                 IHl7TextSource source;
-                if (capture.Drafts.TryGetValue(i + 1, out var draft)) source = new StringHl7TextSource(draft);
+                var entry = capture.Entries[i];
+                if (entry.Text is { } draft) source = new StringHl7TextSource(draft);
                 else
                 {
-                    var range = capture.Index!.Messages[i].PayloadRange; var encoding = capture.Encoding;
+                    var range = capture.Index!.Messages[entry.Entry.SourceOrdinal!.Value - 1].PayloadRange; var encoding = capture.Encoding;
                     var prefix = capture.Snapshot!.ReadBytes(new(range.Offset, Math.Min(4, range.Length)));
                     var bom = Hl7SourceEncoding.Detect(prefix, encoding).BomLength;
                     if (range.Length <= 128 * 1024)
@@ -147,10 +151,11 @@ public sealed partial class MessageSearch
                     if (first >= 0 && structure is not null) location = TextLocation(structure, first);
                     if (advanced) summary = query.Root is null ? (query.Combination == SearchCombination.All ? $"All {leaves.Count} conditions" : $"Condition {leafIndex} (first ANY match)") : $"{count} satisfied evaluated conditions";
                     // The existing index permits at most 100,000 messages. One bounded
-                    // row per ordinal, with capped headers, bounds resident metadata;
+                    // row per stable identity, with capped headers, bounds resident metadata;
                     // the desktop exposes only a 200-row page to its virtualized list.
                     if (matches.Count >= MessageFileIndex.MaxIndexedMessages) throw new Hl7LimitException("SearchResults");
-                    matches.Add(new(i + 1, Header(structure, source, 9, 48), Header(structure, source, 10, 96), location, count) { ConditionSummary = summary });
+                    matches.Add(new(entry.Position, Header(structure, source, 9, 48), Header(structure, source, 10, 96), location, count)
+                    { MessageId = entry.Entry.Id, OriginalOrdinal = entry.Entry.SourceOrdinal, ConditionSummary = summary });
                 }
             }
             catch (Exception e) when (e is DecoderFallbackException or Hl7LimitException) { skipped++; }

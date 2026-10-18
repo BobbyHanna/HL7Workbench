@@ -26,6 +26,8 @@ public sealed class MessageInspectionView : Grid
     private bool subscribed;
     private InspectionPanes? panes;
     public TextEditor Editor { get; }
+    internal bool OwnsEditorHistory(TextEditor editor, MessageDocument activeDocument) =>
+        ReferenceEquals(Editor, editor) && ReferenceEquals(document, activeDocument);
     public PresentationView? PresentationView { get; }
     private readonly FieldToolTipLifecycle? rawToolTips;
     public Grid RawPane { get; } = new() { RowDefinitions = new("*,Auto,Auto") };
@@ -77,7 +79,6 @@ public sealed class MessageInspectionView : Grid
             ToolTip.SetTip(editMode, "Enable manual editing for this document. Turning it off retains unsaved changes.");
             editMode.IsCheckedChanged += (_, _) => { if (!updatingText) document.IsEditMode = editMode.IsChecked == true; };
             undo.Click += (_, _) => document.Undo(); redo.Click += (_, _) => document.Redo();
-            Editor.TextArea.AddHandler(KeyDownEvent, EditKeyDown, RoutingStrategies.Tunnel);
             UpdateEditingControls();
         }
     }
@@ -121,15 +122,6 @@ public sealed class MessageInspectionView : Grid
             WindowStatus.Text = "Edit refused: the document edit/history budget was reached or editing is unavailable. Existing work is retained.";
         }
     }
-    private void EditKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (document is null || PresentationView is not null) return;
-        if ((e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0 && e.Key is Key.Z or Key.Y)
-        {
-            e.Handled = true;
-            if (e.Key == Key.Y || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) document.Redo(); else document.Undo();
-        }
-    }
     private void DocumentChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == "ActiveContent") UpdateFromDocument(); else UpdateEditingControls();
@@ -141,7 +133,7 @@ public sealed class MessageInspectionView : Grid
         try { editMode.IsChecked = document.IsEditMode; }
         finally { updatingText = false; }
         Editor.IsReadOnly = PresentationView is not null || !document.CanEditText;
-        undo.IsEnabled = document.IsEditMode && document.CanUndo; redo.IsEnabled = document.IsEditMode && document.CanRedo;
+        undo.IsEnabled = document.CanUndo; redo.IsEnabled = document.CanRedo;
         WindowStatus.Text = document.EditError ?? (document.IsRefreshingEdit ? "Refreshing structure…" : document.EditingUnavailableReason ??
             (document.HasWorkingSourceChanges ? "Working text · use File → Save to publish edits" : ""));
     }

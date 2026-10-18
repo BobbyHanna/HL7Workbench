@@ -5,11 +5,13 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using AvaloniaEdit;
 using Dock.Avalonia.Controls;
 using HL7Workbench.Core;
 using HL7Workbench.Desktop.Docking;
 using HL7Workbench.Desktop.Viewer;
 using HL7Workbench.Desktop.ViewModels;
+using HL7Workbench.Scripting;
 using HL7Workbench.Workspace;
 using Xunit;
 
@@ -61,6 +63,7 @@ public sealed class RawEditingCrashTests
                 using var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
                 var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document, dockedInspection));
                 var window = new Window { Width = 1100, Height = 800, Content = view }; window.Show();
+                DocumentHistoryShortcuts.Attach(window, () => document);
                 try
                 {
                     var inspectionTools = dockedInspection ? null : Assert.IsType<InspectionPanes>(view.LowerPane);
@@ -138,6 +141,7 @@ public sealed class RawEditingCrashTests
             using var factory = new WorkspaceDockFactory(documents, tools);
             var dock = new DockControl { Layout = factory.CreateLayout() };
             var shell = new Window { Width = 1400, Height = 1000, Content = dock }; shell.Show();
+            DocumentHistoryShortcuts.Attach(shell, () => documents.ActiveDocument);
             try
             {
                 shell.UpdateLayout(); Dispatcher.UIThread.RunJobs();
@@ -157,6 +161,69 @@ public sealed class RawEditingCrashTests
                 Assert.Equal("Changed^Valu", file.Message.Get("PID-1").Raw);
             }
             finally { shell.Close(); }
+
+            // Keep these native text-history checks on this same isolated dispatcher:
+            // AvaloniaEdit's process-wide command bindings belong to its first UI thread.
+            file.IsEditMode = false;
+            var workingText = file.EditableText; var version = file.ContentVersion;
+            void UnchangedDocumentHistory()
+            {
+                Assert.Equal(workingText, file.EditableText); Assert.Equal(version, file.ContentVersion);
+                Assert.True(file.CanUndo); Assert.False(file.CanRedo);
+            }
+            var historyWindow = new Window { Width = 1100, Height = 800 };
+            DocumentHistoryShortcuts.Attach(historyWindow, () => documents.ActiveDocument);
+            historyWindow.Show();
+            var libraryRoot = Path.Combine(Path.GetTempPath(), "hl7-keyboard-library-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                void Focus(Control content, Control target)
+                {
+                    historyWindow.Content = content; historyWindow.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+                    Assert.True(target.Focus());
+                }
+                void Undo() => Key(historyWindow, Avalonia.Input.Key.Z, PhysicalKey.Z, RawInputModifiers.Control);
+                void Redo() => Key(historyWindow, Avalonia.Input.Key.Y, PhysicalKey.Y, RawInputModifiers.Control);
+
+                using var search = new SearchViewModel(documents);
+                var searchView = new SearchResultsView(search); Focus(searchView, searchView.Value);
+                historyWindow.KeyTextInput("SYN-query"); Assert.Equal("SYN-query", searchView.Value.Text);
+                Undo(); Assert.Equal("", searchView.Value.Text ?? ""); UnchangedDocumentHistory();
+                Undo(); UnchangedDocumentHistory();
+                Redo(); Assert.Equal("SYN-query", searchView.Value.Text);
+                Assert.True(searchView.Value.IsFocused); UnchangedDocumentHistory();
+
+                using var script = new ScriptEditorViewModel(documents, new ScriptLibrary(libraryRoot));
+                await script.Session.NewAsync(() => Task.FromResult(UnsavedChangesDecision.Discard));
+                var scriptView = new ScriptEditorView(script); Focus(scriptView, scriptView.Editor.TextArea);
+                var scriptText = script.Session.Source; scriptView.Editor.CaretOffset = scriptText.Length;
+                historyWindow.KeyTextInput("\n// synthetic keyboard check"); var scriptDraft = script.Session.Source;
+                Assert.NotEqual(scriptText, scriptDraft);
+                Undo(); Assert.Equal(scriptText, script.Session.Source); UnchangedDocumentHistory();
+                Redo(); Assert.Equal(scriptDraft, script.Session.Source);
+                Assert.True(scriptView.Editor.TextArea.IsFocused); UnchangedDocumentHistory();
+
+                var independentEditor = new TextEditor { Text = "Synthetic editor" };
+                independentEditor.Document.UndoStack.ClearAll();
+                Focus(independentEditor, independentEditor.TextArea); independentEditor.CaretOffset = independentEditor.Text.Length;
+                historyWindow.KeyTextInput(" change"); Assert.Equal("Synthetic editor change", independentEditor.Text);
+                Undo(); Assert.Equal("Synthetic editor", independentEditor.Text); UnchangedDocumentHistory();
+                Undo(); UnchangedDocumentHistory();
+                Redo(); Assert.Equal("Synthetic editor change", independentEditor.Text);
+                Assert.True(independentEditor.TextArea.IsFocused); UnchangedDocumentHistory();
+
+                var fileView = Assert.IsType<FileDocumentView>(MessageViewer.Create(file));
+                Focus(fileView, fileView.MessageNumberInput); fileView.MessageNumberInput.CaretIndex = 1;
+                historyWindow.KeyTextInput("2"); Assert.Equal("12", fileView.MessageNumberInput.Text);
+                Undo(); Assert.Equal("1", fileView.MessageNumberInput.Text); UnchangedDocumentHistory();
+                Redo(); Assert.Equal("12", fileView.MessageNumberInput.Text);
+                Assert.True(fileView.MessageNumberInput.IsFocused); UnchangedDocumentHistory();
+            }
+            finally
+            {
+                historyWindow.Close();
+                if (Directory.Exists(libraryRoot)) Directory.Delete(libraryRoot, true);
+            }
             return true;
         }, TestContext.Current.CancellationToken);
     }

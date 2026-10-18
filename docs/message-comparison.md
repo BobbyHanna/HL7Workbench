@@ -37,21 +37,29 @@ normalized or repaired.
 
 Each A/B control offers:
 
-- **Open Message**: choose an open document and original message ordinal. Unsaved
+- **Open Message**: choose an open document and current logical message position. Unsaved
   edits are captured even while ordinary inspection is refreshing; the label identifies
   an Unsaved draft when applicable.
-- **Original Message**: choose an open document and original ordinal to capture its
+- **Original Message**: choose a message by logical position to capture its
   initially loaded content. Save/Save As does not redefine this original.
 - **Pasted Text**: return to that side's preserved temporary draft.
 
-Use active message in the source control chooses the active document's actual original
-ordinal. Find Messages filters never turn visible row positions into source ordinals.
-You may compare two ordinals in one document, different documents, or pasted text
+Use active message chooses the active document's stable MessageId. The selection
+keeps that identity when insertion changes its position. Original ordinal is separate
+provenance. Find Messages filters never reinterpret visible rows as original ordinals.
+You may compare two messages in one document, different documents, or pasted text
 against a current/original document message. Selecting sources never navigates a file.
 
 **Compare With Original** on the ribbon/raw-editor context menu immediately selects
 the active message's original (A) and current draft (B). Existing pasted drafts remain
 available by switching either side back to Pasted Text.
+
+Stage 8B.4 also supports inserted/current sources. They have no Original Message
+during that open session, including after Save; the command explains this limitation.
+Undo removal retains the selected ID as unavailable instead of clamping to a neighbor.
+Redo restores the same selection identity but requires a fresh comparison. Position
+labels may update; they never retarget a source. See
+[compatibility acceptance](stage8b4-compatibility-acceptance.md).
 
 Document/original source panes remain **read-only**. Editing them is never enabled by
 paste support. Edits/undo/redo in a selected source document clear stale results with a

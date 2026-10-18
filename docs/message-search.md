@@ -1,5 +1,9 @@
 # Find Messages and navigator filtering (Stages 6A–6B)
 
+Stage 8B.4 extends this pipeline to inserted logical messages and stable identities;
+see [compatibility acceptance](stage8b4-compatibility-acceptance.md). Earlier milestone
+Git authorizations below are historical; current 8B work remains intentionally uncommitted.
+
 Stage 6A, including the final Find Messages naming/open-focus cleanup, passed native
 Windows acceptance on 2026-10-16. The user explicitly authorized the accepted milestone's
 single commit and normal push to main; no tag, release, installer or distribution package.
@@ -30,9 +34,11 @@ Simple inputs, conditions, ALL/ANY or Simple/Advanced switching) cancel/clear ol
 and filters immediately; rerun explicitly. Opening/focusing, switching modes, selecting
 a saved item or loading it never runs a search. There is no automatic query history.
 
-Rows show original message ordinal, message type (MSH-9), control ID (MSH-10), first match
+Rows show captured logical message position, message type (MSH-9), control ID (MSH-10), first match
 location when available, and count. Single-click selects; double-click or Enter follows
-the original ordinal in the existing document. Existing raw/segment/field inspectors
+the retained MessageId in the existing document. Original ordinal is separate nullable
+provenance. Stale/unavailable results never select a neighbor at the old position.
+Existing raw/segment/field inspectors
 update through normal document navigation, without enabling Edit Mode or creating a tab.
 Control IDs are session-only and may be sensitive. No patient values or snippets appear
 in rows. Headers are capped at 48/96 UTF-16 units, with an explicit ellipsis if shortened;
@@ -244,11 +250,12 @@ See [desktop preferences](desktop-preferences.md) for palettes and future extens
 
 ## Revisions, unsaved edits and cancellation
 
-Search uses the active document's original index plus immutable references to its current
-Workspace drafts. It includes unsaved/malformed draft text without requiring Save, waiting
+Search captures the active document's logical order/MessageIds, its immutable original
+index and references to current bounded Workspace drafts, including inserted messages.
+It includes unsaved/malformed draft text without requiring Save, waiting
 for inspection or silently discarding edits. Untouched messages are not reconstructed.
 Search captures a content-only revision, distinct from viewer navigation. Following a
-result or saving unchanged text does not invalidate it. Editing/undo/redo invalidates
+result or a successful Save alone does not invalidate it. Editing/insertion/Undo/Redo invalidates
 the entire result set, cancels pending work and restores the full navigator with a
 "Document changed" notice. Rerun explicitly to search the new revision.
 
@@ -261,11 +268,12 @@ save identity, history, original source bytes, script state or report/export beh
 ## Filter Navigator
 
 The existing message navigator is the per-file First/Previous/number/Go/Next/Last toolbar.
-Filter Navigator adds a virtualized matching-ordinal selector there and restricts those
-controls to matches. Original ordinals are always shown; they are never renumbered.
+Filter Navigator adds a virtualized matching-position selector there and restricts those
+controls by matching MessageIds. Current logical positions are shown; original ordinals
+remain provenance. Structural mutation clears the filter before selecting the inserted entry.
 The count distinguishes total messages from matching messages. An excluded current
 message stays selected and is clearly marked; First/Next/Previous or the selector can
-choose a match. Go to an excluded ordinal explains how to clear the filter. Zero-result
+choose a match. Go to an excluded position explains how to clear the filter. Zero-result
 filters have no navigation targets. Disabling, clearing, editing, switching or closing
 restores the full navigator. No document/message is removed or copied.
 
@@ -275,12 +283,12 @@ Scans and structural inspection run off the UI thread, one message at a time, wi
 cancellation checks through decoding, window matching and Core scanning. First-message,
 throttled and final progress contain counts only. Results collect incrementally in a
 bounded list and publish on successful completion. Previous/Next page exposes at most
-200 rows to the virtualized results control; the matching-ordinal selector is virtualized.
+200 rows to the virtualized results control; the matching-position selector is virtualized.
 No control is created for every document message.
 
-The existing index limits documents to 100,000 classified messages. Results likewise
+The logical document sequence retains the 100,000-message ceiling. Results likewise
 contain at most 100,000 rows with capped headers/coordinate/count, rather than full text
-or snippets; paging bounds UI state while the complete ordinal list supports filters.
+or snippets; paging bounds UI state while the complete ID set supports filters.
 Result memory is bounded by this ceiling (worst-case headers plus row/list overhead,
 roughly tens of MiB). Draft references reuse the existing 32 MiB text/history budget.
 Payloads over 128 KiB reuse the disk-backed decoded source with bounded resident caches.

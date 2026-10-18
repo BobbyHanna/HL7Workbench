@@ -23,6 +23,39 @@ public sealed class MessageFileIndex
     public const int MaxSourceRegions = 200_000;
     public static MessageFileIndex Build(SourceSnapshot snapshot, CancellationToken token = default,
         IProgress<long>? progress = null, Encoding? inheritedEncoding = null)
+        => BuildCore(new(snapshot.Length, snapshot.Read), token, progress, inheritedEncoding);
+
+    /// <summary>Indexes a borrowed, read-only publication candidate without capturing a second disk snapshot.</summary>
+    internal static MessageFileIndex BuildStaged(FileStream input, CancellationToken token = default,
+        IProgress<long>? progress = null, Encoding? inheritedEncoding = null)
+        => BuildCore(new(input.Length, (range, destination) =>
+        {
+            var used = 0;
+            while (used < destination.Length)
+            {
+                var read = RandomAccess.Read(input.SafeFileHandle, destination[used..], range.Offset + used);
+                if (read == 0) throw new EndOfStreamException();
+                used += read;
+            }
+        }), token, progress, inheritedEncoding);
+
+    private delegate void ReadRange(ByteRange range, Span<byte> destination);
+    private sealed class IndexSource(long length, ReadRange read)
+    {
+        public long Length => length;
+        public void Read(ByteRange range, Span<byte> destination)
+        {
+            if (range.Offset < 0 || range.Length != destination.Length || range.End > Length) throw new ArgumentOutOfRangeException(nameof(range));
+            read(range, destination);
+        }
+        public byte[] ReadBytes(ByteRange range)
+        {
+            if (range.Length < 0 || range.Length > 128 * 1024) throw new Hl7LimitException("BoundedReadBytes");
+            var result = new byte[(int)range.Length]; Read(range, result); return result;
+        }
+    }
+    private static MessageFileIndex BuildCore(IndexSource snapshot, CancellationToken token,
+        IProgress<long>? progress, Encoding? inheritedEncoding)
     {
         var prefix = snapshot.ReadBytes(new(0, Math.Min(4, snapshot.Length)));
         var (encoding, bom) = Hl7SourceEncoding.Detect(prefix, inheritedEncoding);
@@ -209,7 +242,7 @@ public sealed class MessageFileIndex
         }
         return new(encoding, bom, regions.AsReadOnly(), messages.AsReadOnly(), fileDiagnostics.AsReadOnly());
     }
-    private sealed class IndexBytes(SourceSnapshot source, CancellationToken token, IProgress<long>? progress)
+    private sealed class IndexBytes(IndexSource source, CancellationToken token, IProgress<long>? progress)
     {
         private readonly byte[] bytes = new byte[65536];
         private long start = -1;

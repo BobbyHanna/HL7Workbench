@@ -35,9 +35,15 @@ public partial class MainWindow
         search.ConfirmDeleteAsync = name => ConfirmationDialog.DeleteSearch(name).ShowDialog<bool>(DialogOwner());
         FindMessagesMenu.Command = search.OpenCommand;
         AttachSearchShortcut(this);
+        AttachDocumentHistoryShortcut(this);
         // Floating tool windows are separate routed-input roots. Use the same
         // shortcut handler there without changing Dock's placement/restore model.
-        factory.HostWindowLocator![nameof(IDockWindow)] = () => { var host = new HostWindow(); AttachSearchShortcut(host); return host; };
+        factory.HostWindowLocator![nameof(IDockWindow)] = () =>
+        {
+            var host = new HostWindow();
+            AttachSearchShortcut(host); AttachDocumentHistoryShortcut(host);
+            return host;
+        };
         UiCommand Action(Action<object?, RoutedEventArgs> action, Func<bool>? enabled = null) => new(() => { action(this, new()); return Task.CompletedTask; }, enabled);
         var actions = new Dictionary<string, ICommand>
         {

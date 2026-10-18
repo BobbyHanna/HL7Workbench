@@ -45,8 +45,9 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     public Hl7Structure? Structure { get; private set; }
     public MessagePresentation? Presentation { get; private set; }
     public string? DeclaredVersion => message?.Get("MSH-12").Raw;
-    public int MessageCount => Index?.Messages.Count ?? 1;
-    public int MessageNumber { get; private set; }
+    public int MessageCount => sequence.Count;
+    /// <summary>Current one-based logical position, or zero when the document is empty.</summary>
+    public int MessageNumber => activeId is { } id ? sequence.Position(id) : 0;
     public bool IsLoading { get; private set; }
     public long PreparedBytes { get; private set; }
     public string? Failure { get; private set; }
@@ -58,30 +59,38 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     /// <summary>Session generation for UI intents that may outlive a context menu or native dialog.</summary>
     public long ContentVersion => generation;
     public MessageDocument(string id, string title, Hl7Message message)
-    { Id = id; Title = title; this.message = message; MessageNumber = 1; searchEncoding = message.Encoding; initialComparisonText = message.HasDecodedText ? message.RawText : null; }
+    {
+        Id = id; Title = title; this.message = message; searchEncoding = message.Encoding;
+        initialComparisonText = message.HasDecodedText ? message.RawText : null;
+        memoryOriginalBytes = Hl7Serializer.Serialize(message);
+        sequence = new(1, MessageOrigin.Memory); originalIds = savedOrder = sequence.Snapshot(); activeId = originalIds[0];
+    }
     internal MessageDocument(string id, string title, SourceSnapshot snapshot, MessageFileIndex index, StructureScanOptions? inspectionOptions = null)
     {
         Id = id; Title = title; Snapshot = snapshot; Index = index;
         searchEncoding = index.Encoding;
+        sequence = new(index.Messages.Count, MessageOrigin.File); originalIds = savedOrder = sequence.Snapshot();
         this.inspectionOptions = inspectionOptions;
         if (index.Messages.Count == 0 && index.Diagnostics.Any(d => d.Code == "InvalidEncoding"))
             Failure = "Text unavailable: input cannot be decoded safely. Inspect retained source bytes.";
     }
     private void Changed() => PropertyChanged?.Invoke(this, new("ActiveContent"));
 
+    /// <summary>Navigates by current logical position. Retained feature selections should use MessageId instead.</summary>
     public async Task NavigateAsync(int number, CancellationToken cancellationToken = default)
     {
         if (disposed) throw new ObjectDisposedException(nameof(MessageDocument));
         if (number < 1 || number > MessageCount) throw new ArgumentOutOfRangeException(nameof(number));
         if (IsSaving || IsCapturingScript) return;
-        if (Index is null || Snapshot is null || number == MessageNumber && !IsLoading && Failure is null) return;
+        if (number == MessageNumber && !IsLoading && Failure is null && (message is not null || Source is not null)) return;
+        var logical = sequence[number - 1];
         request?.Cancel();
         request?.Dispose();
         request = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, cancellationToken);
         var token = request.Token;
         var version = ++generation;
         editRefresh?.Cancel(); IsRefreshingEdit = false; EditError = null;
-        MessageNumber = number; PreparedBytes = 0; IsLoading = true; Failure = null; ActiveDiagnostics = [];
+        activeId = logical.Id; PreparedBytes = 0; IsLoading = true; Failure = null; ActiveDiagnostics = [];
         message = null; inspection = null; previousInspection = null; Structure = null; Source = null; Presentation = null;
         Changed();
         var progress = new ThrottledProgress(new Progress<long>(value =>
@@ -96,10 +105,10 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
             {
                 if (!ReferenceEquals(Source, cachedSource)) Source?.Dispose();
                 Source = null;
-                var entry = Index.Messages[number - 1];
+                var entry = logical.SourceOrdinal is { } ordinal ? Index!.Messages[ordinal - 1] : null;
                 await scanConcurrency.WaitAsync(token);
                 Loaded result;
-                try { result = await Task.Run(() => Load(entry, token, progress), token); }
+                try { result = await Task.Run(() => Load(logical, entry, token, progress), token); }
                 finally { scanConcurrency.Release(); }
                 if (disposed || version != generation || token.IsCancellationRequested)
                 { if (!ReferenceEquals(result.Source, cachedSource)) result.Source?.Dispose(); token.ThrowIfCancellationRequested(); return; }
@@ -107,7 +116,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
                 Presentation = result.Presentation;
                 inspection = result.Inspection; inspection?.ClearSelection();
                 Failure = result.Failure;
-                ActiveDiagnostics = entry.Diagnostics.Concat(result.Diagnostics).ToArray();
+                ActiveDiagnostics = (entry?.Diagnostics ?? []).Concat(result.Diagnostics).ToArray();
                 IsLoading = false;
                 Changed();
             }
@@ -129,9 +138,9 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     }
     private sealed record Loaded(DecodedMessageSource? Source, Hl7Structure? Structure, Hl7Message? Message,
         MessageInspection? Inspection, string? Failure, IReadOnlyList<Hl7Diagnostic> Diagnostics, MessagePresentation? Presentation = null);
-    private Loaded Load(IndexedMessage entry, CancellationToken token, IProgress<long> progress)
+    private Loaded Load(LogicalMessage logical, IndexedMessage? entry, CancellationToken token, IProgress<long> progress)
     {
-        if (buffers.TryGetValue(entry.Number, out var buffer))
+        if (buffers.TryGetValue(logical.Id, out var buffer))
         {
             try
             {
@@ -141,6 +150,13 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
             catch (Exception error) when (error is Hl7LimitException or EncoderFallbackException or ArgumentException)
             { return new(null, null, null, null, "Draft retained. Undo or shorten the edit to restore structural inspection and saving.", []); }
         }
+        if (logical.Origin == MessageOrigin.Memory)
+        {
+            var parsed = Hl7Parser.Parse(memoryOriginalBytes!, new() { Encoding = searchEncoding });
+            return new(null, null, parsed, parsed.HasDecodedText ? new(parsed) : null, null,
+                parsed.Diagnostics.Concat(Hl7Validator.Validate(parsed)).ToArray());
+        }
+        if (entry is null) throw new InvalidOperationException("Inserted payload is unavailable.");
         var index = Index ?? throw new InvalidOperationException("File index required.");
         var snapshot = Snapshot ?? throw new InvalidOperationException("File snapshot required.");
         DecodedMessageSource? source = null;
@@ -249,7 +265,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
                 throw new InvalidOperationException("Exact original range unavailable for the current content.");
             var source = (IHl7TextSource?)Source ?? new MaterializedSource(Message.RawText, Index.Encoding);
             var bytes = await Task.Run(() => source.Bytes(range) ?? throw new InvalidOperationException("Exact byte range unavailable."), token);
-            var payload = Index.Messages[MessageNumber - 1].PayloadRange;
+            var payload = ActiveOriginalMessage?.PayloadRange ?? throw new InvalidOperationException("No original byte source.");
             var buffer = new byte[65536];
             for (long offset = 0; offset < bytes.Length;)
             {
@@ -279,7 +295,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
             // Let cancellation drain that reader before deleting any source/spool files.
             await DrainSearchReaders();
             await work.WaitAsync();
-            try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; buffers.Clear(); Snapshot?.Dispose(); editRefresh?.Dispose(); request?.Dispose(); lifetime.Dispose(); searchChanges.Dispose(); }
+            try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; buffers.Clear(); undo.Clear(); redo.Clear(); Snapshot?.Dispose(); editRefresh?.Dispose(); request?.Dispose(); lifetime.Dispose(); searchChanges.Dispose(); }
             finally { work.Release(); }
         });
     }

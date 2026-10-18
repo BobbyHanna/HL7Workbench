@@ -24,9 +24,9 @@ public sealed class FileDocumentView : ContentControl
     private readonly Expander regionInspector = new() { Header = "Inspect source bytes" };
     private bool subscribed;
     private bool updatingNavigation;
-    public ComboBox FilteredMessages { get; } = new() { Width = 175, PlaceholderText = "Matching ordinals", IsVisible = false,
+    public ComboBox FilteredMessages { get; } = new() { Width = 175, PlaceholderText = "Matching positions", IsVisible = false,
         MaxDropDownHeight = 256, ItemsPanel = new Avalonia.Controls.Templates.FuncTemplate<Panel?>(() => new VirtualizingStackPanel()) };
-    private int displayedNumber;
+    private MessageId? displayedId;
     public TextBox MessageNumberInput { get; } = new() { Width = 90 };
     public MessageInspectionView? ActiveView { get; private set; }
     public FileDocumentView(MessageDocument document, bool dockedInspection = false)
@@ -43,7 +43,7 @@ public sealed class FileDocumentView : ContentControl
             button.Click += async (_, _) => await NavigateAsync(position());
             directions.Add(button); toolbar.Children.Add(button);
         }
-        Button("|<", "First matching/original message", () => NavigatorTarget(0)); Button("<", "Previous matching/original message", () => NavigatorTarget(1));
+        Button("|<", "First matching/logical message", () => NavigatorTarget(0)); Button("<", "Previous matching/logical message", () => NavigatorTarget(1));
         ToolTip.SetTip(MessageNumberInput, "Message number within this file"); ToolTip.SetTip(go, "Jump to message number");
         ToolTip.SetTip(retry, "Retry preparing the selected message"); ToolTip.SetTip(cancel, "Cancel preparing the selected message");
         ToolTip.SetTip(regions, "Select a retained unclassified source region"); ToolTip.SetTip(regionInspector, "Inspect original bytes outside classified messages");
@@ -53,7 +53,7 @@ public sealed class FileDocumentView : ContentControl
         { if (!updatingNavigation && FilteredMessages.SelectedItem is int number && number != document.MessageNumber) await NavigateAsync(number); };
         MessageNumberInput.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await JumpAsync(); } };
         go.Click += async (_, _) => await JumpAsync(); toolbar.Children.Add(go);
-        Button(">", "Next matching/original message", () => NavigatorTarget(2)); Button(">|", "Last matching/original message", () => NavigatorTarget(3));
+        Button(">", "Next matching/logical message", () => NavigatorTarget(2)); Button(">|", "Last matching/logical message", () => NavigatorTarget(3));
         retry.Click += async (_, _) => await NavigateAsync(document.MessageNumber);
         toolbar.Children.Add(retry);
         cancel.Click += (_, _) => document.CancelScan(); toolbar.Children.Add(cancel);
@@ -78,9 +78,10 @@ public sealed class FileDocumentView : ContentControl
     public async Task NavigateAsync(int number)
     {
         if (document.IsSaving || number < 1 || number > document.MessageCount) return;
-        if (document.NavigationMatches is { } matches && (LowerBound(matches, number) is var at && (at >= matches.Count || matches[at] != number)))
-        { status.Text = "This original ordinal is outside the search filter. Choose a matching ordinal or clear the filter."; return; }
-        try { await document.NavigateAsync(number); }
+        var id = document.GetMessageId(number);
+        if (!document.IsNavigationMatch(id))
+        { status.Text = "This message is outside the search filter. Choose a matching position or clear the filter."; return; }
+        try { await document.NavigateAsync(id); }
         catch (ObjectDisposedException) { }
     }
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -95,10 +96,12 @@ public sealed class FileDocumentView : ContentControl
     }
     private void Changed(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MessageDocument.SaveProgress) && document.SaveProgress is { } save)
+        { status.Text = $"{save.Phase}: {save.CompletedBytes:N0} / {save.TotalBytes:N0} bytes"; return; }
         if (e.PropertyName == nameof(MessageDocument.NavigationMatches)) { UpdateNavigator(); return; }
         if (e.PropertyName == nameof(MessageDocument.PreparedBytes)) status.Text = $"Preparing message {document.MessageNumber}; {document.PreparedBytes:N0} bytes decoded…";
-        else if (ActiveView is not null && displayedNumber == document.MessageNumber && !document.IsLoading && document.Source is null)
-            status.Text = document.Failure ?? "";
+        else if (ActiveView is not null && displayedId == document.ActiveMessageId && !document.IsLoading && document.Source is null)
+        { UpdateNavigator(); status.Text = document.Failure ?? ""; }
         else if (e.PropertyName == "ActiveContent") Refresh();
     }
     private void Refresh()
@@ -114,7 +117,7 @@ public sealed class FileDocumentView : ContentControl
         // Reparent the fixed navigation controls only after the old view is detached.
         if (navigation.Parent is Panel parent) parent.Children.Remove(navigation);
         Content = null;
-        displayedNumber = document.MessageNumber;
+        displayedId = document.ActiveMessageId;
         if (!document.IsLoading && (document.EditableText is not null || document.Source is not null))
         {
             ActiveView = (MessageInspectionView)MessageViewer.CreateActive(document, dockedInspection, scheduleHover);
@@ -126,9 +129,8 @@ public sealed class FileDocumentView : ContentControl
             var panel = new Grid { RowDefinitions = new("*,Auto") };
             panel.Children.Add(new TextBlock { Margin = new(16), Text = document.IsLoading ? "Scanning active message…" : document.Failure ?? "No classified messages. Inspect retained source regions." });
             Grid.SetRow(navigation, 1); panel.Children.Add(navigation); Content = panel;
-            if (document.Failure is not null && document.Index is { } index && document.Snapshot is { } snapshot && document.MessageNumber > 0)
+            if (document.Failure is not null && document.Index is { } index && document.Snapshot is { } snapshot && document.ActiveOriginalMessage is { } entry)
             {
-                var entry = index.Messages[document.MessageNumber - 1];
                 regionInspector.Content = new SourceRegionInspector(snapshot, index.Encoding, new(entry.SourceRange, null, "Active message bytes"), document);
                 regionInspector.IsExpanded = true;
             }
@@ -166,7 +168,7 @@ public sealed class FileDocumentView : ContentControl
             {
                 var at = LowerBound(matches, document.MessageNumber); var included = at < matches.Count && matches[at] == document.MessageNumber;
                 FilteredMessages.SelectedItem = included ? document.MessageNumber : null;
-                count.Text += $" · {matches.Count:N0} matches (original ordinals)" + (included ? "" : " · current message excluded");
+                count.Text += $" · {matches.Count:N0} matches (logical positions)" + (included ? "" : " · current message excluded");
             }
             for (var i = 0; i < directions.Count; i++)
             { var target = NavigatorTarget(i); directions[i].IsEnabled = target > 0 && target <= document.MessageCount && target != document.MessageNumber; }

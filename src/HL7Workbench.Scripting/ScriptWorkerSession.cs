@@ -16,6 +16,9 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
     private ScriptReportChunk[] reports = [];
     private int processed;
     private int deferred;
+    /// <summary>Validated suggestion, available only after successful Complete. Never a destination.</summary>
+    public string? OutputFileName { get; private set; }
+    public bool IgnoredOutputFileNameSuggestion { get; private set; }
     /// <summary>Transfers this operation's bounded report buffer. Drain after startup, each Process and Complete before continuing.</summary>
     public IReadOnlyList<ScriptReportChunk> DrainReports()
     { var result = reports; reports = []; return result; }
@@ -96,7 +99,19 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
         reports = response.Reports ?? [];
         deferred = response.DeferredCount;
         if (deferred is < 0 or > ScriptLimits.DeferredMessages) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Protocol, "ProtocolError"));
+        AcceptOutputNaming(response.OutputNaming);
         finished = true;
+    }
+    internal void AcceptOutputNaming(ScriptOutputNaming? naming)
+    {
+        // The worker is a separate trust boundary. Invalid or future naming metadata
+        // is advisory only and cannot turn otherwise valid HL7 output into a failed run.
+        OutputFileName = null; IgnoredOutputFileNameSuggestion = naming?.IgnoredSuggestion ?? false;
+        if (naming is null) return;
+        if (naming.Version != 1) { IgnoredOutputFileNameSuggestion = true; return; }
+        if (naming.FileName is null) return;
+        if (ScriptOutputFileName.TryNormalize(naming.FileName, out var valid)) OutputFileName = valid;
+        else IgnoredOutputFileNameSuggestion = true;
     }
     /// <summary>Drains one deferred copy at a time after completion, retaining the original source ordinal for parent validation.</summary>
     public async Task<(int MessageNumber, byte[] Bytes)?> TakeDeferredAsync(CancellationToken token = default)

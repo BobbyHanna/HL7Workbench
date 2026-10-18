@@ -53,8 +53,8 @@ public sealed class EditableDocumentTests
         doc.ReplaceWorkingText(edited); Assert.True(doc.IsDirty); Assert.EndsWith(" *", doc.DisplayTitle);
         Assert.Null(doc.ActiveInspection); Assert.Null(doc.MaterializedMessage);
         await doc.EditRefresh; Assert.Equal("Changed", doc.Message.Get("PID-1.1").Raw);
-        doc.IsEditMode = false; doc.Undo(); Assert.Equal(edited, doc.WorkingText); Assert.True(doc.IsDirty);
-        doc.IsEditMode = true; doc.Undo(); Assert.False(doc.IsDirty); Assert.True(doc.CanRedo); await doc.EditRefresh;
+        doc.IsEditMode = false; doc.Undo(); Assert.Equal(First, doc.WorkingText); Assert.False(doc.IsDirty);
+        doc.IsEditMode = true; Assert.True(doc.CanRedo); await doc.EditRefresh;
         doc.Redo(); await doc.EditRefresh; Assert.True(doc.IsDirty);
         await doc.SaveAsync(s.PathFor("saved.hl7"), TestContext.Current.CancellationToken);
         Assert.False(doc.IsDirty); Assert.True(doc.CanUndo);
@@ -73,8 +73,8 @@ public sealed class EditableDocumentTests
         var other = await s.Open(); s.Manager.Activate(doc.Id);
         Assert.True(doc.IsEditMode); Assert.False(other.IsEditMode); Assert.Equal("Two", doc.Message.Get("PID-1").Raw);
         await doc.NavigateAsync(1, TestContext.Current.CancellationToken); Assert.Equal("One", doc.Message.Get("PID-1.1").Raw);
-        doc.Undo(); await doc.EditRefresh; Assert.Equal(First, doc.WorkingText); Assert.True(doc.IsDirty);
-        await doc.NavigateAsync(2, TestContext.Current.CancellationToken); doc.Undo(); await doc.EditRefresh; Assert.False(doc.IsDirty);
+        doc.Undo(); await doc.EditRefresh; Assert.Equal(2, doc.MessageNumber); Assert.Equal(Second, doc.WorkingText); Assert.True(doc.IsDirty);
+        await doc.NavigateAsync(2, TestContext.Current.CancellationToken); doc.Undo(); await doc.EditRefresh; Assert.Equal(1, doc.MessageNumber); Assert.False(doc.IsDirty);
     }
     [Fact]
     public async Task RapidEditsClearOldCoordinatesAndOnlyLatestCoreProjectionPublishes()

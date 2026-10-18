@@ -70,7 +70,7 @@ function Test-PublishedWorker([int]$messageCount) {
         $start.Arguments = '"' + $hostFile + '" ' + $pipeName
         $worker = [Diagnostics.Process]::Start($start)
         [void]$pipe.WaitForConnectionAsync($deadline.Token).GetAwaiter().GetResult()
-        $source = 'var n = 0; ScriptDeferredMessage held = null!; var r = Batch.Report("summary", "Count"); void Main() { n++; Message.SetText("PID-5.2", n.ToString()); if(n == 1) held = Batch.Hold(Message); } void Complete() { r.Row(n.ToString()); Batch.Emit(held); }'
+        $source = 'var n = 0; ScriptDeferredMessage held = null!; var r = Batch.Report("summary", "Count"); Batch.SetOutputFileName("Initial"); void Main() { n++; Message.SetText("PID-5.2", n.ToString()); if(n == 1) held = Batch.Hold(Message); } void Complete() { r.Row(n.ToString()); Batch.Emit(held); Batch.SetOutputFileName("Synthetic smoke.HL7"); Batch.SetOutputFileName("../unsafe"); }'
         $ready = Exchange-Frame @{ Kind = 0; Definition = @{ Source = $source; ApiVersion = 2 }; Version = 2 }
         if ($ready.Kind -ne 1) { throw ('Published compilation failed: ' + ($ready.Diagnostics.Code -join ', ')) }
         $begun = Exchange-Frame @{ Kind = 8; Version = 2 }
@@ -85,6 +85,9 @@ function Test-PublishedWorker([int]$messageCount) {
         }
         $finished = Exchange-Frame @{ Kind = 4; Version = 2 }
         if ($finished.Kind -ne 5) { throw 'Published completion failed' }
+        if ($finished.OutputNaming.Version -ne 1 -or $finished.OutputNaming.FileName -ne 'Synthetic smoke.hl7' -or -not $finished.OutputNaming.IgnoredSuggestion) {
+            throw 'Worker output filename metadata failed'
+        }
         if ($finished.DeferredCount -ne 1 -or [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($finished.Reports[0].Bytes)) -ne "`"$messageCount`"`r`n") {
             throw 'Published CSV completion failed'
         }

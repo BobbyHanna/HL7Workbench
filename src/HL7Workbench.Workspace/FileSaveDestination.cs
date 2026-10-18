@@ -33,9 +33,47 @@ public sealed class FileSaveDestination
         return new FileSaveDestination(full, physical, input is null ? null : ReadVersion(input, token));
     }, token);
 
+    // Capture the opened handle's identity, not a later version of its pathname. Hashing
+    // happens while SourceSnapshot copies the stream, so opening adds no second file read.
+    internal static Func<string, FileSaveDestination> BeginSnapshotCapture(FileStream input)
+    {
+        var before = ReadIdentity(input); var path = System.IO.Path.GetFullPath(input.Name); var physical = PhysicalPath(path);
+        return hash => before == ReadIdentity(input) ? new(path, physical, new(before, hash)) :
+            throw new IOException("Source changed during capture.");
+    }
+    internal FileSaveDestination AtSameLocation(string path)
+    {
+        var full = System.IO.Path.GetFullPath(path);
+        if (!string.Equals(physicalPath, PhysicalPath(full), Comparison)) throw new IOException("Source location changed during open.");
+        return new(full, physicalPath, version);
+    }
+    internal static async Task<FileSaveDestination> MatchSnapshotAsync(string path, string hash, CancellationToken token)
+    {
+        var captured = await CaptureAsync(path, token).ConfigureAwait(false);
+        if (captured.version?.Hash != hash) throw new IOException("Source destination does not match the captured document.");
+        return captured;
+    }
+    internal Task CheckCurrentAsync(CancellationToken token) => Task.Run(() =>
+    {
+        if (!string.Equals(physicalPath, PhysicalPath(Path), Comparison)) throw new IOException("Destination location changed; use Save As.");
+        using var current = OpenExisting(physicalPath);
+        if (version is null ? current is not null : current is null || version != ReadVersion(current, token))
+            throw new IOException("Destination changed since open or the last save. Use Save As; working state is retained.");
+    }, token);
+
     /// <summary>Stages, durably flushes and closes content before publication. Existing files
     /// require the captured version and filesystem replacement support; there is no destructive fallback.</summary>
-    public async Task WriteAsync(Func<Stream, CancellationToken, Task> write, CancellationToken token = default)
+    public Task WriteAsync(Func<Stream, CancellationToken, Task> write, CancellationToken token = default)
+        => WriteCoreAsync(write, null, false, token);
+
+    /// <summary>Validation borrows the flushed candidate before publication. Retain its verified
+    /// content hash with the immediately observed published identity; never adopt external content.</summary>
+    internal Task<FileSaveDestination> WriteValidatedAsync(Func<Stream, CancellationToken, Task> write,
+        Func<FileStream, CancellationToken, string> validate, CancellationToken token)
+        => WriteCoreAsync(write, validate, true, token);
+
+    private async Task<FileSaveDestination> WriteCoreAsync(Func<Stream, CancellationToken, Task> write,
+        Func<FileStream, CancellationToken, string>? validate, bool retainVersion, CancellationToken token)
     {
         var temporary = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(physicalPath)!, ".hl7-save-" + Guid.NewGuid().ToString("N") + ".tmp");
         try
@@ -46,13 +84,23 @@ public sealed class FileSaveDestination
                 await output.FlushAsync(token).ConfigureAwait(false); output.Flush(true);
             }
             token.ThrowIfCancellationRequested();
-            await Task.Run(() =>
+            using var staged = OpenExisting(temporary) ?? throw new IOException("Staged output is unavailable.");
+            var stagedIdentity = ReadIdentity(staged);
+            var stagedHash = validate?.Invoke(staged, token);
+            var stagedVersion = retainVersion ? new Version(stagedIdentity, stagedHash!) : null;
+            if (stagedIdentity != ReadIdentity(staged)) throw new IOException("Staged output changed during validation.");
+            return await Task.Run(() =>
             {
                 lock (PublicationGate)
                 {
                     token.ThrowIfCancellationRequested();
                     if (!string.Equals(physicalPath, PhysicalPath(Path), Comparison)) throw new IOException("Destination location changed; choose it again.");
-                    if (version is null) { token.ThrowIfCancellationRequested(); File.Move(temporary, physicalPath, overwrite: false); return; }
+                    using (var namedStage = OpenExisting(temporary))
+                        if (namedStage is null || ReadIdentity(namedStage) != stagedIdentity) throw new IOException("Staged output identity changed.");
+                    if (version is null)
+                    {
+                        return Publish(false);
+                    }
                     // On Windows this read handle denies in-place writes until replacement.
                     // Delete sharing is needed for File.Replace; name replacement can still race
                     // the last check. Portable filesystems expose no compare-and-replace primitive.
@@ -60,8 +108,36 @@ public sealed class FileSaveDestination
                     if (current is null || version != ReadVersion(current, token)) throw new IOException("Destination changed; choose it again.");
                     using var named = OpenExisting(physicalPath);
                     if (named is null || ReadIdentity(current) != ReadIdentity(named)) throw new IOException("Destination identity changed; choose it again.");
+                    return Publish(true);
+                }
+                FileSaveDestination Publish(bool replace)
+                {
+                    // Windows ReplaceFile requires closing replacement-file readers. Keep
+                    // validation write-denying until the final identity-checked handoff.
+                    // No portable filesystem compare-and-replace primitive closes this name race.
+                    staged.Dispose();
+                    using (var publicationLease = OpenExisting(temporary))
+                        if (publicationLease is null || ReadIdentity(publicationLease) != stagedIdentity) throw new IOException("Staged output identity changed.");
                     token.ThrowIfCancellationRequested();
-                    File.Replace(temporary, physicalPath, null);
+                    if (replace) File.Replace(temporary, physicalPath, null);
+                    else File.Move(temporary, physicalPath, overwrite: false);
+                    if (stagedVersion is null) return new(Path, physicalPath, null);
+                    // Publication has committed: cancellation or failure to inspect its new
+                    // name must not report an unpublished save. Retain the validated hash;
+                    // never adopt externally changed bytes as our associated save baseline.
+                    var identity = stagedIdentity;
+                    try
+                    {
+                        using var published = OpenExisting(physicalPath);
+                        if (published is not null)
+                        {
+                            var observed = ReadIdentity(published);
+                            if (!OperatingSystem.IsWindows() || observed.Volume == stagedIdentity.Volume && observed.FileId == stagedIdentity.FileId)
+                                identity = observed;
+                        }
+                    }
+                    catch (IOException) { } catch (UnauthorizedAccessException) { }
+                    return new(Path, physicalPath, new(identity, stagedVersion.Hash));
                 }
             }, token).ConfigureAwait(false);
         }

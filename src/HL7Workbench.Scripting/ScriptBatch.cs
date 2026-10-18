@@ -15,6 +15,8 @@ public sealed class ScriptBatch
     private long reportBytes, deferredBytes, retainedBytes;
     private int retainedCount;
     private bool initializing = true, completing, finished;
+    private string? outputFileName;
+    private bool ignoredOutputFileName;
     internal ScriptBatch(CancellationToken cancellation) => this.cancellation = cancellation;
 
     private Action? process, complete;
@@ -22,6 +24,17 @@ public sealed class ScriptBatch
     { get { Check(); return current ?? throw Failure("LifecyclePhase"); } }
     /// <summary>Original one-based document ordinal during Main; zero in initialization/Complete.</summary>
     public int MessageNumber => currentNumber;
+
+    /// <summary>Suggests only an output filename, including from Complete. The last valid suggestion wins;
+    /// invalid values are ignored without failing execution. Does not save or choose a directory.</summary>
+    public void SetOutputFileName(string? fileName)
+    {
+        Check();
+        if (ScriptOutputFileName.TryNormalize(fileName, out var valid)) outputFileName = valid;
+        else ignoredOutputFileName = true;
+    }
+    internal ScriptOutputNaming? OutputNaming => outputFileName is null && !ignoredOutputFileName ? null :
+        new(outputFileName, ignoredOutputFileName);
 
     /// <summary>Defines an ordered schema during initialization. ASCII report labels are independent of final export paths.</summary>
     public ScriptCsvReport Report(string name, params string[] columns)

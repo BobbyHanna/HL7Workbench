@@ -4,20 +4,39 @@ using System.Text;
 
 namespace HL7Workbench.Workspace;
 
-/// <summary>Original file ordinal, independent of the filtered navigator's visible position.</summary>
+/// <summary>A stable selected-message identity, independent of position, filtering and original provenance.</summary>
 public sealed record ComparisonSource
 {
     public MessageDocument? Document { get; }
-    public int Ordinal { get; }
+    public MessageId? MessageId { get; }
+    /// <summary>Current logical position, or zero when the selected message is unavailable.</summary>
+    public int Ordinal => Document is { } document && MessageId is { } id ? document.GetLogicalPosition(id) : 0;
+    public int? OriginalOrdinal { get; }
+    public bool IsAvailable => PastedText is not null || Document is { } document && document.IsSearchCurrent(document.SearchRevision) && MessageId is { } id &&
+        document.FindMessage(id) is { } entry && (!Original || entry.Origin != MessageOrigin.Inserted);
     public bool Original { get; }
     public string? PastedText { get; }
     public ComparisonSource(MessageDocument document, int ordinal, bool original = false)
-    { Document = document; Ordinal = ordinal; Original = original; }
+        : this(document, document.GetMessageId(ordinal), original) { }
+    public ComparisonSource(MessageDocument document, MessageId messageId, bool original = false)
+    { Document = document; MessageId = messageId; Original = original; OriginalOrdinal = document.FindMessage(messageId)?.SourceOrdinal; }
     private ComparisonSource(string text) { PastedText = text; }
     public static ComparisonSource FromPastedText(string text)
     { ComparisonInput.ValidatePastedText(text); return new(text); }
-    public string Label => PastedText is { } text ? $"Pasted Text · temporary · {text.Length:N0} characters" :
-        $"{Document!.Title} · message {Ordinal}" + (Original ? " · Original Message" : Document.ComparisonHasUnsavedDraft(Ordinal) ? " · Unsaved draft" : " · Open Message");
+    public string Label
+    {
+        get
+        {
+            if (PastedText is { } text) return $"Pasted Text · temporary · {text.Length:N0} characters";
+            var position = Ordinal;
+            if (position == 0) return $"{Document!.Title} · selected message unavailable";
+            var kind = Original ? IsAvailable ? "Original Message" : "No original source for inserted message" :
+                Document!.FindMessage(MessageId!.Value)?.Origin == MessageOrigin.Inserted ? "Inserted Message" :
+                Document.ComparisonHasUnsavedDraft(MessageId.Value) ? "Unsaved draft" : "Open Message";
+            var provenance = OriginalOrdinal is { } ordinal && ordinal != position ? $" · original ordinal {ordinal}" : "";
+            return $"{Document!.Title} · message {position}{provenance} · {kind}";
+        }
+    }
     public override string ToString() => Label;
 }
 public sealed record ComparisonWindow(string Text, long Origin, long TotalLength, CharacterRange? Selection)
@@ -100,7 +119,7 @@ public sealed class MessageComparison : IDisposable
                 if (string.IsNullOrWhiteSpace(text)) throw new ComparisonInputException("Pasted Text is empty. Paste one HL7 message per side.");
                 ComparisonInput.ValidatePastedText(text);
             }
-            else document = source.Document!.CaptureComparison(source.Ordinal, source.Original);
+            else document = source.Document!.CaptureComparison(source.MessageId!.Value, source.Original);
         }
         public IHl7TextSource Open(CancellationToken token)
         { token.ThrowIfCancellationRequested(); return text is not null ? new StringHl7TextSource(text) : document!.Open(token); }

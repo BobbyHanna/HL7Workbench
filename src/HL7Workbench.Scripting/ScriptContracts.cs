@@ -30,6 +30,7 @@ public sealed record ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line 
         "InputStorageLimit" => "Captured source exceeds the configured input-storage limit.",
         "InvalidEncoding" => "Message cannot be strictly decoded or encoded.",
         "InputUnavailable" => "Complete captured input is unavailable.",
+        "InputChanged" => "Source content or membership changed before input capture. Run again; no output was published and newer edits are retained.",
         "OutputLimit" => "Output exceeds the configured size limit.",
         "BoundaryChange" => "Output would change a message, framing or batch boundary.",
         "ContainerExtraction" => "Filtering or extraction requires plain messages or complete, unambiguous MLLP envelopes. Batch wrappers and unrelated regions cannot be silently discarded.",

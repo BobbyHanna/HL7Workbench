@@ -65,7 +65,8 @@ internal static class Program
                 else if (request.Kind == FrameKind.Finish && batch is not null && !finished && begun)
                 {
                     batch?.Finish(); finished = true;
-                    await ScriptProtocol.WriteAsync(pipe, new(FrameKind.Finished, Reports: batch?.DrainReports(), DeferredCount: batch?.DeferredCount ?? 0), cancellation.Token);
+                    await ScriptProtocol.WriteAsync(pipe, new(FrameKind.Finished, Reports: batch?.DrainReports(), DeferredCount: batch?.DeferredCount ?? 0,
+                        OutputNaming: batch?.OutputNaming), cancellation.Token);
                     if (batch is null || batch.DeferredCount == 0) return 0;
                 }
                 else if (request.Kind == FrameKind.Deferred && finished && batch?.TakeDeferred() is { } copy)

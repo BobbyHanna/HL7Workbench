@@ -19,7 +19,15 @@ public sealed record ScriptExecutionOptions
 }
 
 /// <summary>Completed independent output. Caller owns Reports and must dispose it after export or abandonment.</summary>
-public sealed record ScriptExecutionResult(MessageDocument Document, int Processed, int Kept, long OutputBytes, ScriptReports? Reports = null);
+public sealed record ScriptExecutionResult(MessageDocument Document, int Processed, int Kept, long OutputBytes, ScriptReports? Reports = null)
+{
+    public ScriptInputMapping? Input { get; init; }
+    /// <summary>Whether source content or membership changed between input capture and publication.</summary>
+    public bool SourceChangedDuringRun { get; init; }
+    public string SuggestedFileName { get; init; } = ScriptOutputFileName.Fallback;
+    public bool IgnoredOutputFileNameSuggestion { get; init; }
+    public IReadOnlyList<ScriptOutputMessage> MessageSources { get; init; } = [];
+}
 
 /// <summary>Unified scripting coordinator. Only completed, indexed artifacts are published; input documents are never mutated or saved.</summary>
 public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOptions? options = null)
@@ -27,14 +35,15 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
     private static readonly SemaphoreSlim jobs = new(1, 1);
     private readonly ScriptExecutionOptions settings = options ?? new();
     public async Task<ScriptExecutionResult> RunAsync(MessageDocument source, ScriptDefinition script, ScriptScope scope,
-        IProgress<ScriptProgress>? progress = null, CancellationToken token = default)
+        IProgress<ScriptProgress>? progress = null, CancellationToken token = default, string? scriptName = null)
     {
         settings.Validate();
+        var defaultFileName = ScriptOutputFileName.FromScriptName(scriptName);
         if (!Enum.IsDefined(scope)) throw new ArgumentOutOfRangeException(nameof(scope));
         if (!documents.Documents.Contains(source)) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputUnavailable"));
-        var sourceNumber = source.MessageNumber; var sourceCount = source.MessageCount;
-        var encoding = source.Index?.Encoding ?? source.MaterializedMessage?.Encoding;
-        if (encoding is null || sourceCount == 0) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputUnavailable"));
+        var sourceId = source.ActiveMessageId; var sourceCount = source.MessageCount; var revision = source.SearchRevision;
+        if (sourceCount == 0 || scope == ScriptScope.CurrentMessage && sourceId is null)
+            throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputUnavailable"));
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token);
         linked.CancelAfter(settings.TotalTimeout);
         void Closed(object? sender, EventArgs e) => linked.Cancel();
@@ -43,23 +52,28 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
         SourceSnapshot? reportJournal = null;
         ScriptReports? reports = null;
         MessageDocument? pending = null;
+        ScriptInputMapping? mapping = null;
         var entered = false;
         try
         {
             await jobs.WaitAsync(linked.Token); entered = true;
+            if (!source.IsSearchCurrent(revision)) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputChanged"));
             documents.Activity.Record(ActivityKind.ScriptStarted, source.ActivityNumber);
             progress?.Report(new("Capturing input", 0, scope == ScriptScope.CurrentMessage ? 1 : sourceCount, 0));
-            using var capture = await source.CaptureScriptAsync(settings.MaximumInputBytes, settings.StorageRoot,
-                scope == ScriptScope.CurrentMessage ? sourceNumber : null, linked.Token);
-            var index = await Task.Run(() => MessageFileIndex.Build(capture, linked.Token, inheritedEncoding: encoding), linked.Token);
-            if (index.Messages.Count != sourceCount || sourceNumber < 1 || sourceNumber > sourceCount)
+            using var input = await source.CaptureScriptAsync(settings.MaximumInputBytes, settings.StorageRoot,
+                scope == ScriptScope.CurrentMessage ? sourceId : null, revision, linked.Token);
+            mapping = input.Mapping;
+            // The sealed capture is independent of later edits, history and tab selection.
+            // Keep its identities fixed and attribute stale output instead of discarding it.
+            var capture = input.Snapshot; var index = input.Index; var encoding = index.Encoding;
+            if (index.Messages.Count != mapping.Messages.Count || input.TargetOrdinal is { } target && (target < 1 || target > index.Messages.Count))
                 throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "BoundaryChange"));
             var extracted = scope == ScriptScope.CurrentMessage;
             var canExtract = CanExtract(index);
             if (extracted && !canExtract) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "ContainerExtraction"));
-            var targets = extracted ? new[] { index.Messages[sourceNumber - 1] } : index.Messages;
+            var targets = extracted ? new[] { index.Messages[input.TargetOrdinal!.Value - 1] } : index.Messages;
             if (targets.Count > ScriptLimits.BatchMessages) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "BatchLimit"));
-            var expected = new List<(ByteRange Payload, bool Framed)>();
+            var expected = new List<(ByteRange Payload, bool Framed, int JobOrdinal)>();
             var kept = 0; var processed = 0;
             var progressClock = System.Diagnostics.Stopwatch.StartNew();
             progress?.Report(new("Compiling", 0, targets.Count, 0));
@@ -102,7 +116,7 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
                             ValidatePayload(original, bytes, index.Encoding, entry.Number);
                             await CopyAsync(capture, new(extracted ? entry.SourceRange.Offset : cursor,
                                 entry.PayloadRange.Offset - (extracted ? entry.SourceRange.Offset : cursor)), destination, cancellation);
-                            expected.Add((new(destination.Length, bytes.Length), entry.Framed));
+                            expected.Add((new(destination.Length, bytes.Length), entry.Framed, entry.Number));
                             await destination.WriteAsync(bytes, cancellation);
                             if (extracted) await CopyAsync(capture, new(entry.PayloadRange.End, entry.SourceRange.End - entry.PayloadRange.End), destination, cancellation);
                             else cursor = entry.PayloadRange.End;
@@ -120,7 +134,7 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
                     while (await worker.TakeDeferredAsync(cancellation) is { } copy)
                     {
                         if (!canExtract || copy.MessageNumber < 1 || copy.MessageNumber > index.Messages.Count ||
-                            extracted && copy.MessageNumber != sourceNumber)
+                            extracted && copy.MessageNumber != input.TargetOrdinal)
                             throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Output, "ContainerExtraction"));
                         deferredBytes += copy.Bytes.Length;
                         if (deferredBytes > ScriptLimits.DeferredBytes || expected.Count >= ScriptLimits.BatchMessages)
@@ -129,7 +143,7 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
                         var original = capture.ReadBytes(entry.PayloadRange, ScriptLimits.MessageBytes);
                         ValidatePayload(original, copy.Bytes, index.Encoding, entry.Number);
                         await CopyAsync(capture, new(entry.SourceRange.Offset, entry.PayloadRange.Offset - entry.SourceRange.Offset), destination, cancellation);
-                        expected.Add((new(destination.Length, copy.Bytes.Length), entry.Framed));
+                        expected.Add((new(destination.Length, copy.Bytes.Length), entry.Framed, entry.Number));
                         await destination.WriteAsync(copy.Bytes, cancellation);
                         await CopyAsync(capture, new(entry.PayloadRange.End, entry.SourceRange.End - entry.PayloadRange.End), destination, cancellation);
                         kept++;
@@ -143,19 +157,27 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
                 m.PayloadRange != expected[i].Payload || m.Framed != expected[i].Framed ||
                 m.Diagnostics.Any(d => d.Code is "IncompleteMllp" or "AmbiguousFraming" or "InteriorBom")).Any())
                 throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Output, "BoundaryChange"));
-            var title = "Script result.hl7";
-            for (var n = 2; documents.Documents.Any(d => d.Title == title); n++) title = $"Script result ({n}).hl7";
+            var title = worker.OutputFileName ?? defaultFileName;
             pending = new(Guid.NewGuid().ToString("N"), title, output, outputIndex);
             output = null; // The pending document now owns the snapshot, including rollback/disposal.
             pending.MarkGeneratedUnsaved();
             if (kept > 0) await pending.NavigateAsync(1, linked.Token);
             linked.Token.ThrowIfCancellationRequested();
             if (!documents.Documents.Contains(source)) throw new OperationCanceledException(linked.Token);
+            var sourceChanged = !mapping.IsCurrent(source);
             if (reportBuilder.Items.Count > 0) { reports = new(reportJournal, reportBuilder); reportJournal = null; }
             documents.Open(pending);
             var published = pending; pending = null;
             documents.Activity.Record(ActivityKind.ScriptCompleted, source.ActivityNumber, count: kept);
-            var result = new ScriptExecutionResult(published, processed, kept, published.Snapshot!.Length, reports);
+            var result = new ScriptExecutionResult(published, processed, kept, published.Snapshot!.Length, reports)
+            {
+                Input = mapping,
+                SourceChangedDuringRun = sourceChanged,
+                SuggestedFileName = title,
+                IgnoredOutputFileNameSuggestion = worker.IgnoredOutputFileNameSuggestion,
+                MessageSources = Array.AsReadOnly(expected.Select((e, i) => new ScriptOutputMessage(
+                    published.GetMessageId(i + 1), mapping.Resolve(e.JobOrdinal)!.MessageId, e.JobOrdinal)).ToArray())
+            };
             reports = null; return result;
         }
         catch (OperationCanceledException) when (linked.IsCancellationRequested)
@@ -164,8 +186,11 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
             if (token.IsCancellationRequested || !documents.Documents.Contains(source)) throw;
             throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Worker, "Timeout"));
         }
-        catch (ScriptRunException)
-        { documents.Activity.Record(ActivityKind.ScriptFailed, source.ActivityNumber); throw; }
+        catch (ScriptRunException error)
+        {
+            documents.Activity.Record(ActivityKind.ScriptFailed, source.ActivityNumber);
+            mapping?.Attribute(error); throw;
+        }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or Hl7LimitException or ArgumentException or InvalidOperationException or System.Text.EncoderFallbackException)
         {
             documents.Activity.Record(ActivityKind.ScriptFailed, source.ActivityNumber, failure: ActivityLog.Classify(error));

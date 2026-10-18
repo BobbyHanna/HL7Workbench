@@ -10,7 +10,7 @@ public sealed partial class MessageDocument
     public const int MaximumEditableLineCharacters = 16384;
     public const int MaximumRetainedEditCharacters = 16 * 1024 * 1024;
     public const int MaximumHistoryEntries = 4096;
-    private readonly Dictionary<int, EditableMessageBuffer> buffers = [];
+    private readonly Dictionary<MessageId, EditableMessageBuffer> buffers = [];
     private bool editMode;
     private CancellationTokenSource? editRefresh;
     private MessageInspection? previousInspection;
@@ -27,20 +27,21 @@ public sealed partial class MessageDocument
         get => editMode;
         set { if (editMode == value) return; editMode = value; PropertyChanged?.Invoke(this, new(nameof(IsEditMode))); }
     }
-    public string DisplayTitle => Title + (IsDirty ? " *" : "");
-    public bool IsDirty => generatedUnsaved || buffers.Values.Any(b => b.IsDirty);
+    public string DisplayTitle => Title + (generatedUnsaved && scriptTitleOrdinal > 1 ? $" ({scriptTitleOrdinal})" : "") + (IsDirty ? " *" : "");
+    public bool IsDirty => generatedUnsaved || structuralDirty || dirtyBuffers > 0;
     public bool IsSaving { get; private set; }
     public string? SavePath { get; private set; }
     public string? EditError { get; private set; }
     public bool IsRefreshingEdit { get; private set; }
     public Task EditRefresh { get; private set; } = Task.CompletedTask;
-    public bool HasWorkingSourceChanges => buffers.TryGetValue(MessageNumber, out var b) && b.DiffersFromOriginal;
-    public string? WorkingText => buffers.GetValueOrDefault(MessageNumber)?.Text;
+    public bool HasWorkingSourceChanges => ActiveEntry?.Origin == MessageOrigin.Inserted ||
+        activeId is { } id && buffers.TryGetValue(id, out var b) && b.DiffersFromOriginal;
+    public string? WorkingText => activeId is { } id ? buffers.GetValueOrDefault(id)?.Text : null;
     public string? EditableText => WorkingText ?? (message?.HasDecodedText == true ? message.RawText : null);
-    public bool CanUndo => !IsSaving && !IsCapturingScript && buffers.GetValueOrDefault(MessageNumber)?.CanUndo == true;
-    public bool CanRedo => !IsSaving && !IsCapturingScript && buffers.GetValueOrDefault(MessageNumber)?.CanRedo == true;
+    public bool CanUndo => CanMutateHistory && undo.Count > 0;
+    public bool CanRedo => CanMutateHistory && redo.Count > 0;
     public string? EditingUnavailableReason => IsLoading ? "Wait for message preparation." :
-        buffers.ContainsKey(MessageNumber) ? null :
+        activeId is { } id && buffers.ContainsKey(id) ? null :
         Source is not null ? "This source-backed message remains read-only. Editing requires a complete message within the existing 1 Mi-character / 16 Ki-character line viewer limits." :
         message?.HasDecodedText != true ? "Safely decoded complete text is unavailable." :
         message.RawText.Length > MessagePresentation.MaximumEditorCharacters || message.Segments.Any(s => s.Raw.Length > MaximumEditableLineCharacters) ?
@@ -55,26 +56,30 @@ public sealed partial class MessageDocument
         if (!CanEditText) throw new InvalidOperationException("Enable Edit Mode on a supported message first.");
         ArgumentNullException.ThrowIfNull(text);
         if (text.Length > MessagePresentation.MaximumEditorCharacters) throw new Hl7LimitException("EditableMessageCharacters");
-        var existing = buffers.GetValueOrDefault(MessageNumber);
+        var id = activeId!.Value;
+        if (ActiveEntry?.Origin == MessageOrigin.Inserted) ValidateInsertedText(text);
+        var existing = buffers.GetValueOrDefault(id);
         if (text == (existing?.Text ?? message!.RawText)) return;
         var buffer = existing ?? new EditableMessageBuffer(message!);
         var change = buffer.Plan(text);
-        var others = buffers.Values.Where(b => !ReferenceEquals(b, existing)).Sum(b => b.RetainedCharacters);
-        if (others + buffer.CostAfter(text, change) > MaximumRetainedEditCharacters ||
-            buffers.Values.Where(b => !ReferenceEquals(b, existing)).Sum(b => b.HistoryCount) + buffer.HistoryCountAfterReplace > MaximumHistoryEntries)
-            throw new Hl7LimitException("RetainedEditHistory");
-        buffer.Replace(text, change); buffers[MessageNumber] = buffer;
+        var operation = new TextOperation(id, change);
+        var growth = buffer.CostAfter(text) - (existing?.RetainedCharacters ?? 0);
+        CheckHistoryBudget(growth, operation.Characters);
+        undo.EnsureCapacity(undo.Count + 1);
+        if (existing is null) buffers.EnsureCapacity(buffers.Count + 1);
+        DropRedo();
+        var wasDirty = buffer.IsDirty; buffer.Replace(text); buffers[id] = buffer;
+        bufferCharacters += growth; historyCharacters += operation.Characters; undo.Add(operation);
+        dirtyBuffers += (buffer.IsDirty ? 1 : 0) - (wasDirty ? 1 : 0);
         WorkingChanged();
     }
     public void Undo()
     {
-        if (!CanEditText || !CanUndo) return;
-        buffers[MessageNumber].Undo(); WorkingChanged();
+        ApplyHistory(false);
     }
     public void Redo()
     {
-        if (!CanEditText || !CanRedo) return;
-        buffers[MessageNumber].Redo(); WorkingChanged();
+        ApplyHistory(true);
     }
     private void WorkingChanged()
     {
@@ -82,7 +87,7 @@ public sealed partial class MessageDocument
         editRefresh?.Cancel(); editRefresh?.Dispose();
         editRefresh = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         var version = ++generation;
-        var buffer = buffers[MessageNumber]; var text = buffer.Text;
+        var buffer = buffers[activeId!.Value]; var text = buffer.Text;
         previousInspection ??= inspection ?? (message?.HasDecodedText == true ? Inspection : null);
         previousInspection?.Invalidate();
         message = null; inspection = null; ActiveDiagnostics = []; EditError = null; IsRefreshingEdit = true;
@@ -105,7 +110,7 @@ public sealed partial class MessageDocument
                 message = parsed; inspection = new(parsed);
                 if (previousInspection is { } previous) inspection.RestoreSelection(previous);
                 previousInspection = null;
-                var boundary = Index is { } index ? index.Messages[MessageNumber - 1].Diagnostics : [];
+                var boundary = ActiveOriginalMessage?.Diagnostics ?? [];
                 ActiveDiagnostics = boundary.Concat(parsed.Diagnostics).Concat(Hl7Validator.Validate(parsed)).ToArray();
             }
             finally { work.Release(); }
@@ -136,48 +141,42 @@ public sealed partial class MessageDocument
         IsSaving = true; PropertyChanged?.Invoke(this, new(nameof(IsSaving)));
         RecordActivity(ActivityKind.SaveStarted);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, lifetime.Token);
+        var saveRequest = ++saveGeneration;
+        var progress = new Progress<DocumentSaveProgress>(value =>
+        {
+            if (!disposed && IsSaving && saveRequest == saveGeneration) { SaveProgress = value; PropertyChanged?.Invoke(this, new(nameof(SaveProgress))); }
+        });
         try
         {
             // Associated Save is an established operation, with no new overwrite prompt.
             // Explicit paths without consent are creation-only, including API callers.
-            var target = authorization ?? (destination is null ? await FileSaveDestination.CaptureAsync(path, linked.Token) : FileSaveDestination.NewFile(path));
+            var target = authorization ?? (destination is null ?
+                associatedDestination ?? throw new IOException("The associated destination has no captured baseline. Use Save As.") :
+                FileSaveDestination.NewFile(path));
+            if (destination is null) await target.CheckCurrentAsync(linked.Token);
             await work.WaitAsync(linked.Token);
             try
             {
                 // Edits are frozen until publication. No file-sized string or output byte array.
-                await Task.Run(async () =>
+                var savedOrderCandidate = sequence.Snapshot();
+                var published = await Task.Run(async () =>
                 {
                     await scanConcurrency.WaitAsync(linked.Token);
+                    MessageSavePlan plan;
                     try
                     {
-                        foreach (var (number, buffer) in buffers)
-                        {
-                            linked.Token.ThrowIfCancellationRequested();
-                            var parsed = buffer.Parse(); ValidateSaveBoundary(number, buffer, parsed);
-                            if (buffer.DiffersFromOriginal && parsed.Encoding.CodePage is 1200 or 1201)
-                                await ValidateEncodedBoundaryAsync(number, buffer, parsed.Encoding, linked.Token);
-                        }
+                        plan = BuildSavePlan(linked.Token);
                     }
                     finally { scanConcurrency.Release(); }
-                    await target.WriteAsync(async (output, cancellation) =>
-                    {
-                        if (Snapshot is { } snapshot && Index is { } index)
-                        {
-                            long cursor = 0;
-                            foreach (var (number, buffer) in buffers.OrderBy(p => p.Key))
-                            {
-                                if (!buffer.DiffersFromOriginal) continue;
-                                var range = index.Messages[number - 1].PayloadRange;
-                                await CopySnapshotAsync(snapshot, new(cursor, range.Offset - cursor), output, cancellation);
-                                await output.WriteAsync(buffer.Serialize(), cancellation); cursor = range.End;
-                            }
-                            await CopySnapshotAsync(snapshot, new(cursor, snapshot.Length - cursor), output, cancellation);
-                        }
-                        else await output.WriteAsync(buffers.GetValueOrDefault(1)?.Serialize() ?? Hl7Serializer.Serialize(Message), cancellation);
-                    }, linked.Token);
+                    var nextDestination = await target.WriteValidatedAsync(
+                        (output, cancellation) => plan.WriteAsync(output, progress, cancellation),
+                        (candidate, cancellation) => plan.Validate(candidate, progress, cancellation), linked.Token);
+                    return (Destination: nextDestination, plan.Metrics);
                 }, linked.Token);
-                foreach (var buffer in buffers.Values) buffer.MarkSaved();
+                foreach (var entry in sequence.Entries) buffers.GetValueOrDefault(entry.Id)?.MarkSaved();
+                dirtyBuffers = 0; structuralDirty = false; savedOrder = savedOrderCandidate;
                 generatedUnsaved = false;
+                associatedDestination = published.Destination; LastSaveMetrics = published.Metrics;
                 SavePath = path; Title = Path.GetFileName(path);
                 RecordActivity(ActivityKind.SaveCompleted);
             }
@@ -185,7 +184,7 @@ public sealed partial class MessageDocument
         }
         catch (OperationCanceledException) { RecordActivity(ActivityKind.SaveCanceled); throw; }
         catch (Exception error) { RecordActivity(ActivityKind.SaveFailed, failure: ActivityLog.Classify(error)); throw; }
-        finally { IsSaving = false; PropertyChanged?.Invoke(this, new(nameof(DisplayTitle))); PropertyChanged?.Invoke(this, new(nameof(IsSaving))); }
+        finally { IsSaving = false; SaveProgress = null; PropertyChanged?.Invoke(this, new(nameof(DisplayTitle))); PropertyChanged?.Invoke(this, new(nameof(IsSaving))); }
     }
     private void ValidateSaveBoundary(int number, EditableMessageBuffer buffer, Hl7Message parsed)
     {
@@ -251,5 +250,4 @@ public sealed partial class MessageDocument
         }
         return current;
     }
-    internal void SetInitialSavePath(string? path) => SavePath = path;
 }

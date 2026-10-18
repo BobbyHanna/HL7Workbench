@@ -12,6 +12,8 @@ public partial class MainWindow
     private bool shutdownApproved;
     private bool promptingShutdown;
     private DocumentSaveWorkflow? documentSaves;
+    private void AttachDocumentHistoryShortcut(Window window) =>
+        DocumentHistoryShortcuts.Attach(window, () => documents.ActiveDocument);
     private void LoadEditPreferences()
     {
         documents.Preferences = preferences.Current;
@@ -28,15 +30,14 @@ public partial class MainWindow
         {
             Status.Text = "Saving document…";
             var saved = await (documentSaves ??= new(documents)).SaveAsync(document, saveAs,
-                () => SaveFilePicker.ChooseAsync(this, new FilePickerSaveOptions
-                { Title = "Save HL7 document", SuggestedFileName = document.Title }, lifetime.Token), lifetime.Token);
+                () => SaveFilePicker.ChooseAsync(this, SaveFilePicker.Hl7Options(document), lifetime.Token), lifetime.Token);
             if (!saved) { Status.Text = "Save canceled; working text retained."; return false; }
             Status.Text = "Document saved."; return true;
         }
         catch (OperationCanceledException) { Status.Text = "Save canceled; working text retained."; return false; }
         catch (InvalidOperationException error) { Status.Text = error.Message; return false; }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or Hl7LimitException or System.Text.EncoderFallbackException or ArgumentException or NotSupportedException)
-        { Status.Text = "Save failed; destination and unsaved working text are retained. Check access, encoding, and edit limits, then try again."; return false; }
+        { Status.Text = "Save failed; working text and history are retained. Use Save As if the destination changed externally, or check access, encoding and edit limits."; return false; }
     }
     private Task<bool> ConfirmDocumentCloseAsync(MessageDocument document) =>
         UnsavedChanges.ConfirmAsync(document, PromptUnsavedAsync, d => SaveDocumentAsync(d, false));

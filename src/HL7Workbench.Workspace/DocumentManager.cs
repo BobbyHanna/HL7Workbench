@@ -8,6 +8,7 @@ namespace HL7Workbench.Workspace;
 public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
 {
     private readonly ObservableCollection<MessageDocument> documents = [];
+    private bool refreshingTitles;
     public ReadOnlyObservableCollection<MessageDocument> Documents { get; }
     public MessageDocument? ActiveDocument { get; private set; }
     public ActivityLog Activity { get; }
@@ -23,6 +24,7 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
         if (document.ActivityNumber == 0) document.ActivityNumber = Activity.NextDocumentNumber();
         document.AttachActivity(Activity);
         document.PropertyChanged += ContentChanged;
+        RefreshGeneratedTitles();
         Activate(document.Id);
     }
 
@@ -43,6 +45,7 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
         documents.Remove(document);
         document.PropertyChanged -= ContentChanged;
         document.Dispose();
+        RefreshGeneratedTitles();
         if (ActiveDocument != document) return true;
         ActiveDocument = documents.FirstOrDefault();
         PropertyChanged?.Invoke(this, new(nameof(ActiveDocument)));
@@ -50,8 +53,27 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
     }
     private void ContentChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MessageDocument.DisplayTitle)) RefreshGeneratedTitles();
         if (sender is MessageDocument document && e.PropertyName == "ActiveContent") document.ObserveActivity();
         if (ReferenceEquals(sender, ActiveDocument) && e.PropertyName == "ActiveContent") PropertyChanged?.Invoke(this, new("ActiveContent"));
+    }
+    private void RefreshGeneratedTitles()
+    {
+        if (refreshingTitles) return;
+        refreshingTitles = true;
+        try
+        {
+            // Reserve the bare name for saved/source documents. Only generated,
+            // still-unsaved tabs receive suffixes; Title remains the Save As suggestion.
+            var used = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var document in documents.Where(d => !d.HasGeneratedFileName)) used[document.Title] = 1;
+            foreach (var document in documents.Where(d => d.HasGeneratedFileName))
+            {
+                var ordinal = used.GetValueOrDefault(document.Title) + 1;
+                document.SetScriptTitleOrdinal(ordinal); used[document.Title] = ordinal;
+            }
+        }
+        finally { refreshingTitles = false; }
     }
     public void Dispose() { foreach (var document in documents.ToArray()) { document.PropertyChanged -= ContentChanged; document.Dispose(); } documents.Clear(); ActiveDocument = null; }
 }

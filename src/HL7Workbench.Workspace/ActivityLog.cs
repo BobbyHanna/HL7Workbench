@@ -29,7 +29,10 @@ public sealed record ActivityEntry
     public ActivityKind Kind { get; internal init; }
     public Hl7DiagnosticSeverity Severity { get; internal init; }
     public int? DocumentNumber { get; internal init; }
+    /// <summary>Logical position when recorded; historical rows never reinterpret this as identity.</summary>
     public int? MessageNumber { get; internal init; }
+    public MessageId? MessageId { get; internal init; }
+    public int? OriginalOrdinal { get; internal init; }
     public long? Count { get; internal init; }
     public ActivityFailure Failure { get; internal init; }
     public ActivityCategory Category { get; internal init; }
@@ -92,6 +95,7 @@ public sealed record ActivityEntry
     {
         DocumentNumber is { } d ? $"Document {d}" : null,
         MessageNumber is { } m ? $"message {m}" : null,
+        OriginalOrdinal is { } original && original != MessageNumber ? $"original ordinal {original}" : null,
         Kind == ActivityKind.Diagnostic ? $"{Category}/{Diagnostic}" : null,
         HeaderField is { } f ? $"MSH-{f}" : null,
         CharacterOffset is { } c ? $"message UTF-16 {c}" : null,
@@ -137,12 +141,13 @@ public sealed class ActivityLog
     }
     /// <summary>Projects a diagnostic through a fixed vocabulary; imported description, code and path strings are never retained.</summary>
     public void RecordDiagnostic(int document, int? message, Hl7Diagnostic diagnostic, ActivityCategory category,
-        long? characterOffset = null, long? byteOffset = null)
+        long? characterOffset = null, long? byteOffset = null, MessageId? messageId = null, int? originalOrdinal = null)
     {
         // Code and path are user-extensible Core strings. Only known enum codes and
         // three fixed header paths cross this boundary; descriptions never do.
         var code = Enum.TryParse<ActivityDiagnostic>(diagnostic.Code, out var value) && Enum.IsDefined(value) ? value : ActivityDiagnostic.Unknown;
         Add(new() { Kind = ActivityKind.Diagnostic, DocumentNumber = document, MessageNumber = message,
+            MessageId = messageId, OriginalOrdinal = originalOrdinal,
             Severity = Enum.IsDefined(diagnostic.Severity) ? diagnostic.Severity : Hl7DiagnosticSeverity.Warning,
             Diagnostic = code, Category = Enum.IsDefined(category) ? category : ActivityCategory.Structure, CharacterOffset = characterOffset ?? diagnostic.CharacterOffset, ByteOffset = byteOffset,
             HeaderField = diagnostic.Path switch { "MSH-9" => 9, "MSH-10" => 10, "MSH-12" => 12, _ => null } });
@@ -183,10 +188,11 @@ public readonly record struct ActivityHealth(int Warnings, int Errors)
 internal sealed class DocumentActivity(ActivityLog log, int number)
 {
     private const int MaxIdentities = 8192;
-    private readonly HashSet<(int?, ActivityCategory, ActivityDiagnostic, Hl7DiagnosticSeverity, long?, long?, int?)> seen = [];
+    private readonly HashSet<(MessageId?, ActivityCategory, ActivityDiagnostic, Hl7DiagnosticSeverity, long?, long?, int?)> seen = [];
     private bool fileObserved;
     private bool saturated;
-    internal readonly record struct Item(Hl7Diagnostic Diagnostic, int? Message, ActivityCategory Category, long? Offset = null, long? ByteOffset = null);
+    internal readonly record struct Item(Hl7Diagnostic Diagnostic, int? Message, ActivityCategory Category, long? Offset = null,
+        long? ByteOffset = null, MessageId? MessageId = null, int? OriginalOrdinal = null);
     internal static IEnumerable<Item> Diagnostics(MessageDocument document, bool includeFile = true)
     {
         if (document.Index is { } index)
@@ -195,16 +201,23 @@ internal sealed class DocumentActivity(ActivityLog log, int number)
             {
                 foreach (var d in index.Diagnostics) yield return new(d, null, ActivityCategory.File, ByteOffset: d.Code == "UnclassifiedSource" ? index.Regions.FirstOrDefault(r => r.MessageNumber is null && r.Reason != "File encoding BOM")?.Range.Offset : null);
                 foreach (var message in index.Messages)
-                    foreach (var d in message.Diagnostics) yield return new(d, message.Number, ActivityCategory.Boundary);
+                {
+                    var id = document.OriginalMessageId(message.Number);
+                    foreach (var d in message.Diagnostics) yield return new(d, document.GetLogicalPosition(id), ActivityCategory.Boundary,
+                        MessageId: id, OriginalOrdinal: message.Number);
+                }
             }
-            var boundary = document.MessageNumber > 0 ? index.Messages[document.MessageNumber - 1].Diagnostics : [];
+            var boundary = document.ActiveOriginalMessage?.Diagnostics ?? [];
             var structural = document.ActiveDiagnostics.Skip(boundary.Count).ToArray();
             for (var i = 0; i < structural.Length; i++)
                 yield return new(structural[i], document.MessageNumber, ActivityCategory.Structure,
-                    document.Structure is { } structure && i < structure.Diagnostics.Count ? structure.Diagnostics[i].CharacterOffset : null);
+                    document.Structure is { } structure && i < structure.Diagnostics.Count ? structure.Diagnostics[i].CharacterOffset : null,
+                    MessageId: document.ActiveMessageId, OriginalOrdinal: document.ActiveEntry?.SourceOrdinal);
         }
         else if (document.MaterializedMessage is { } materialized)
-            foreach (var d in materialized.Diagnostics.Concat(Hl7Validator.Validate(materialized))) yield return new(d, 1, ActivityCategory.Structure);
+            foreach (var d in materialized.Diagnostics.Concat(Hl7Validator.Validate(materialized)))
+                yield return new(d, document.MessageNumber, ActivityCategory.Structure, MessageId: document.ActiveMessageId,
+                    OriginalOrdinal: document.ActiveEntry?.SourceOrdinal);
     }
     public void Observe(MessageDocument document)
     {
@@ -214,10 +227,12 @@ internal sealed class DocumentActivity(ActivityLog log, int number)
             var d = item.Diagnostic;
             var code = Enum.TryParse<ActivityDiagnostic>(d.Code, out var parsed) && Enum.IsDefined(parsed) ? parsed : ActivityDiagnostic.Unknown;
             int? field = d.Path switch { "MSH-9" => 9, "MSH-10" => 10, "MSH-12" => 12, _ => null };
-            var key = (item.Message, item.Category, code, d.Severity, item.Offset ?? d.CharacterOffset, item.ByteOffset, field);
+            // A position shift must not make an existing diagnostic look like another
+            // message's diagnostic. Source coordinates/provenance stay immutable.
+            var key = (item.MessageId, item.Category, code, d.Severity, item.Offset ?? d.CharacterOffset, item.ByteOffset, field);
             if (seen.Contains(key)) continue;
             if (seen.Count == MaxIdentities) { saturated = true; log.Record(ActivityKind.DiagnosticLimit, number); break; }
-            seen.Add(key); log.RecordDiagnostic(number, item.Message, d, item.Category, item.Offset, item.ByteOffset);
+            seen.Add(key); log.RecordDiagnostic(number, item.Message, d, item.Category, item.Offset, item.ByteOffset, item.MessageId, item.OriginalOrdinal);
         }
         fileObserved = true;
     }

@@ -115,7 +115,10 @@ public sealed partial class ScriptEditorTests
                 model.Session.Name = "Renamed during execution";
                 await run; Dispatcher.UIThread.RunJobs(); Assert.Empty(model.Diagnostics);
                 var reports = model.Reports; var origin = Assert.IsType<ScriptReportOrigin>(model.ReportOrigin);
-                Assert.Equal(new("Synthetic counters", ScriptScope.WholeDocument), origin);
+                Assert.Equal("Synthetic counters", origin.ScriptName); Assert.Equal(ScriptScope.WholeDocument, origin.Scope);
+                Assert.Equal(source.Id, origin.Input!.DocumentId); Assert.False(origin.SourceChangedDuringRun);
+                Assert.Equal(source.ActivityNumber, origin.SourceDocumentNumber);
+                Assert.Same(origin, model.OutputOrigin);
                 Assert.True(await model.Session.OpenAsync(ScriptLibrary.ExampleId, () => Task.FromResult(UnsavedChangesDecision.Discard)));
                 model.Scope = ScriptScope.CurrentMessage;
                 Assert.Same(reports, model.Reports); Assert.Same(origin, model.ReportOrigin);

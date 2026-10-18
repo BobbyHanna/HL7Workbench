@@ -38,7 +38,7 @@ public sealed class ComparisonSourcePicker : Grid
         ColumnDefinitions = new("*"); var name = before ? "A" : "B";
         SourceButton.Content = label; Children.Add(SourceButton); ToolTip.SetTip(SourceButton, $"Message {name}: choose a source or edit Pasted Text. Ctrl+V pastes/replaces this side.");
         AutomationProperties.SetName(SourceButton, $"Message {name} source"); AutomationProperties.SetName(KindChoice, $"Message {name} source type");
-        AutomationProperties.SetName(documents, $"Message {name} open document"); AutomationProperties.SetName(ordinal, $"Message {name} original ordinal");
+        AutomationProperties.SetName(documents, $"Message {name} open document"); AutomationProperties.SetName(ordinal, $"Message {name} logical position");
         AutomationProperties.SetName(PasteEditor, $"Message {name} temporary pasted HL7");
         PasteEditor.IsReadOnly = false; PasteEditor.Height = 220; PasteEditor.Document.UndoStack.SizeLimit = 0;
         var clear = new Button { Content = "Clear pasted text" }; clear.Click += (_, _) => model.SetPastedText(before, "");
@@ -55,8 +55,8 @@ public sealed class ComparisonSourcePicker : Grid
         pasteControls.Children.Add(new TextBlock { Text = "One message per side · 1 Mi characters · 16 Ki per line. Original line endings are retained.", FontSize = 11, TextWrapping = TextWrapping.Wrap });
         documents.ItemTemplate = new FuncDataTemplate<MessageDocument>((d, _) => new TextBlock { Text = d?.Title, TextTrimming = TextTrimming.CharacterEllipsis });
         var active = new Button { Content = "Use active message" }; active.Click += (_, _) =>
-        { if (model.Documents.ActiveDocument is { MessageNumber: > 0 } d) input.SelectDocument(d, d.MessageNumber); };
-        documentControls.Children.Add(documents); documentControls.Children.Add(new WrapPanel { Children = { new TextBlock { Text = "Original ordinal ", VerticalAlignment = VerticalAlignment.Center }, ordinal, active } });
+        { if (model.Documents.ActiveDocument is { MessageNumber: > 0 } d) SelectCompatibleDocument(d, d.MessageNumber); };
+        documentControls.Children.Add(documents); documentControls.Children.Add(new WrapPanel { Children = { new TextBlock { Text = "Message position ", VerticalAlignment = VerticalAlignment.Center }, ordinal, active } });
         documentControls.Children.Add(new TextBlock { Text = "Document sources are read-only. Original Message always uses initially loaded content. Switching sources keeps your pasted draft.", TextWrapping = TextWrapping.Wrap });
         var panel = new StackPanel { Width = 400, MaxWidth = 400, Spacing = 10, Margin = new(12), Children =
         { new TextBlock { Text = $"Message {name} source", FontWeight = FontWeight.SemiBold }, KindChoice, documentControls, pasteControls } };
@@ -69,7 +69,12 @@ public sealed class ComparisonSourcePicker : Grid
         Refresh();
     }
     private void SelectDocument()
-    { if (!updating && documents.SelectedItem is MessageDocument { MessageCount: > 0 } d) input.SelectDocument(d, Math.Clamp((int)(ordinal.Value ?? 1), 1, d.MessageCount)); }
+    { if (!updating && documents.SelectedItem is MessageDocument { MessageCount: > 0 } d) SelectCompatibleDocument(d, Math.Clamp((int)(ordinal.Value ?? 1), 1, d.MessageCount)); }
+    private void SelectCompatibleDocument(MessageDocument document, int number)
+    {
+        try { input.SelectDocument(document, number); }
+        catch (InvalidOperationException) { model.ReportStatus("The selected message is unavailable. Choose an available message position."); }
+    }
     private void Changed(object? sender, PropertyChangedEventArgs e) => Refresh();
     private void DocumentsChanged(object? sender, NotifyCollectionChangedEventArgs e) => Refresh();
     private void Refresh()
@@ -81,7 +86,8 @@ public sealed class ComparisonSourcePicker : Grid
             ToolTip.SetTip(SourceButton, input.Label + "\nChoose a source or edit temporary Pasted Text. Ctrl+V pastes/replaces this side.");
             documentControls.IsVisible = input.Kind != ComparisonSourceKind.PastedText; pasteControls.IsVisible = !documentControls.IsVisible;
             documents.ItemsSource = model.Documents.Documents; documents.SelectedItem = input.Document;
-            ordinal.Maximum = input.Document?.MessageCount ?? int.MaxValue; ordinal.Value = input.Ordinal;
+            ordinal.Maximum = Math.Max(1, input.Document?.MessageCount ?? int.MaxValue);
+            ordinal.Value = input.Ordinal > 0 ? input.Ordinal : null;
             if (PasteEditor.Text != input.PastedText) PasteEditor.Text = input.PastedText;
         }
         finally { updating = false; }

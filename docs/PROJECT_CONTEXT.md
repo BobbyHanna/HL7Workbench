@@ -4,7 +4,204 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
-## Current milestone and review boundary
+## Stage 8B checkpoint — native accepted; one local commit authorized
+
+On 2026-10-17 the user confirmed native Windows acceptance of Stage 8B.1–8B.3,
+the window-root Undo/Redo correction, Stage 8B.4 compatibility integration and Script
+Output Naming. The user authorized staging only this accepted work and creating one
+local commit with message `feat: complete Stage 8B structural editing and scripting integration`.
+This supersedes the historical pending-acceptance/no-commit instructions below.
+No push, tag, publish, release, Stage 8C or Stage 8D is authorized. Stop after the
+local checkpoint and its verification.
+
+The pre-commit audit found 46 modified tracked paths and 26 untracked paths on main
+at 8808929e844cb925fbdb11635e0b55740e5ec160. All 71 application/test/documentation/
+verification paths belong to the accepted work. The pre-existing local
+samples/synthetic-only/stage5b-repeated-patients_TEST.hl7 is explicitly excluded and
+preserved untouched. Ignored build outputs, logs, artifacts, local configuration
+and generated fixtures are not part of the commit. No existing permanent test is
+removed. Audit inventories, hashes and final verification logs are retained under
+ignored artifacts/stage8b-checkpoint. The commit carrying this record is the local
+checkpoint; its hash is reported by Git, not embedded in its own contents.
+
+Final checkpoint verification passed: locked restore; Release build with zero
+warnings/errors; all 1,283 solution tests (zero failures/skips); all 646 complete
+Workspace stress tests (zero errors/failures/skips/not-run, 292.607 s); both ScriptHost
+smoke lifecycles against the existing Release layout; all eight tracked HL7 fixtures
+matching the baseline Git blobs; and `git diff --check`. The desktop restart occurred
+after restore/build/full-suite completion and before smoke/stress verification. Saved
+logs and matching hashes for all 71 audited paths confirmed those completed checks
+remained valid; only the unfinished smoke/stress checks were run after restart.
+The excluded user HL7 retains its initial SHA-256. No code or test changed during
+checkpoint preparation; only current acceptance/authorization records were updated.
+Git's existing LF/CRLF conversion advisories do not indicate whitespace-check or
+build failures. Verification logs, the explicit accepted-file inventory and audit
+hashes remain in ignored artifacts/stage8b-checkpoint; generated outputs stay excluded.
+
+## Script output naming — accepted prior checkpoint
+
+The 2026-10-17 naming request records user acceptance of Stage 8B.1–8B.4 and the
+window-root Undo/Redo correction, all intentionally uncommitted. Earlier pending
+8B.4 acceptance notes below are historical. Only the naming enhancement is authorized;
+no Stage 8C/8D, staging, commit, push, tag, package, release or publication. Main/HEAD
+remain 8808929e844cb925fbdb11635e0b55740e5ec160. Preserve the starting 60 status paths
+(39 modified tracked, 20 new milestone files, one pre-existing user HL7 file).
+
+Independent output filenames now use the clean script name captured at Run, with
+`.hl7`, falling back to Script Result.hl7. Batch.SetOutputFileName is optional during
+initialization/Main/Complete; the last valid suggestion wins. Invalid suggestions
+are nonfatal, retain earlier valid values/defaults and yield a fixed notice. A shared
+Windows policy bounds names to 128 UTF-16 units including extension, refuses paths,
+devices/unsafe Unicode/characters and never touches the filesystem. The parent
+revalidates optional version-1 OutputNaming metadata on the existing v2 Finished
+frame. API/library schema, lifecycle, byte validation, report ownership, stale-source
+publication and source Save identity remain unchanged.
+
+Workspace Title retains the underlying suggested filename. Only unsaved generated
+DisplayTitles receive duplicate suffixes; Desktop Save As options use Title. After
+explicit Save As, existing actual-filename/dirty-state behavior applies. Captured
+suggestion/ignored-suggestion metadata remains with successful output/report origin,
+independent of later script rename/selection or view reconstruction. No filename is
+embedded in HL7 bytes or logged in Activity Log.
+
+New permanent Scripting, Workspace and Desktop naming tests and the existing worker
+smoke cover this behavior. The smoke runs against the current normal Release layout,
+including worker hashes/dependency isolation, without creating a publish artifact.
+The ignored artifacts/script-output-naming baseline/manifest preserves all 60 starting
+paths (user HL7 hash only), and useful verification reports remain there. See
+docs/script-output-naming-acceptance.md and docs/script-api.md for contracts, exact
+final results/file inventory and native acceptance. Stop for native Windows naming
+acceptance after automated verification; no additional milestone or Git work follows.
+
+Verification passed: locked restore and Release build with zero warnings/errors;
+148 focused Scripting, 98 focused Workspace and 64 focused Desktop cases; all 1,283
+solution cases; all 646 complete Workspace stress cases; two worker deployment smoke
+lifecycles; tracked fixture integrity and whitespace checks. The naming delta spans 20
+paths, adds 69 permanent cases and retains every prior test. The cumulative tree has
+46 tracked modifications and 25 new milestone files plus the pre-existing user HL7
+(72 status entries), with an empty index and unchanged branch/HEAD. All eight tracked
+HL7 blobs, the user HL7 and protected routing/safety files retain their hashes. Exact
+commands, results and native acceptance are recorded in the naming acceptance document.
+
+## Stage 8B.4 compatibility integration — accepted prior checkpoint
+
+On 2026-10-17 the user accepted Stage 8B.1–8B.3 and the native window-root Undo/Redo
+correction, all intentionally uncommitted, and authorized Stage 8B.4 only. Main/HEAD
+remain 8808929e844cb925fbdb11635e0b55740e5ec160. Preserve the existing working tree;
+no staging, commit, push, tag, package, release or publication. Do not begin 8C/8D.
+The earlier pending-acceptance/8B.4 restrictions below are historical and superseded.
+
+Compatibility now uses stable MessageIds in Search results/filter membership and
+Comparison selections. Captures retain logical metadata and bounded immutable draft
+references, scanning unchanged originals lazily under existing read leases. Structural
+changes/editing cancel and clear stale discovery state without changing authored or
+saved queries; navigation and successful Save alone keep valid results. Comparison
+retains unavailable insertion IDs across Undo and resolves the same ID on Redo.
+Original always means the initial source; inserted messages have no original side,
+source ordinal or source bytes during this open session, including after Save.
+
+Script capture reuses the streaming save plan and membership proof, with immutable
+job-ordinal-to-ID/provenance mapping and output/diagnostic attribution. Whole scope
+includes all logical entries/current drafts. Current scope omits inactive insertions
+explicitly from its mapping and uses original fallbacks for inactive originals, so
+unrelated invalid drafts do not block a valid target. The selected ID is never omitted.
+Per the user's explicit conflict-policy choice, completed independent captured output
+is retained after source edits/insertion/history changes, with captured revision and
+stale-source attribution in the result, Script Editor and reports. Tab switches and
+source navigation never retarget a captured job. Source closure/cancellation still
+roll back private artifacts; a queued revision conflict before capture fails safely.
+Worker protocol/isolation, limits, libraries, saved-search schema, source ownership
+and save semantics remain.
+Activity diagnostics and raw inspectors retain stable IDs and original provenance
+separately from captured/current positions. DocumentHistoryShortcuts is unchanged.
+
+Final verification passed locked restore, Release build with zero warnings/errors,
+all 1,214 solution cases, 85 focused Workspace cases, 41 focused Desktop cases and
+633 complete Workspace stress cases (zero failures/skips). New coverage adds 39
+cases and retains earlier tests. Stress covers 100,000 logical messages and
+100/256/512 MiB lazy search/capture with exact original-byte preservation. At 100,000,
+search/capture measured 690.430/41.984 ms; combined retained metadata grew 31,324,128
+bytes. Large script capture allocated 245,328–250,208 bytes across 100–512 MiB inputs.
+These are single-run observations, not timing guarantees. Full/focused runs also
+verify memory-original diagnostic labels, insertion after staged worker output,
+captured output despite source edits/history changes, source closure/cancellation,
+unmasked worker failure and visible stale attribution through view reconstruction.
+
+All eight tracked HL7 blobs, protected native routing/input-safety source/tests and
+the pre-existing user _TEST.hl7 remain unchanged. Whitespace/conflict checks pass;
+all 37 starting files remain. Compatibility changes span 41 paths; the complete
+uncommitted milestone has 39 tracked modifications and 20 new milestone files,
+plus that pre-existing untracked user file. Nothing staged; branch/HEAD unchanged.
+The accepted starting-tree snapshot/manifest and useful pass/failure reports are
+retained in ignored artifacts/stage8b4; earlier artifacts and build outputs remain.
+
+See docs/stage8b4-compatibility-acceptance.md, ADR 0011 and updated script/search/
+comparison API docs for contracts, full inventory, results and native instructions.
+Stop for native Windows 8B.4 acceptance. Insertion-specific interactive acceptance
+awaits 8C because no production insertion command exists; permanent Workspace and
+headless Desktop tests cover those session states. No 8C/8D or Git action is authorized.
+
+## Accepted Stage 8B.1–8B.3 foundation — historical checkpoint
+
+On 2026-10-17 the user authorized Stage 8B.1 (stable identity/logical sequence),
+8B.2 (structural transactions/document-wide chronological history), and 8B.3
+(validated lossless streaming publication) from main at
+8808929e844cb925fbdb11635e0b55740e5ec160. These checkpoints are implemented;
+final automated verification is recorded in docs/stage8b-structural-editing-acceptance.md.
+Native Windows acceptance and separate Git authorization are pending. Do not stage,
+commit, push, tag, package, release or publish. Stop before 8B.4; full search/comparison/
+scripting migration, insertion UI/Next append and generation remain unauthorized.
+
+Workspace now owns typed MessageIds, explicit provenance, metadata-only logical
+order, ID-keyed bounded buffers and chronological history. Undo/Redo selects its
+affected message even with Edit Mode off or a source-backed current message.
+Save points compare actual text/membership rather than history position. Saving
+freezes mutations, streams a bounded plan, re-indexes the flushed candidate through
+the existing boundary implementation, and verifies mapped bytes before replace/move.
+Original snapshots/indexes never rebase. Source capture records an identity/hash
+baseline; associated Save refuses external changes since open/last publication.
+No new dependency, worker protocol, Core API, editor limit or Dock schema change.
+See ADR 0011 for ownership, unsupported boundaries and remaining filesystem races.
+
+Original-ordinal search/comparison/script operations fail safely while membership
+differs from the original, including after Save. Structural changes clear searches/
+filters and invalidate comparisons. Reopen saved output (fresh source/IDs), or undo
+all insertions, to restore ordinal compatibility. Unchanged originals retain correct
+original-byte export; inserted entries have no original range/comparison source.
+Known unsupported provisional/batch/ambiguous containers reject insertion before
+mutation; unsafe joins and empty/unrecoverable inserted drafts cannot publish.
+Small Desktop adaptations maintain existing Undo/editor/Inspector/count behavior
+and guard remaining ordinal source selection; they are not the full 8B.4 migration.
+
+Foundation verification: locked restore and zero-warning/error Release build passed;
+all 1,173 solution cases, 46 focused Workspace cases, three focused Desktop cases
+and 599 Workspace stress cases passed with no failures/skips. All eight tracked HL7
+fixture blobs remain unchanged. The stress run covers 100,000 live drafts and
+100/256/512 MiB untouched payload preservation. Maximum sequence metadata allocation
+was 5,441,960 bytes; 100,000 actual empty drafts retained 23,685,408 bytes. Measured
+save allocations stayed approximately 0.38–0.41 MiB across those payload sizes.
+Detailed phase timings, full file inventory, retained ignored reports and exact
+native commands are in the acceptance document.
+
+Native acceptance exposed a Desktop keyboard-routing defect: history navigation
+replaced the focused RAW view and cleared focus, so the next key missed both
+view-local handlers. A platform-input regression reproduced it. The correction
+uses one DocumentHistoryShortcuts tunnel authority on main/floating window roots,
+resolving the active document for every key. The local handlers are removed;
+independent TextBox/script/other editor histories and native input transactions
+remain intact. No Workspace/Core, save or identity changes were needed.
+Correction verification passed: locked restore, Release build with zero warnings/
+errors, nine focused Desktop cases, 83 relevant Workspace cases and all 1,175
+solution cases, with no failures/skips. All eight tracked HL7 blobs and staging
+remain unchanged; whitespace checks passed. Updated native keyboard instructions
+and the exact correction inventory/results are in the acceptance document.
+Stop here for native Windows retesting; Stage 8B.4/8C/8D remain unauthorized.
+Working tree: 26 tracked modifications and ten new milestone files, plus the
+pre-existing untracked stage5b-repeated-patients_TEST.hl7, which is preserved.
+Nothing staged; main/HEAD remain at the baseline. No commit, push, tag, package,
+release or publication. Earlier ignored artifacts and permanent tests are retained.
+
+### Accepted Stage 7 baseline
 
 Stage 7 Message Comparison has passed native Windows acceptance, including the UX/paste/
 settings refinements and Side-by-Side default, as confirmed by the user on 2026-10-16.

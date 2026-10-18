@@ -5,12 +5,24 @@ using HL7Workbench.Workspace;
 
 namespace HL7Workbench.Desktop.ViewModels;
 
-/// <summary>Session-only attribution captured from script metadata at run start, never from message bodies or report rows.</summary>
+/// <summary>Session-only producing-run metadata and captured source identity, never message bodies or report rows.</summary>
 public sealed record ScriptReportOrigin(string ScriptName, ScriptScope Scope)
 {
+    public ScriptInputMapping? Input { get; init; }
+    public int SourceDocumentNumber { get; init; }
+    public string? SuggestedFileName { get; init; }
+    public bool IgnoredOutputFileNameSuggestion { get; init; }
+    public string NamingDescription => SuggestedFileName is null ? "" : $"Suggested output: {SuggestedFileName}. " +
+        (IgnoredOutputFileNameSuggestion ? "An invalid filename suggestion was ignored; the last valid suggestion or script-name default was used. " : "");
+    /// <summary>Producing-run freshness at publication; subsequent edits do not relabel retained output.</summary>
+    public bool SourceChangedDuringRun { get; init; }
+    public string SourceDescription => Input is null ? "" : $"Captured source revision {Input.Revision} · document {SourceDocumentNumber}. " +
+        (SourceChangedDuringRun ? "Stale source: source content or membership changed during execution; newer source work is retained." :
+        "Output is independent of subsequent source edits.");
     public string Description => $"Last successful run: {ScriptName} · " +
         (Scope == ScriptScope.WholeDocument ? "Whole document" : "Current message") +
-        ". Retained results are independent of the selected script. Export before another successful run or application shutdown.";
+        ". " + NamingDescription + (Input is null ? "" : SourceDescription + " ") +
+        "Retained results are independent of the selected script. Export before another successful run or application shutdown.";
 }
 
 /// <summary>Tool commands over a Workspace-owned draft and execution service; contains no Dock types.</summary>
@@ -47,6 +59,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public Func<Task> ShowReportsAsync { get; set; } = () => Task.CompletedTask;
     public IReadOnlyList<ScriptReportInfo> Reports => reports?.Items ?? [];
     public ScriptReportOrigin? ReportOrigin { get; private set; }
+    public ScriptReportOrigin? OutputOrigin { get; private set; }
     public bool IsExporting { get; private set; }
     public bool CanExport => !disposed && !IsBusy && !IsExporting && Reports.Count > 0;
     private readonly string? preferencesPath;
@@ -62,6 +75,16 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public string Status { get; private set; } = "Results open as a new unsaved HL7 document.";
     public string Target => documents.ActiveDocument is { } d ? $"Source: document {d.ActivityNumber}, message {d.MessageNumber} of {d.MessageCount}" : "Open an HL7 document to run a script.";
     public IReadOnlyList<ScriptDiagnostic> Diagnostics { get; private set; } = [];
+    /// <summary>Job-local diagnostic ordinals resolve through this captured identity map, never current positions.</summary>
+    public ScriptInputMapping? DiagnosticInput { get; private set; }
+    internal string FormatDiagnostic(ScriptDiagnostic diagnostic)
+    {
+        if (diagnostic.MessageNumber is not { } ordinal || DiagnosticInput?.Resolve(ordinal) is not { } target)
+            return diagnostic.ToString();
+        var provenance = target.OriginalOrdinal is { } original ? $" · original ordinal {original}" : " · no original file ordinal";
+        return (diagnostic with { MessageNumber = null }).ToString() +
+            $" · captured message {target.LogicalPosition} · job ordinal {ordinal}{provenance}";
+    }
     public Task RunningTask { get; private set; } = Task.CompletedTask;
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action<string>? ReviewRequested;
@@ -136,12 +159,13 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
         if (!CanRun || documents.ActiveDocument is not { } source) return Task.CompletedTask;
         var script = new ScriptDefinition(Session.Source);
         var scope = Scope;
+        var scriptName = Session.Name;
         var origin = new ScriptReportOrigin(Session.DisplayName, scope);
-        IsBusy = true; Diagnostics = []; Status = "Capturing input…";
+        IsBusy = true; Diagnostics = []; DiagnosticInput = null; Status = "Capturing input…";
         run = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); Changed(this, new(null));
-        RunningTask = ExecuteAsync(source, script, scope, origin, ++generation, run.Token); return RunningTask;
+        RunningTask = ExecuteAsync(source, script, scope, origin, scriptName, ++generation, run.Token); return RunningTask;
     }
-    private async Task ExecuteAsync(MessageDocument source, ScriptDefinition script, ScriptScope scope, ScriptReportOrigin origin, long job, CancellationToken token)
+    private async Task ExecuteAsync(MessageDocument source, ScriptDefinition script, ScriptScope scope, ScriptReportOrigin origin, string scriptName, long job, CancellationToken token)
     {
         try
         {
@@ -150,17 +174,20 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
                 if (disposed || !IsBusy || job != generation || token.IsCancellationRequested) return;
                 Status = $"{p.Phase}: {p.Processed:N0}/{p.Total:N0} messages; {p.OutputBytes:N0} output bytes"; Changed(this, new(null));
             });
-            var result = await execution.RunAsync(source, script, scope, progress, token);
+            var result = await execution.RunAsync(source, script, scope, progress, token, scriptName);
             if (disposed) { result.Reports?.Dispose(); return; }
             reports?.Dispose(); reports = result.Reports;
             // Update attribution together with successful report replacement. Selection changes,
             // draft edits, cancellation and failure must never relabel a previous result.
-            ReportOrigin = Reports.Count > 0 ? origin : null;
+            OutputOrigin = origin with { Input = result.Input, SourceDocumentNumber = source.ActivityNumber, SourceChangedDuringRun = result.SourceChangedDuringRun,
+                SuggestedFileName = result.SuggestedFileName, IgnoredOutputFileNameSuggestion = result.IgnoredOutputFileNameSuggestion };
+            ReportOrigin = Reports.Count > 0 ? OutputOrigin : null;
             outputId = result.Document.Id;
-            Status = $"Completed: processed {result.Processed:N0}, kept {result.Kept:N0}. New output is unsaved. {Reports.Count} CSV reports available to export.";
+            Status = $"Completed: processed {result.Processed:N0}, kept {result.Kept:N0}. New output is unsaved. {Reports.Count} CSV reports available to export. " + OutputOrigin.NamingDescription + OutputOrigin.SourceDescription;
             ReviewRequested?.Invoke(outputId);
         }
-        catch (ScriptRunException error) { Diagnostics = error.Diagnostics; Status = "Run failed; no partial output published. See diagnostics."; }
+        catch (ScriptRunException error)
+        { Diagnostics = error.Diagnostics; DiagnosticInput = ScriptInputMapping.ForFailure(error); Status = "Run failed; no partial output published. See diagnostics."; }
         catch (OperationCanceledException) { Status = "Run canceled; no partial output published."; }
         catch (Exception) { Status = "Run unavailable; source retained."; documents.Activity.Record(ActivityKind.ApplicationError); }
         finally { IsBusy = false; run?.Dispose(); run = null; Changed(this, new(null)); }
@@ -202,7 +229,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public void Dispose()
     {
         if (disposed) return; disposed = true; lifetime.Cancel();
-        reports?.Dispose(); reports = null; ReportOrigin = null;
+        reports?.Dispose(); reports = null; ReportOrigin = OutputOrigin = null; DiagnosticInput = null;
         Session.PropertyChanged -= Changed; documents.PropertyChanged -= Changed;
         ((INotifyCollectionChanged)documents.Documents).CollectionChanged -= DocumentsChanged;
         lifetime.Dispose(); PropertyChanged = null; ReviewRequested = null;

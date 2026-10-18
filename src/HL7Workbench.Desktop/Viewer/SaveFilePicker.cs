@@ -7,6 +7,8 @@ namespace HL7Workbench.Desktop.Viewer;
 /// <summary>Converts a picker result into version-scoped local save consent.</summary>
 internal static class SaveFilePicker
 {
+    internal static FilePickerSaveOptions Hl7Options(MessageDocument document) =>
+        new() { Title = "Save HL7 document", SuggestedFileName = document.Title };
     internal static bool HasNativeOverwriteConfirmation(IStorageProvider provider) => OperatingSystem.IsWindows() &&
         provider.GetType().FullName == "Avalonia.Win32.Win32StorageProvider" && provider.GetType().Assembly.GetName().Name == "Avalonia.Win32";
 

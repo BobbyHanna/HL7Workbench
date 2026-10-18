@@ -46,8 +46,8 @@ public static class ViewerRequests
     public static void AttachMenu(TextEditorTarget target)
     {
         var editor = target.Editor;
-        var messageNumber = target.Document.MessageNumber;
-        bool Current() => messageNumber == target.Document.MessageNumber && !target.Document.IsLoading &&
+        var messageId = target.Document.ActiveMessageId;
+        bool Current() => messageId == target.Document.ActiveMessageId && target.Document.HasOriginalMessage && !target.Document.IsLoading &&
             !target.Document.IsRefreshingEdit && !target.Document.HasWorkingSourceChanges;
         CharacterRange? value = null; string? path = null;
         var inspect = new MenuItem { Header = "View Full Value" };

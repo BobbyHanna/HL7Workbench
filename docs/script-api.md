@@ -15,7 +15,7 @@ ownership, dirty-draft handling and confirmation; immutable examples are protect
 
 Each Run creates a fresh worker/context and compiles the user submission once.
 Top-level statements initialize once. The host calls Main once per selected message,
-in source order, then optional Complete once after all Main calls succeed. A
+in captured logical input order, then optional Complete once after all Main calls succeed. A
 one-message run follows exactly the same lifecycle. Processing failure skips Complete.
 Every new Run starts with fresh state; nothing is shared between workers.
 
@@ -75,19 +75,93 @@ message of the run.
 | Facility | Initialization | Main | Complete |
 | --- | --- | --- | --- |
 | Message | Unavailable | Current selected message | Unavailable |
-| Batch.MessageNumber | 0 | Original one-based source ordinal | 0 |
+| Batch.MessageNumber | 0 | One-based job-local input ordinal | 0 |
+| Batch.SetOutputFileName(name) | Suggest filename | Suggest filename | Suggest filename |
 | Batch.Report(name, columns) | Define schema | Unavailable | Unavailable |
 | report.Row(values) | Append | Append | Append |
 | Batch.Hold(Message), Batch.Defer(Message) | Unavailable | Current message only | Unavailable |
 | Batch.Emit(heldCopy) | Unavailable | Unavailable | Own run's held copies |
 | Cancellation | Available | Available | Available |
 
-Current scope captures the chosen message's supported unsaved working edit; Whole
-document captures all supported working edits. Capture still snapshots the entire
-backing file, so its input-storage quota applies even to Current scope. No presentation
-preview is an execution value. Unsupported complete-message sizes/encodings and unsafe
-framing fail explicitly. Source text, undo and save identity remain untouched.
-Successful output is always a new independent unsaved document.
+Stage 8B.4 binds Current scope to the selected stable MessageId; Whole document
+captures every live logical entry and its required current draft, including insertions.
+Current scope uses original-file fallbacks for inactive originals and explicitly omits
+inactive insertions from its input map. An invalid unrelated draft therefore cannot
+block a valid current target; the selected target is never omitted. Capture still
+streams the backing originals, so the input-storage quota applies even to Current scope.
+No presentation preview is an execution value. Unsupported sizes/encodings, invalid
+required payloads and unsafe framing fail explicitly. Source text/history/save identity
+remain untouched. Successful output is a new independent unsaved document.
+
+Batch.MessageNumber is meaningful only within that immutable job. Without insertions
+it retains the earlier ordinal behavior; it is never a persistent document identity.
+Workspace ScriptInputMapping resolves it to MessageId, captured logical position and
+optional original ordinal. Output attribution also covers deferred/excluded ordering.
+After capture, edits, insertion and structural Undo/Redo preserve completed independent
+output and reports. ScriptExecutionResult.Input retains the captured document/revision
+and mapping; SourceChangedDuringRun records whether that source revision changed before
+publication. The Script Editor and retained report attribution explicitly show source
+document number, captured revision and "Stale source" when applicable, including after view reconstruction
+or a later failed run. This is producing-run attribution, not a live freshness check.
+Newer source work is retained. Navigation and active-tab switches never retarget a
+captured job; a tab switch alone does not mark unchanged input stale. Source closure,
+cancellation and real failures still prevent publication. InputChanged applies to a
+queued source revision conflict before capture, when no immutable input exists yet.
+This preserves the independent-captured-output policy explicitly selected by the user. See
+[8B.4 acceptance](stage8b4-compatibility-acceptance.md); worker protocol/API version 2,
+isolation, limits and library schema remain unchanged.
+
+## Suggested output filenames
+
+Each successful independent output starts with the script name captured at Run,
+without the editor's unsaved marker. For example, Patient Deidentifier produces
+`Patient Deidentifier.hl7`. Later library selection or renaming cannot relabel that
+run. An unavailable or unusable name falls back to `Script Result.hl7`.
+
+An optional override is available in initialization, Main and Complete:
+
+```csharp
+void Main() { }
+void Complete()
+{
+    Batch.SetOutputFileName("Deidentified_Patients.hl7");
+}
+```
+
+The last valid suggestion wins. Invalid suggestions are ignored without failing the
+script or erasing an earlier valid suggestion. If none was valid, the captured script
+name/default is used. A fixed, nonfatal notice in successful run/report attribution
+indicates ignored suggestions; invalid values themselves are not echoed or logged.
+
+The same deterministic Windows policy applies on every host, without filesystem or
+locale lookup. A suggestion must be a filename, limited to **128 UTF-16 units including
+the extension**. `.hl7` is appended when absent, and an existing case-insensitive `.HL7`
+ending is standardized to `.hl7`. Other extensions are retained as part of the stem:
+`audit.v2` becomes `audit.v2.hl7`. Valid Unicode is retained without normalization.
+
+Paths/separators, drive/UNC syntax, `.`/`..`, an empty basename, Windows-invalid
+`<>:"/\|?*`, control/format characters, unpaired surrogates, leading whitespace,
+trailing whitespace/dots and overlong values are refused. Device names are rejected
+case-insensitively before the first extension, including CON, PRN, AUX, NUL, CONIN$,
+CONOUT$, COM1–9/LPT1–9 and their superscript 1/2/3 variants. No truncation or path
+extraction silently turns an invalid path into a valid suggestion.
+
+The validated filename is result metadata and the output document's Title, used by
+Save As. Duplicate outputs retain separate identities and the same suggested filename;
+only unsaved tab/display labels gain `(2)`, `(3)`, etc. The dirty `*` remains presentation
+only. Saving follows existing behavior: the selected actual filename becomes the
+document title and future Save/Save As identity. No filename is embedded in HL7 bytes.
+
+This API never saves, selects a directory, changes the source document/destination,
+or bypasses validation/isolation. Stale-source output, captured identity/revision,
+job ordinal mapping, report ownership and cancellation/failure rollback remain intact.
+API and frame protocol stay at version 2; optional Finished-frame OutputNaming metadata
+is version 1. Missing metadata uses the captured default; unknown versions or unsafe
+imported names are ignored with the same notice. Older frame readers ignore the
+additive field. Script Library persistence is unchanged.
+
+See [output naming acceptance](script-output-naming-acceptance.md) for permanent
+coverage, verification and native Windows checks.
 
 ## Message facade
 
@@ -143,7 +217,8 @@ retain call-time bytes; later changes do not alter them. Only this run's copies 
 be emitted. Repeated Emit calls count as additional bounded output. These facilities
 require extractable plain-message partitions or complete unambiguous MLLP envelopes.
 Wrapper counts cannot become stale, and missing separators cannot be normalized.
-The parent validates source ordinals, payloads, envelopes and all final indexed ranges.
+The parent resolves job-local ordinals through the captured ID map and validates
+payloads, envelopes and all final indexed ranges.
 
 ## Bundled synthetic identity example
 
@@ -235,8 +310,9 @@ Stream large reports during Main; do not retain every input/row until Complete.
 Arbitrary C# state is bounded through process memory, not reliable object accounting.
 Windows is the containment/acceptance platform; other OSes lack equivalent enforced
 memory limits. Cancellation allows 200 ms cooperation, then kills/reaps the worker tree.
-Diagnostics contain fixed codes and original script line/column, source ordinal and
-canonical paths, never exception text or imported values.
+Diagnostics contain fixed codes, original script line/column, job-local ordinal and
+canonical paths, never exception text or imported values. Parent mapping/presentation
+identifies captured logical position and original ordinal separately where available.
 
 The worker runs trusted code with user permissions, **not a security sandbox**.
 External reference/source/line directives remain blocked. No network API, telemetry,

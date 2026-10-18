@@ -71,19 +71,22 @@ public sealed partial class ScriptExecutionTests
         Assert.Equal(1, result.Kept); Assert.Equal(original, All(source));
     }
     [Fact]
-    public async Task CurrentMessageIncludesUnsavedWorkingEditsAndLaterSourceChangesDoNotRetargetCapture()
+    public async Task CurrentMessageKeepsIndependentCapturedEditsWithExplicitStaleSourceAttribution()
     {
         await using var s = new Session(); var source = await s.Open(); source.IsEditMode = true;
         source.ReplaceWorkingText(First.Replace("Ada", "Captured", StringComparison.Ordinal));
         // Capture must read the retained draft even while its debounced parse is pending.
+        var revision = source.SearchRevision; var selected = source.ActiveMessageId;
         var result = await s.Run(source, "Message.SetText(\"PID-5.1\", \"Synthetic\");", ScriptScope.CurrentMessage,
             progress: new Progress(p =>
             {
                 if (p.Phase == "Compiling") source.ReplaceWorkingText(First.Replace("Ada", "Later", StringComparison.Ordinal));
             }));
-        Assert.Contains("Synthetic^Captured", result.Document.Message.RawText);
+        Assert.True(result.SourceChangedDuringRun); Assert.Equal(revision, result.Input!.Revision);
+        Assert.False(result.Input.IsCurrent(source)); Assert.Equal(selected, Assert.Single(result.MessageSources).InputMessageId);
+        Assert.Equal("Synthetic^Captured", result.Document.Message.Get("PID-5").Raw);
         Assert.Contains("Later", source.WorkingText!); Assert.True(source.IsDirty);
-        Assert.Equal(1, result.Document.MessageCount);
+        Assert.Equal(2, s.Manager.Documents.Count); Assert.True(result.Document.IsDirty); Assert.Null(result.Document.SavePath);
         await source.EditRefresh;
     }
     [Fact]
