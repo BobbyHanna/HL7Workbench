@@ -13,7 +13,7 @@ using HL7Workbench.Workspace;
 namespace HL7Workbench.Desktop.Viewer;
 
 /// <summary>Raw viewer with optional embedded structural panes; Dock adapters use the shared pane controls.</summary>
-public sealed class MessageInspectionView : Grid
+public sealed partial class MessageInspectionView : Grid
 {
     private MessageInspection inspection;
     private readonly MessageDocument? document;
@@ -61,6 +61,10 @@ public sealed class MessageInspectionView : Grid
         // local retention before input starts: TextChanged can run inside AvaloniaEdit's
         // input undo group, where clearing the stack would violate its transaction.
         if (document is not null && PresentationView is null) editor.Document.UndoStack.SizeLimit = 0;
+        if (document is not null && PresentationView is null)
+            editor.TextArea.CommandBindings.Insert(0, new(ApplicationCommands.Paste,
+                async (_, e) => { e.Handled = true; await PasteExactAsync(); },
+                (_, e) => { e.CanExecute = subscribed && document.CanEditText; e.Handled = true; }));
         RawPane.Children.Add((Control?)PresentationView ?? editor); Children.Add(RawPane);
         if (dockedInspection) RowDefinitions = new("*");
         else
@@ -99,6 +103,7 @@ public sealed class MessageInspectionView : Grid
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
+        pasteGeneration++;
         // Document state outlives reconstructed Dock templates; never let it retain discarded views.
         inspection.SelectionChanged -= SelectionChanged;
         if (document is not null) document.PropertyChanged -= DocumentChanged;
@@ -117,7 +122,9 @@ public sealed class MessageInspectionView : Grid
         catch (Exception error) when (error is InvalidOperationException or HL7Workbench.Core.Hl7LimitException)
         {
             updatingText = true;
-            try { var caret = Editor.CaretOffset; Editor.Text = document.EditableText ?? ""; Editor.CaretOffset = Math.Min(caret, Editor.Document.TextLength); }
+            // TextEditor's Text setter clears its undo stack, including an open
+            // native input group. Restore through the document transaction instead.
+            try { var caret = Editor.CaretOffset; Editor.Document.Replace(0, Editor.Document.TextLength, document.EditableText ?? ""); Editor.CaretOffset = Math.Min(caret, Editor.Document.TextLength); }
             finally { updatingText = false; }
             WindowStatus.Text = "Edit refused: the document edit/history budget was reached or editing is unavailable. Existing work is retained.";
         }
@@ -148,7 +155,7 @@ public sealed class MessageInspectionView : Grid
         {
             if (document.EditableText is { } text && Editor.Text != text)
             {
-                var caret = Editor.CaretOffset; Editor.Text = text;
+                var caret = Editor.CaretOffset; Editor.Document.Replace(0, Editor.Document.TextLength, text);
                 Editor.CaretOffset = Math.Min(caret, text.Length);
             }
             var next = document.InspectionSnapshot;

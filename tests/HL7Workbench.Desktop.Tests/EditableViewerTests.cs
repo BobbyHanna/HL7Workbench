@@ -23,7 +23,7 @@ public sealed class EditableViewerTests
         {
             const string text = "MSH|^~\\&|SYN\rPID|Alpha^Beta\r";
             using var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
             var window = new Window { Width = 1100, Height = 800, Content = view }; window.Show();
             DocumentHistoryShortcuts.Attach(window, () => document);
             try
@@ -44,7 +44,7 @@ public sealed class EditableViewerTests
                 toggle.IsChecked = false; view.Editor.TextArea.PerformTextInput("REFUSED");
                 Assert.DoesNotContain("REFUSED", view.Editor.Text); Assert.True(document.IsDirty);
                 window.Content = null;
-                var rebuilt = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document)); window.Content = rebuilt;
+                var rebuilt = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document)); window.Content = rebuilt;
                 Assert.Contains("LongAlpha", rebuilt.Editor.Text); Assert.True(rebuilt.Editor.IsReadOnly);
                 document.IsEditMode = true;
                 window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); Assert.True(rebuilt.Editor.TextArea.Focus());

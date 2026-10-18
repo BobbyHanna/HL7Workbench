@@ -28,8 +28,8 @@ public sealed class ViewerTests
         await session.Dispatch(() =>
         {
             var message = Hl7Parser.Parse(text);
-            var editor = Assert.IsType<MessageInspectionView>(new DockContentTemplate().Build(
-                new Dock.Model.Mvvm.Controls.Document { Context = new MessageDocument("synthetic", "Synthetic", message) })).Editor;
+            var editor = Assert.IsType<FileDocumentView>(new DockContentTemplate().Build(
+                new Dock.Model.Mvvm.Controls.Document { Context = new MessageDocument("synthetic", "Synthetic", message) })).ActiveView!.Editor;
             Assert.True(editor.IsReadOnly);
             Assert.Equal(text, editor.Document.Text);
             editor.Select(0, text.Length);

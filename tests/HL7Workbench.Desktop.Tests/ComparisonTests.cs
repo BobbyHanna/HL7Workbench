@@ -173,7 +173,7 @@ public sealed class ComparisonTests
                 var original = commandControls.Single(b => Avalonia.Automation.AutomationProperties.GetName(b) == "Compare With Original"); original.Command!.Execute(null); await initial.Pending;
                 await actualView.Loading; Assert.Equal("A", actualView.BeforeEditor.SelectedText); Assert.Equal("B", actualView.AfterEditor.SelectedText);
                 Assert.Single(initial.Differences); factory.CloseDockable(factory.GetDockable<ITool>(WorkspaceDockFactory.ComparisonId)!);
-                var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(doc)); var host = new ContentControl { Content = view }; window.Content = host;
+                var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(doc)); var host = new ContentControl { Content = view }; window.Content = host;
                 window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
                 var item = view.Editor.ContextMenu!.ItemsSource!.Cast<MenuItem>().Single(i => Equals(i.Header, "Compare With Original"));
                 item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));

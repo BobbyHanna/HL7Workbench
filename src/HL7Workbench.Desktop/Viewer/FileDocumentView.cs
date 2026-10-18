@@ -2,6 +2,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using HL7Workbench.Desktop.ViewModels;
 using HL7Workbench.Workspace;
 
 namespace HL7Workbench.Desktop.Viewer;
@@ -20,6 +23,11 @@ public sealed class FileDocumentView : ContentControl
     private readonly Button go = new() { Content = "Go" };
     private readonly Button retry = new() { Content = "Retry" };
     private readonly Button cancel = new() { Content = "Cancel scan" };
+    public Button AddMessage { get; } = new() { Content = "Add Message", Margin = new(2) };
+    public UiCommand NextMessageCommand { get; }
+    public IReadOnlyDictionary<MessageInsertionPosition, UiCommand> InsertionCommands { get; }
+    public MessageDocument Document => document;
+    public string? NavigationStatus => status.Text;
     private readonly ComboBox regions = new() { Width = 190 };
     private readonly Expander regionInspector = new() { Header = "Inspect source bytes" };
     private bool subscribed;
@@ -36,11 +44,18 @@ public sealed class FileDocumentView : ContentControl
         this.scheduleHover = scheduleHover;
         this.document = document;
         this.dockedInspection = dockedInspection;
+        NextMessageCommand = new(NextAsync, CanGoNext);
+        InsertionCommands = MessageInsertionWorkflow.Choices.ToDictionary(c => c.Position,
+            c => new UiCommand(async () => { await InsertMessageAsync(c.Position); }, () => MessageInsertionWorkflow.CanInsert(document, c.Position)));
+        var addMenu = new MenuFlyout();
+        foreach (var item in MessageInsertionWorkflow.MenuItems(p => InsertionCommands[p])) addMenu.Items.Add(item);
+        AddMessage.Flyout = addMenu;
         void Button(string title, string tip, Func<int> position)
         {
             var button = new Button { Content = title, Margin = new(2) };
             ToolTip.SetTip(button, tip);
-            button.Click += async (_, _) => await NavigateAsync(position());
+            if (title == ">") button.Command = NextMessageCommand;
+            else button.Click += async (_, _) => await NavigateAsync(position());
             directions.Add(button); toolbar.Children.Add(button);
         }
         Button("|<", "First matching/logical message", () => NavigatorTarget(0)); Button("<", "Previous matching/logical message", () => NavigatorTarget(1));
@@ -54,6 +69,7 @@ public sealed class FileDocumentView : ContentControl
         MessageNumberInput.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await JumpAsync(); } };
         go.Click += async (_, _) => await JumpAsync(); toolbar.Children.Add(go);
         Button(">", "Next matching/logical message", () => NavigatorTarget(2)); Button(">|", "Last matching/logical message", () => NavigatorTarget(3));
+        toolbar.Children.Add(AddMessage);
         retry.Click += async (_, _) => await NavigateAsync(document.MessageNumber);
         toolbar.Children.Add(retry);
         cancel.Click += (_, _) => document.CancelScan(); toolbar.Children.Add(cancel);
@@ -83,6 +99,41 @@ public sealed class FileDocumentView : ContentControl
         { status.Text = "This message is outside the search filter. Choose a matching position or clear the filter."; return; }
         try { await document.NavigateAsync(id); }
         catch (ObjectDisposedException) { }
+    }
+    /// <summary>Filtered navigation never appends; only unfiltered logical EOF offers a blank insertion.</summary>
+    public async Task NextAsync()
+    {
+        if (document.IsSaving || document.IsCapturingScript || document.IsLoading) return;
+        if (document.NavigationMatches is not null || document.MessageNumber < document.MessageCount)
+        { await NavigateAsync(NavigatorTarget(2)); return; }
+        if (document.MessageNumber == 0) return;
+        if (document.IsEmptyTrailingInsertion)
+        {
+            status.Text = "The trailing draft is blank. Paste or type HL7 here before adding another with Next Message.";
+            var blankId = document.ActiveMessageId!.Value;
+            await Dispatcher.UIThread.InvokeAsync(() => FocusInsertedMessage(blankId), DispatcherPriority.Loaded);
+            return;
+        }
+        await InsertMessageAsync(MessageInsertionPosition.End);
+    }
+    private bool CanGoNext() => !document.IsLoading && !document.IsSaving && !document.IsCapturingScript &&
+        (NavigatorTarget(2) is > 0 and var target && target <= document.MessageCount ||
+         document.NavigationMatches is null && document.MessageNumber > 0 && document.MessageNumber == document.MessageCount &&
+         MessageInsertionWorkflow.CanInsert(document, MessageInsertionPosition.End));
+    public async Task<bool> InsertMessageAsync(MessageInsertionPosition position)
+    {
+        if (!MessageInsertionWorkflow.TryInsert(document, position, out var id, out var feedback))
+        { status.Text = feedback; return false; }
+        status.Text = feedback;
+        // Run after menu/popup dismissal. Insertion mounts the bounded blank editor
+        // synchronously; parsing may still be pending and must not delay paste input.
+        await Dispatcher.UIThread.InvokeAsync(() => FocusInsertedMessage(id), DispatcherPriority.Loaded);
+        return true;
+    }
+    internal void FocusInsertedMessage(MessageId id)
+    {
+        if (IsEffectivelyVisible && this.IsAttachedToVisualTree() && document.ActiveMessageId == id && document.CanEditText && ActiveView is { } view)
+            view.Editor.TextArea.Focus();
     }
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -171,7 +222,17 @@ public sealed class FileDocumentView : ContentControl
                 count.Text += $" · {matches.Count:N0} matches (logical positions)" + (included ? "" : " · current message excluded");
             }
             for (var i = 0; i < directions.Count; i++)
-            { var target = NavigatorTarget(i); directions[i].IsEnabled = target > 0 && target <= document.MessageCount && target != document.MessageNumber; }
+            {
+                var target = NavigatorTarget(i);
+                directions[i].IsEnabled = i == 2 ? CanGoNext() : !document.IsLoading && !document.IsSaving && !document.IsCapturingScript &&
+                    target > 0 && target <= document.MessageCount && target != document.MessageNumber;
+            }
+            NextMessageCommand.Refresh();
+            foreach (var command in InsertionCommands.Values) command.Refresh();
+            AddMessage.IsEnabled = MessageInsertionWorkflow.CanInsert(document, MessageInsertionPosition.End);
+            ToolTip.SetTip(AddMessage, document.InsertionUnavailableReason ?? "Insert a blank draft before/after the current message, at the beginning or at the end.");
+            if (directions.Count > 2) ToolTip.SetTip(directions[2], document.NavigationMatches is not null ? "Next matching message (never appends while filtered)" :
+                document.MessageNumber == document.MessageCount ? document.InsertionUnavailableReason ?? "Add a blank message at document EOF; an empty trailing draft is reused." : "Next logical message");
         }
         finally { updatingNavigation = false; }
     }

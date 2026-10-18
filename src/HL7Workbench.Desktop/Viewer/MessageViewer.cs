@@ -11,7 +11,9 @@ public static class MessageViewer
 {
     public static Control Create(MessageDocument document, bool dockedInspection = false)
     {
-        if (document.Index is not null) return new FileDocumentView(document, dockedInspection);
+        // Memory originals can gain logical siblings too. Their production tab needs
+        // the same stable host and identity-based view replacement as a file document.
+        if (document.Index is not null || document.EditableText is not null) return new FileDocumentView(document, dockedInspection);
         return CreateActive(document, dockedInspection);
     }
     internal static Control CreateActive(MessageDocument document, bool dockedInspection = false,

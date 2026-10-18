@@ -61,7 +61,7 @@ public sealed class RawEditingCrashTests
             {
                 const string text = "MSH|^~\\&|SYN\rPID|Alpha^Beta\r";
                 using var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
-                var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document, dockedInspection));
+                var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document, dockedInspection));
                 var window = new Window { Width = 1100, Height = 800, Content = view }; window.Show();
                 DocumentHistoryShortcuts.Attach(window, () => document);
                 try

@@ -35,6 +35,22 @@ public sealed partial class MessageDocument
     public Task NavigateAsync(MessageId id, CancellationToken token = default) => NavigateAsync(
         sequence.Position(id) is > 0 and var position ? position : throw new ArgumentException("Message is not in this document.", nameof(id)), token);
 
+    /// <summary>Capability feedback for a blank insertion; reads metadata and bounded draft budgets, never source bytes.</summary>
+    public string? InsertionUnavailableReason => !CanMutateHistory || IsLoading ? "Wait for document preparation, saving or script capture." :
+        MessageCount >= MessageFileIndex.MaxIndexedMessages ? "The document already contains the maximum 100,000 messages." :
+        undo.Count >= MaximumHistoryEntries || bufferCharacters - detachedCharacters + historyCharacters - redoCharacters > MaximumRetainedEditCharacters ?
+            "The document edit/history budget is full. Existing work is retained." :
+        !(searchEncoding.IsSingleByte || searchEncoding.CodePage is 65001 or 1200 or 1201) ?
+            "This encoding supports exact copying but not inserted payloads." :
+        !SupportsStructuralSourceBoundary ? "Insertion is unavailable for batch containers, provisional messages or ambiguous framing. Original bytes are retained." :
+        originalIds.Length == 0 && Snapshot is { } snapshot && snapshot.Length != Index!.BomLength ?
+            "Insertion into non-message source content is unsupported. Original bytes are retained." : null;
+
+    /// <summary>Whether the selected logical EOF is an inserted placeholder containing only whitespace/segment terminators.
+    /// Uses the current retained draft even while parsing is pending or Edit Mode is off.</summary>
+    public bool IsEmptyTrailingInsertion => ActiveEntry is { Origin: MessageOrigin.Inserted } &&
+        MessageNumber == MessageCount && string.IsNullOrWhiteSpace(WorkingText);
+
     /// <summary>Inserts one bounded draft and selects it. No source bytes are changed; blank drafts may not yet be saveable.</summary>
     public MessageId InsertMessage(MessageInsertionPosition position, string text = "") => InsertMessages(position, [text])[0];
 

@@ -126,6 +126,16 @@ public sealed class UtilityRibbon : Grid
         if (SelectedTab == 0)
         {
             Add("Files", Row(Existing("Open File…", "Open", large: true), TwoRows(Existing("Save HL7", "Save"), Existing("Save HL7 As…", "Save"))));
+            var insert = CommandButton("Add Message", null, "New", large: true, dismiss: false);
+            var positions = new MenuFlyout();
+            positions.Closed += (_, _) => { if (!IsExpanded) TemporaryPopup.IsOpen = false; };
+            foreach (var item in MessageInsertionWorkflow.MenuItems(p => actions[MessageInsertionWorkflow.CommandName(p)]))
+            {
+                item.Click += (_, _) => { if (!IsExpanded) TemporaryPopup.IsOpen = false; };
+                positions.Items.Add(item);
+            }
+            insert.Flyout = positions;
+            Add("Messages", insert);
             Add("Workspace", Row(TwoRows(Existing("Save Layout", "Layout"), Existing("Restore Layout", "Restore"),
                 Existing("Reset Layout / Recover Windows", "Restore")), Existing("Preferences…", "Settings", large: true)));
         }
@@ -172,7 +182,7 @@ public sealed class UtilityRibbon : Grid
         return border;
     }
     private Button Existing(string name, string icon, bool large = false) => CommandButton(name, actions[name], icon, large);
-    private Button CommandButton(string label, ICommand? command, string icon, bool large = false, bool accent = false)
+    private Button CommandButton(string label, ICommand? command, string icon, bool large = false, bool accent = false, bool dismiss = true)
     {
         var content = new StackPanel { Orientation = large ? Orientation.Vertical : Orientation.Horizontal, Spacing = large ? 4 : 7,
             HorizontalAlignment = large ? HorizontalAlignment.Center : HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
@@ -182,7 +192,7 @@ public sealed class UtilityRibbon : Grid
             Height = large ? 64 : 30, HorizontalAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Center };
         button.Classes.Add("ribbon-command"); if (accent) button.Classes.Add("accent");
         AutomationProperties.SetName(button, label);
-        button.Click += (_, _) => { if (!IsExpanded) TemporaryPopup.IsOpen = false; };
+        button.Click += (_, _) => { if (dismiss && !IsExpanded) TemporaryPopup.IsOpen = false; };
         ToolTip.SetTip(button, label switch
         {
             "Reports" => "Reports / Export CSV — results from the last successful run",

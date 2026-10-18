@@ -4,6 +4,93 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 8C checkpoint — native accepted; sequential Stage 8D authorization
+
+On 2026-10-18 the user confirmed successful native Windows Stage 8C acceptance and
+authorized exactly one local commit containing its 30 accepted paths, with message
+`feat: add Stage 8C message insertion UI`. This supersedes historical pending/no-commit
+instructions below. The pre-commit audit matches the complete saved Stage 8C manifest;
+the sole unrelated path remains the unchanged, untracked user _TEST.hl7.
+Final checkpoint verification and its inventories are retained under ignored
+artifacts/stage8c-checkpoint and recorded in the Stage 8C acceptance document.
+The final checkpoint retest passed locked restore, Release build with zero warnings/
+errors (1.11 s), all 1,327 solution tests (122.899 s), all 656 Workspace stress tests
+(213.233 s), both ScriptHost smoke lifecycles, all eight original fixture blob hashes,
+excluded-user-file integrity and whitespace/conflict checks. No tests or fixtures
+were removed or weakened. Only the four native acceptance/authorization records
+changed during checkpoint preparation; application/test hashes match the accepted
+Stage 8C manifest. The commit carrying this record is the Stage 8C checkpoint;
+its hash and the mandatory post-commit gate are recorded separately after creation.
+
+Stage 8D implementation is authorized only after the new commit, clean tracked tree,
+empty index, unchanged excluded user file and documented verification pass the
+mandatory Phase 1 gate. No Stage 8D code belongs in the Stage 8C commit. No Stage 8D
+commit, push, tag, package, deploy, release or publication is authorized. After the
+gate, implement the deterministic synthetic generator and stop for native acceptance.
+
+## Stage 8C message insertion UI — native accepted; historical implementation record
+
+The user's Stage 8C request authorizes insertion UI/workflow integration from main
+at 16ebc6d2a2a9d36ddfb20c766976c18990846bb2. This supersedes older no-8C statements
+below. Stage 8B.1–8B.4, root Undo/Redo and Script Output Naming are native accepted
+and preserved by that local checkpoint. Stage 8D and all staging, commit, push, tag,
+release, packaging and publication remain unauthorized. Stop for native Windows
+Stage 8C acceptance after verification.
+
+Add Message appears in Home, File → Add Message and the existing navigator,
+with Before Current/After Current/Beginning/End choices over the live logical order.
+Unfiltered Next at logical EOF inserts through the existing Workspace API. Next
+within a filter never appends. A trailing inserted draft containing only Unicode
+whitespace (including CR/LF/tab) is reused based on retained document state, even
+before parsing completes or with Edit Mode off. Non-whitespace partial content
+permits another append without certifying save eligibility. Explicit insertion
+invalidates discovery/filter state while retaining authored queries.
+
+Successful insertion selects the new ID, activates session Edit Mode and focuses
+the blank editor after popup dismissal; the persisted startup preference is unchanged.
+Stable document hosts now also wrap editable in-memory originals, so inserted siblings
+and structural history replace the active view correctly. Existing component tests
+construct the active inspection surface explicitly; all previous assertions remain.
+The accepted window-root history authority is unchanged. Capability feedback reads
+bounded draft budgets and cached immutable index metadata, without source I/O.
+
+The real clipboard regression exposed AvaloniaEdit's newline/tab normalization.
+A per-HL7-editor Paste command binding retains clipboard characters, uses the existing
+selection/update transaction and Workspace history, and rejects late completions
+after changes to the message, revision, selection, edit availability or view lifetime.
+Independent inputs retain their own commands. No undo stack is cleared during input.
+The rejected-input restore path now replaces document text instead of assigning
+TextEditor.Text, whose implicit ClearAll broke open input undo groups. A permanent
+multi-message-paste rejection regression verifies atomic recovery and history.
+Blank save rejection now identifies the offending logical message; streaming validation,
+destination checks, original provenance, limits and serialization policy remain.
+
+The pre-existing untracked samples/synthetic-only/stage5b-repeated-patients_TEST.hl7
+is preserved by SHA-256 only. All eight tracked HL7 fixtures remain protected. Baseline
+status/hashes and useful verification reports live under ignored artifacts/stage8c.
+See stage8c-message-insertion-acceptance.md for final results and native instructions.
+
+Final verification passed: locked restore; Release build with zero warnings/errors;
+90 focused Workspace cases; 78 focused Desktop cases; all 1,327 solution cases;
+all 656 complete Workspace stress cases (254.793 s); both ScriptHost Release-layout
+smoke lifecycles; all eight tracked fixture blob hashes; excluded-user-file SHA-256;
+and tracked/untracked whitespace/conflict checks. There are zero errors, failures,
+skips or not-run cases in the direct focused/stress runs, and zero failures/skips in
+the full solution. This adds 34 Desktop and 10 Workspace cases to the accepted
+baseline, with no removed tests. Stress exercised the existing 100/256/512 MiB
+streaming-save/lazy-capture and 100,000-message history/mapping cases. New UI coverage
+also proves bounded insertion and original-byte hashes in a 16 MiB source-backed file.
+Generated shared fixtures and useful initial/final diagnostics remain ignored.
+
+The final scope is 30 paths: 12 implementation, 14 test/setup and four documentation
+paths (21 modified tracked and nine new milestone files). All original behavioral
+assertions in the seven component-test factory adaptations are byte-identical after
+the setup substitution. Core, dependencies, scripting API/protocol/worker and root
+history routing are unchanged. Main/HEAD remains the Stage 8B checkpoint; index empty.
+The only unrelated path is the unchanged, untracked user _TEST.hl7. No staging,
+commit, push, tag, package, release, publication or Stage 8D work was performed.
+Stop here for native Windows Stage 8C acceptance.
+
 ## Stage 8B checkpoint — native accepted; one local commit authorized
 
 On 2026-10-17 the user confirmed native Windows acceptance of Stage 8B.1–8B.3,

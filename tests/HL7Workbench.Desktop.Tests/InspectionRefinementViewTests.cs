@@ -58,7 +58,7 @@ public sealed class InspectionRefinementViewTests
             const string standard = "MSH|^~\\&|SYN\rPID|||||EXAMPLE^CHARLIE&ROBERT||||||ONE^TWO^THREE\r";
             var text = custom ? standard.Replace('|', '*').Replace('^', '$').Replace('~', '%').Replace('\\', '!').Replace('&', '@') : standard;
             var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
             var window = new Window { Width = 1100, Height = 900, Content = view };
             window.Show();
             try

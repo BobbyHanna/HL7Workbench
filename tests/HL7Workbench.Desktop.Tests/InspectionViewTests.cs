@@ -22,7 +22,7 @@ public sealed class InspectionViewTests
         {
             const string text = "MSH|^~\\&|SYN\rPID||\"\"|Alpha^Beta&Gamma~Delta\rOBX|1|TX|||Synthetic\r";
             var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
             var window = new Window { Width = 1100, Height = 900, Content = view };
             window.Show();
             try
@@ -54,10 +54,10 @@ public sealed class InspectionViewTests
                 window.Content = null;
                 var oldSelection = view.Editor.SelectionStart;
                 var second = new MessageDocument("other", "Other", Hl7Parser.Parse("PID|Other"));
-                window.Content = MessageViewer.Create(second);
+                window.Content = MessageViewer.CreateActive(second);
                 second.Inspection.InspectField(1);
                 Assert.Same(nested, document.Inspection.SelectedNode);
-                var reconstructed = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+                var reconstructed = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
                 window.Content = reconstructed;
                 window.UpdateLayout();
                 Dispatcher.UIThread.RunJobs();
@@ -68,7 +68,7 @@ public sealed class InspectionViewTests
                 document.Inspection.InspectField(2);
                 // Detached views have unsubscribed from the document's longer-lived state.
                 Assert.Equal(oldSelection, view.Editor.SelectionStart);
-                var restored = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+                var restored = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
                 window.Content = restored;
                 Assert.Equal("\"\"", restored.Editor.SelectedText);
                 Assert.Equal(Hl7ValueState.ExplicitNull, document.Inspection.SelectedNode!.State);
@@ -88,7 +88,7 @@ public sealed class InspectionViewTests
         await session.Dispatch(() =>
         {
             var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse("PID|1"));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
             var window = new Window { Width = 1100, Height = 900, Content = view };
             window.Show();
             try
@@ -129,7 +129,7 @@ public sealed class InspectionViewTests
         {
             var text = string.Concat(Enumerable.Range(1, 200).Select(i => $"OBX|{i}|TX|||Synthetic" + (i % 2 == 0 ? "\r\n" : "\r")));
             var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
             var window = new Window { Width = 1000, Height = 700, Content = view };
             window.Show();
             try

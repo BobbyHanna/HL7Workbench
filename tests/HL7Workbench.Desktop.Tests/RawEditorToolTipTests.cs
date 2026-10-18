@@ -107,7 +107,7 @@ public sealed class RawEditorToolTipTests
             var text = "MSH|^~\\&|SYN\rPID||\"\"|A^B&C~D\r\nbad line\r" +
                 string.Concat(Enumerable.Range(1, 100).Select(i => $"OBX|{new string('X', 150)}^SYN-{i}\r"));
             var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(text));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document));
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document));
             var window = new Window { Width = 1000, Height = 800, Content = view };
             window.Show();
             try

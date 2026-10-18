@@ -55,7 +55,8 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
     {
         if (e.PropertyName == nameof(MessageDocument.DisplayTitle)) RefreshGeneratedTitles();
         if (sender is MessageDocument document && e.PropertyName == "ActiveContent") document.ObserveActivity();
-        if (ReferenceEquals(sender, ActiveDocument) && e.PropertyName == "ActiveContent") PropertyChanged?.Invoke(this, new("ActiveContent"));
+        if (ReferenceEquals(sender, ActiveDocument) && e.PropertyName is "ActiveContent" or nameof(MessageDocument.IsSaving) or nameof(MessageDocument.IsCapturingScript))
+            PropertyChanged?.Invoke(this, new("ActiveContent"));
     }
     private void RefreshGeneratedTitles()
     {

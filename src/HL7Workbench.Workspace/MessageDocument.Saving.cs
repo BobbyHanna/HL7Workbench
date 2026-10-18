@@ -10,12 +10,16 @@ public sealed partial class MessageDocument
     public DocumentSaveProgress? SaveProgress { get; private set; }
     /// <summary>Measured phases of the last successful publication. Not persisted or logged.</summary>
     public DocumentSaveMetrics? LastSaveMetrics { get; private set; }
+    private bool? supportsStructuralSourceBoundary;
+    // The original index is immutable. Cache this metadata-only check so command
+    // enablement never traverses a large index on each editor notification.
+    private bool SupportsStructuralSourceBoundary => supportsStructuralSourceBoundary ??= Index is not { } index ||
+        !(index.Messages.Any(m => m.Diagnostics.Any(d => d.Code is "IncompleteMllp" or "AmbiguousFraming" or "InteriorBom")) ||
+          index.Regions.Any(r => r.Reason.StartsWith("HL7 batch wrapper", StringComparison.Ordinal) ||
+              r.Reason is "Provisional HL7 message" or "Unexpected MLLP ending"));
     private void ValidateStructuralSourceBoundary()
     {
-        if (Index is { } index &&
-            (index.Messages.Any(m => m.Diagnostics.Any(d => d.Code is "IncompleteMllp" or "AmbiguousFraming" or "InteriorBom")) ||
-             index.Regions.Any(r => r.Reason.StartsWith("HL7 batch wrapper", StringComparison.Ordinal) ||
-                r.Reason is "Provisional HL7 message" or "Unexpected MLLP ending")))
+        if (!SupportsStructuralSourceBoundary)
             throw new InvalidOperationException("Structural insertion in batch containers, provisional messages or ambiguous framing is unsupported. Original bytes and existing drafts are retained.");
     }
     private MessageSavePlan BuildSavePlan(CancellationToken token, IReadOnlyList<LogicalMessage>? capturedOrder = null,
@@ -54,7 +58,7 @@ public sealed partial class MessageDocument
                 {
                     var parsed = buffer.Parse();
                     if (buffer.Text.Length == 0 || !buffer.Text.StartsWith("MSH", StringComparison.Ordinal))
-                        throw new InvalidOperationException("Save refused: inserted drafts need a recoverable MSH start. Empty drafts cannot be omitted. Complete the draft or undo insertion.");
+                        throw new InvalidOperationException($"Save refused: message {GetLogicalPosition(entry.Id)} is an inserted draft that needs a recoverable MSH start. Empty drafts cannot be omitted. Complete the draft or undo insertion.");
                     ValidatePayloadBoundary(buffer, parsed);
                     plan.Inserted(entry, buffer, framed);
                 });

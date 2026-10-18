@@ -58,6 +58,10 @@ public partial class MainWindow
             ["Message Comparison"] = new UiCommand(() => { OpenComparison(); return Task.CompletedTask; }),
             ["Compare With Original"] = new UiCommand(() => { OpenComparison().CompareWithOriginal(); return Task.CompletedTask; }, () => documents.ActiveDocument is { MessageNumber: > 0 })
         };
+        foreach (var (position, _) in MessageInsertionWorkflow.Choices)
+            actions.Add(MessageInsertionWorkflow.CommandName(position), new UiCommand(() => InsertMessageAsync(position),
+                () => MessageInsertionWorkflow.CanInsert(documents.ActiveDocument, position)));
+        AddMessageMenu.ItemsSource = MessageInsertionWorkflow.MenuItems(p => actions[MessageInsertionWorkflow.CommandName(p)]);
         shellCommands = actions.Values.OfType<UiCommand>().ToArray();
         documents.PropertyChanged += ShellCommandsChanged;
         RibbonHost.Content = new UtilityRibbon(preferences, scripts, actions);

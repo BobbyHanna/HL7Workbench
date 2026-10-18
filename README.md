@@ -38,6 +38,28 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ### Editing scope and limits
 
+Stage 8C adds **Add Message** in the Home ribbon, File menu and existing message
+navigator. Choose Before Current, After Current, Beginning or End; positions always
+refer to the current logical sequence. A successful insertion selects a blank draft,
+enables Edit Mode for that document and focuses its HL7 editor. The saved Start in
+Edit Mode preference stays unchanged. No content is generated or saved automatically.
+
+**Next Message (`>`) at unfiltered document EOF** appends and selects a blank draft.
+Repeated Next reuses a trailing inserted draft containing only whitespace/segment
+terminators. A non-whitespace partial draft permits another append, but saving still
+requires safe HL7 boundaries. Filtered Next stays within matching results and never
+appends, even at the last logical message; clear the filter to use EOF append.
+Explicit Add Message invalidates the filter/results while retaining the authored query.
+
+Paste into the HL7 editor retains clipboard delimiters, tabs and mixed line endings.
+Insertions and edits share document-wide Ctrl+Z/Ctrl+Y history, including with Edit
+Mode off. A blank/incomplete inserted draft blocks safe Save and identifies its
+logical message number; complete it or undo insertion. Original bytes and the
+destination remain unchanged after validation failure. Documents support up to
+100,000 logical messages, within the existing draft/history budgets. See the
+[Stage 8C acceptance record](docs/stage8c-message-insertion-acceptance.md) for limits,
+verification and native Windows retest steps. Stage 8C has passed user native Windows acceptance.
+
 Raw editing is bounded to complete messages within the existing editor limits:
 1,048,576 UTF-16 units per message and 16,384 per line, with bounded document
 history. Large/source-backed messages remain read-only; supported smaller messages

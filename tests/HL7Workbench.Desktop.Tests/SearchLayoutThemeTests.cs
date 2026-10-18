@@ -100,7 +100,7 @@ public sealed class SearchLayoutThemeTests
         {
             var raw = custom ? "MSH*$%!@*SYN\rPID*A$B@C%D*!Zescaped!\r" : "MSH|^~\\&|SYN\rPID|A^B&C~D|\\Zescaped\\\r";
             using var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(raw));
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document, true)); var editor = view.Editor;
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document, true)); var editor = view.Editor;
             var window = new Window { Content = view, Width = 900, Height = 500, RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light }; window.Show();
             try
             {
@@ -138,7 +138,7 @@ public sealed class SearchLayoutThemeTests
         {
             var raw = Header + string.Concat(Enumerable.Range(1, 100).Select(i => $"NTE|{i}||SYN-LINE-{i}\r"));
             using var document = new MessageDocument("synthetic", "Synthetic", Hl7Parser.Parse(raw)); var originalMessage = document.Message; var original = Hl7Serializer.Serialize(originalMessage);
-            var view = Assert.IsType<MessageInspectionView>(MessageViewer.Create(document, true)); var window = new Window { Content = view, Width = 900, Height = 400 }; window.Show();
+            var view = Assert.IsType<MessageInspectionView>(MessageViewer.CreateActive(document, true)); var window = new Window { Content = view, Width = 900, Height = 400 }; window.Show();
             try
             {
                 document.IsEditMode = true; view.Editor.Select(raw.IndexOf("SYN-LINE-1", StringComparison.Ordinal), 0);

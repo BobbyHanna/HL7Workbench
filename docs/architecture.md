@@ -1,5 +1,21 @@
 # Architecture
 
+Stage 8C passed user native Windows acceptance on 2026-10-18, from the Stage 8B
+checkpoint 16ebc6d2a2a9d36ddfb20c766976c18990846bb2. One local Stage 8C commit is
+authorized; older pending/no-commit statements below are historical. Stage 8D is
+authorized only after its mandatory checkpoint gate, and must remain uncommitted.
+No push, tag, package, deploy, release or publication is authorized.
+The UI delegates blank insertion to the accepted Workspace API through one Desktop
+insertion workflow. File and editable in-memory tabs use the same stable document
+host; logical identity drives view replacement. Filtered Next never appends.
+Workspace exposes metadata-only insertion readiness and a retained-draft EOF guard;
+source-boundary capability is cached because the original index is immutable.
+Existing window-root history routing, save plans, identities and ownership remain.
+The HL7 surface overrides only Paste, retaining clipboard characters through the
+existing selection/update transaction with asynchronous target/lifetime guards.
+See [Stage 8C acceptance](stage8c-message-insertion-acceptance.md). No new ADR is
+needed: the structural and publication decisions in ADR 0011 still apply.
+
 Stage 8B.1–8B.4, the window-root keyboard correction and Script Output Naming have
 passed user native Windows acceptance as of the 2026-10-17 checkpoint request.
 The user authorized one local commit only; older pending acceptance notes below
