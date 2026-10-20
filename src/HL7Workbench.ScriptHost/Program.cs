@@ -49,7 +49,9 @@ internal static class Program
                         batch.Invoke(facade, request.Number);
                         cancellation.Token.ThrowIfCancellationRequested();
                         await ScriptProtocol.WriteAsync(pipe, new(FrameKind.Result,
-                            Bytes: facade.Excluded ? null : Hl7Serializer.Serialize(message), Number: request.Number, Excluded: facade.Excluded,
+                            // Controlled batch edits replace the facade's validated Core model.
+                            // Serialize that authority, including ordinary in-place edits.
+                            Bytes: facade.Excluded ? null : facade.Serialize(), Number: request.Number, Excluded: facade.Excluded,
                             Reports: batch?.DrainReports()), cancellation.Token);
                     }
                     catch (Exception error) when (error is not OperationCanceledException)
@@ -105,7 +107,7 @@ internal static class Program
         var compiler = code is { Length: 6 } && code.StartsWith("CS", StringComparison.Ordinal) && code.AsSpan(2).IndexOfAnyExceptInRange('0', '9') < 0;
         if (!compiler && code is not ("UnsupportedApi" or "MissingMain" or "EntryPointSignature" or "AmbiguousEntryPoint" or "ScriptLimit" or "DirectiveNotSupported" or "LifecyclePhase" or
             "BatchLimit" or "DeferredLimit" or "ReportSchema" or "ReportLimit" or "InputLimit" or "InvalidEncoding" or
-            "InvalidPath" or "MissingValue" or "DecodeDiagnostic" or "EditRejected")) code = "RuntimeFailed";
+            "InvalidPath" or "MissingValue" or "DecodeDiagnostic" or "EditRejected" or "TransformationLimit")) code = "RuntimeFailed";
         string? path = null;
         if (diagnostic.Path is { } candidate)
         {

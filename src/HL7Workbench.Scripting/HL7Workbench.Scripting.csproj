@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <EmbeddedResource Include="SyntheticIdentities.v1.json" />
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
     <InternalsVisibleTo Include="HL7Workbench.ScriptHost" />
     <InternalsVisibleTo Include="HL7Workbench.Scripting.Tests" />

@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Attribution": "Original small fictional test vocabulary authored for HL7 Workbench; no imported dataset.",
+  "GivenNames": ["Avery", "Rowan", "Morgan", "Ellis", "Jordan", "Quinn", "Riley", "Casey", "Robin", "Sage", "Taylor", "Blair", "Reese", "Cameron", "Finley", "Alex"],
+  "MiddleNames": ["Lane", "Ray", "Drew", "Lee", "Shay", "Jules", "Wren", "Sky", "Ash", "Vale", "Kit", "Blue", "Reed", "Sam", "Noel", "Gray"],
+  "FamilyNames": ["Marlowe", "Ashford", "Briarwood", "Linden", "Fairbrook", "Westhaven", "Elmsley", "Hartwell", "Oakridge", "Merrin", "Alderwick", "Fernwell", "Northcott", "Thistledown", "Bellmere", "Brookvale"],
+  "Streets": ["Lumen Test Way", "Copper Finch Test Lane", "Amber Kite Test Road", "Silver Fern Test Avenue", "Opal Lantern Test Drive", "Violet Comet Test Court", "Willow Beacon Test Way", "Indigo Meadow Test Lane"],
+  "Localities": ["Lumen Test Haven", "Aster Test Harbour", "Copper Test Vale", "Opal Test Meadow", "Indigo Test Reach", "Willow Test Bay", "Amber Test Hollow", "Silver Test Glen"],
+  "AdministrativeSex": ["F", "M", "O"],
+  "MaritalStatus": ["S", "M", "U"]
+}

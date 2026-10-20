@@ -1,5 +1,33 @@
 # Unified C# scripting API
 
+Stage 9 adds three reviewable/duplicable Script Library presets: **Patient Deidentifier**,
+**Identifier Pseudonymizer**, **Timestamp Shifter**. Each initializes a run-local
+`DeidentificationWorkflow(new DeidentificationOptions { Preset = ..., Seed = 42 }, Cancellation)`,
+calls `workflow.Apply(Message)` in Main and emits `workflow.Summary.Cells` into one
+CSV row in Complete using `DeidentificationSummary.Columns`. Optional ShiftDays
+overrides the seed-derived common displacement; MaximumMappings can lower its budget.
+Existing Batch output naming supplies static Review Required suggestions, never a path.
+Duplicate the immutable built-in to configure it; saved user scripts are not replaced.
+
+These are de-identification aids, not anonymity or compliance guarantees. Reports
+always say **Review required** and explicitly flag unassessed container bytes/nested
+metadata and residual clinical content. Narrow identifier/timestamp presets retain
+other sensitive content. No mapping persists outside the worker. Read the
+[coverage, limits and residual risks](stage9-deidentification-acceptance.md) before
+execution or sharing. Existing worker isolation/rollback and stale-source attribution
+apply without a new protocol or scripting engine. See [ADR 0013](decisions/0013-script-deidentification-aids.md).
+
+Native acceptance corrections introduce Patient policy 2 and bundled vocabulary 1:
+`SyntheticIdentityLibrary(seed).Get(opaqueIdentityKey, Cancellation)` supplies a
+deterministic fictional complete profile, independently of original demographics.
+Patient names/addresses/contacts/DOB/sex and supported ages are substituted; both
+narrow presets retain policy-1 behavior. Missing/empty/null components remain so.
+`Summary.Categories` supplies transformed/suppressed leaf counts. A successful fixed
+review row is projected into an expanded **Transformation Report** in each output
+document, independent of later editor runs. It tracks captured revision and stale/
+closed source without rendering arbitrary CSV cells or retaining the source owner.
+See the acceptance matrix for supported demographics/age codes and residual risks.
+
 View → Script Editor is a dockable/floating tool. Scripts ribbon → New (or editor **New**) creates an editable
 `void Main()` starter. Name it, Save Script, choose **Apply to: Current message /
 Whole document**, and Run. The identical script works in either scope. There are

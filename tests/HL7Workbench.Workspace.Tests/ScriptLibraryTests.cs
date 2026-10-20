@@ -131,14 +131,14 @@ public sealed class ScriptLibraryTests
         var renamed = store.Save(reopened with { Name = "Renamed" });
         Assert.Equal(original.Id, renamed.Id); Assert.Equal("Renamed", library.Store.Open(original.Id).Name);
         var copy = store.Duplicate(renamed); Assert.NotEqual(original.Id, copy.Id); Assert.Equal(original.Source, copy.Source);
-        Assert.Equal(4, store.List().Count); Assert.Empty(Directory.GetFiles(library.Root, "*.tmp"));
+        Assert.Equal(7, store.List().Count); Assert.Empty(Directory.GetFiles(library.Root, "*.tmp"));
         Assert.DoesNotContain("Renamed", string.Join("", Directory.GetFiles(library.Root).Select(Path.GetFileName)));
     }
     [Fact]
     public void BundledExampleIsReadOnlyAndCopiesAreIndependent()
     {
         using var library = new Library(); var store = library.Store;
-        Assert.Equal(2, store.List().Count); var example = store.Open(ScriptLibrary.ExampleId);
+        Assert.Equal(5, store.List().Count); var example = store.Open(ScriptLibrary.ExampleId);
         Assert.Throws<InvalidOperationException>(() => store.Save(example));
         var copy = store.Duplicate(example); Assert.False(copy.Bundled);
         store.Save(copy with { Source = "Message.Exclude();" });
@@ -178,7 +178,7 @@ public sealed class ScriptLibraryTests
         Assert.Equal(expected, await session.ConfirmChangesAsync(() => Task.FromResult(decision)));
         if (!expected) { Assert.True(session.IsDirty); Assert.Equal("Message.Exclude();", session.Source); }
         else Assert.False(session.IsDirty);
-        Assert.Equal(decision == UnsavedChangesDecision.Save ? 3 : 2, library.Store.List().Count);
+        Assert.Equal(decision == UnsavedChangesDecision.Save ? 6 : 5, library.Store.List().Count);
     }
     [Fact]
     public async Task FailedSaveAndDialogDismissalKeepDraftAndBlockSwitch()

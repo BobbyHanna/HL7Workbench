@@ -18,6 +18,19 @@ public sealed class ScriptReports : IDisposable
     internal ScriptReports(SourceSnapshot snapshot, ScriptReportBuilder builder)
     { this.snapshot = snapshot; ranges = builder.Ranges; Items = builder.Items; }
 
+    // A bounded projection of this same sealed journal, not a second report store.
+    internal byte[]? ReadSmallReport(string name, int maximum)
+    {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            if (!ranges.TryGetValue(name, out var intervals) || intervals.Sum(r => r.Length) > maximum) return null;
+            using var bytes = new MemoryStream();
+            foreach (var interval in intervals) bytes.Write(snapshot.ReadBytes(interval, maximum));
+            return bytes.ToArray();
+        }
+    }
+
     /// <summary>Exports to a new file only; a path alone never authorizes replacement.</summary>
     public Task ExportAsync(string name, string destination, CancellationToken token = default) => ExportAsync(name, FileSaveDestination.NewFile(destination), token);
     /// <summary>Exports using explicit, version-scoped destination consent.</summary>

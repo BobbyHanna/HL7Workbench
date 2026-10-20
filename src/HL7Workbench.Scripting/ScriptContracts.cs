@@ -27,6 +27,7 @@ public sealed record ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line 
         "WorkerStopped" => "Worker stopped unexpectedly; no output published.",
         "ProtocolError" => "Worker communication failed; no output published.",
         "InputLimit" => "Targeted message exceeds the complete-message scripting limits.",
+        "TransformationLimit" => "De-identification exceeds its bounded identity, value or mutation budget; no output was published.",
         "InputStorageLimit" => "Captured source exceeds the configured input-storage limit.",
         "InvalidEncoding" => "Message cannot be strictly decoded or encoded.",
         "InputUnavailable" => "Complete captured input is unavailable.",

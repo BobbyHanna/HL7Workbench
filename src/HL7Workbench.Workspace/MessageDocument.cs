@@ -36,6 +36,8 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     public string Id { get; }
     public string Title { get; private set; }
     public SourceSnapshot? Snapshot { get; }
+    /// <summary>Session-only review for the producing transformation, independent of the Script Editor's latest run.</summary>
+    public TransformationReport? TransformationReport { get; internal set; }
     public MessageFileIndex? Index { get; }
     public Hl7Message Message => message ?? throw new InvalidOperationException("Active content is source-backed or unavailable.");
     public Hl7Message? MaterializedMessage => message;
@@ -287,6 +289,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
         disposed = true; generation++; lifetime.Cancel(); request?.Cancel();
         ClearSearchFilter(); searchChanges.Cancel();
         previousInspection = null;
+        TransformationReport?.Dispose();
         Closed?.Invoke(this, EventArgs.Empty); Closed = null;
         PropertyChanged = null;
         Disposal = Task.Run(async () =>

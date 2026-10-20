@@ -1,5 +1,33 @@
 # Architecture
 
+Stage 9 and optimized branding passed user native Windows acceptance on 2026-10-20.
+One local checkpoint is authorized after fresh verification; earlier pending notes
+below are historical. Stage 9C follows only after that checkpoint succeeds and must
+remain uncommitted, using the existing editor, Script Library and isolated worker.
+
+Stage 8D is checkpointed at 5eebc767eae5f241ac4c7a02c4275ae0305b76fa after all gates.
+Stage 9 adds run-local deterministic de-identification aids in the existing Scripting
+facade/Script Library/isolated worker. Core supplies hierarchy/ranges, literal escaping
+and final validation; the facade applies one bounded encoded-span replacement batch.
+The worker serializes the validated facade model. Parent capture, journals, reports,
+output naming, source isolation, cancellation and stale attribution remain unchanged.
+No parallel engine, protocol version, dependency or cross-session mapping store is added.
+See [ADR 0013](decisions/0013-script-deidentification-aids.md) and
+[Stage 9 acceptance](stage9-deidentification-acceptance.md). Native acceptance is pending;
+Stage 9 and approved-icon integration remain uncommitted.
+
+Native acceptance corrections add an embedded, original versioned vocabulary and
+execution-local SyntheticIdentityLibrary under Scripting. Patient policy 2 receives
+opaque identity contexts; source demographics never select the generated profiles.
+Narrow presets retain policy 1. The Workspace TransformationReport is a bounded
+validated count-only projection of the existing sealed CSV journal, associated before
+output publication. Its output document owns the summary and observer disposal;
+weak source tracking supplies live revision freshness. Desktop FileDocumentView
+mounts the clearly labeled expanded report; optional view replacement does not own
+or relabel it. No alternate worker, reporting engine, save sidecar or Dock dependency
+enters Workspace. The window icon now uses the same optimized seven-frame ICO as
+the executable, enabling the native backend to choose small variants.
+
 As of 2026-10-20, Stage 8D has passed user native Windows acceptance and one local
 checkpoint is authorized after the fresh verification gate. Older pending statements
 are historical. Stage 9 and approved-icon integration follow only after that gate;

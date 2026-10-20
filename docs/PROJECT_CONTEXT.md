@@ -4,6 +4,103 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 9 native accepted — checkpoint then Stage 9C authorized
+
+On 2026-10-20 the user accepted Stage 9 de-identification, realistic identities,
+Transformation Report and optimized icon on native Windows. One exact 41-path local
+checkpoint is authorized after a fresh full gate, with message
+`feat: add Stage 9 de-identification and application branding`. The expected parent
+is 5eebc767eae5f241ac4c7a02c4275ae0305b76fa. Include the unchanged approved source
+artwork; preserve/exclude the unchanged untracked _TEST.hl7. Earlier pending/no-commit
+statements below are historical. If checkpoint verification/commit fails, stop.
+
+The fresh checkpoint gate passed: locked restore; Release zero warnings/errors;
+1,504 solution tests and 718 complete Workspace stress tests (no failures/skips);
+both ScriptHost lifecycles against the existing Release layout; four icon-processing
+tests; eight exact fixture blobs, all 13 protected hashes and whitespace. Evidence:
+artifacts/stage9-checkpoint. Original artwork and excluded _TEST.hl7 are unchanged.
+
+After its clean tracked-tree/empty-index post-commit gate, proceed automatically to
+Stage 9C: offline searchable API reference, safe script templates/customization and
+editor/Help discovery using the existing Script Library/editor/worker. Stage 9C must
+remain unstaged/uncommitted and stop for native Windows acceptance. No push, tag,
+package, deploy, release, publication, Stage 10 or full IntelliSense/editor rewrite.
+
+## Stage 9 native acceptance corrections — historical pre-checkpoint record
+
+Native testing requested realistic demographics, discoverable output-associated
+reports and clearer small taskbar icons. Patient Deidentifier now uses policy 2 and
+an original bundled dictionary 1 through SyntheticIdentityLibrary: independent
+fictional names/aliases, addresses, reserved phone/email values, DOB/sex, demographics,
+numeric local IDs and supported coherent age observations. Qualified identities
+share complete profiles; bounded deterministic probing handles allocation collisions.
+Source demographics do not select replacements. The two narrow presets retain
+policy 1. Unknown/narrative/ED content remains suppressed/reviewable; no PHI-free or
+compliance guarantee. Missing/empty/null source positions remain distinct.
+
+The existing sealed CSV report is projected into an expanded Transformation Report
+on each output document. It validates a fixed count-only schema and shows preset,
+scope, captured revision, live stale/closed-source state, category counts and privacy
+warnings. The document owns the bounded summary and observer disposal, independently
+of the editor's last run. Summaries are session-only; later output edits are not
+reassessed. Existing CSV export and atomic execution behavior remain unchanged.
+
+Optimized 16/24/32 icon variants enlarge the existing monogram, reduce padding and
+simplify tiny bars; 48–256 and the master/source are unchanged. Avalonia now loads
+the ICO rather than the 512 PNG so optimized native sizes are available to windows.
+Four permanent processing tests complement the three Desktop branding tests.
+
+Correction verification passed: locked restore/zero-warning Release; focused 62
+Scripting, 43 Workspace/library, 21 Desktop + four processing tests; **1,504 solution
+tests**, **718 complete Workspace stress tests**, both ScriptHost lifecycles against
+the Release build layout, eight exact fixture blobs/all 13 protected hashes and
+whitespace. No failures/skips/errors. Source artwork/master and larger icon frames
+are unchanged; new small variants reproduce byte-identically. There are 41 milestone
+paths (17 tracked modifications + 24 untracked), plus the unchanged excluded HL7;
+index empty. See the acceptance document for exact inventory and native checks.
+Evidence: artifacts/stage9-acceptance-fixes. The initial 1,483/712 gate below is historical.
+No staging/commit, push, tag, package, deploy, publish, release or Stage 10 is authorized.
+HEAD remains 5eebc767eae5f241ac4c7a02c4275ae0305b76fa. Stop for native Windows retesting.
+
+## Initial Stage 9 implementation — historical pre-correction gate
+
+The Stage 8D checkpoint gate passed and created local commit
+5eebc767eae5f241ac4c7a02c4275ae0305b76fa with the exact 35-file accepted inventory.
+Tracked tree/index were clean; approved icon source and excluded user HL7 stayed
+unchanged/untracked. Fresh gate: locked restore, Release zero warnings/errors,
+1,416 full-solution cases, 698 Workspace stress cases, both ScriptHost lifecycles,
+eight fixture blobs and protected/whitespace checks. Logs: artifacts/stage8d-checkpoint-20261020.
+
+Stage 9 implements three immutable/duplicable presets through the existing Script
+Library and isolated worker, with deterministic authority-scoped run-local identities,
+common date shifts, conservative suppression and one count-only Review required report.
+Core-backed literal batch edits preserve encoded spans/structure and publish the
+validated facade model; worker serialization follows that facade. No protocol/new
+engine/dependency or persistent mapping storage is introduced. Reports explicitly
+flag unassessed containers/nested data, narrow-preset retained values and residual
+privacy risks. No compliance/anonymity guarantee. See ADR 0013 and the Stage 9
+acceptance matrix. All Stage 9/icon changes remain unstaged/uncommitted, with no
+external Git/publication action or Stage 10 authorized. Stop for native acceptance.
+
+Approved icon integration preserves the original M/W artwork and uses a reproducible
+connected-exterior removal, centered square crop and Lanczos resize. The seven-frame
+ICO is embedded in the Windows apphost; the shared Avalonia Window style covers main
+and secondary top-level windows. Source hash, exact PE frame bytes and headless style
+application are tested. Taskbar, Alt+Tab, native title bars, light/dark appearance and
+100/125/150/200% DPI remain native acceptance checks. See docs/branding.md.
+
+Final Stage 9/icon gate passed on 2026-10-20: locked restore, Release zero warnings/
+errors, focused Scripting 47/Workspace 37/Desktop 21, **1,483 full-solution cases**,
+**712 complete Workspace stress cases**, both ScriptHost Current/Whole smoke
+lifecycles against the existing Release layout, eight fixture blobs/all 13 protected
+hashes, reproducible icon derivatives and whitespace. All tests passed without skips.
+No publish/package operation ran. Exact 29-path inventory, measured results and native
+checklists are in docs/stage9-deidentification-acceptance.md and docs/branding.md;
+evidence is retained in ignored artifacts/stage9. HEAD is still the Stage 8D checkpoint,
+the index is empty, and 12 tracked modifications/17 milestone untracked files plus
+the unchanged excluded _TEST.hl7 are deliberately uncommitted. Native acceptance is
+pending; wait for user authorization before any next milestone or commit.
+
 ## Stage 8D checkpoint — native accepted; sequential Stage 9 and icon authorization
 
 On 2026-10-20 the user confirmed native Windows acceptance of Stage 8D and authorized
@@ -1102,6 +1199,8 @@ commit. Push, amend, tag, publication and release remain unauthorized.
 
 - `HL7_Workbench_Specification.md`: product vision; milestone amendments govern scope.
 - `docs/architecture.md`, `docs/decisions/`: architecture and accepted decisions.
+- `docs/stage9-deidentification-acceptance.md`: field coverage, privacy limitations, verification and native checks.
+- `docs/branding.md`: approved artwork, reproducible PNG/ICO derivatives and native icon checks.
 - `docs/parser-api.md`, `docs/hl7-paths.md`: preservation, limits, paths, and edit rules.
 - `docs/viewer-stage3-acceptance.md`, `docs/stage3-performance.md`: source-backed inspection and measurements.
 - `docs/stage3-activity-log-acceptance.md`: Activity Log privacy, history and lifecycle.

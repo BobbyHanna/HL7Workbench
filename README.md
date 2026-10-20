@@ -8,6 +8,14 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 Stage 8D synthetic generation passed user native Windows acceptance on 2026-10-20.
 Earlier pending-acceptance notes below are retained as historical implementation records.
+The approved M/W application icon is integrated; see [branding](docs/branding.md)
+for the unchanged source, reproducible derivatives and native Windows checks.
+Patient Deidentifier now substitutes realistic fictional demographics from a bundled
+deterministic identity library. Each transformed output exposes its own expanded
+**Transformation Report — Review required**; narrow Identifier/Timestamp presets
+keep their existing purposes. See [Stage 9 acceptance](docs/stage9-deidentification-acceptance.md)
+for coverage, privacy limits and native retest steps. These corrections passed user
+native Windows acceptance on 2026-10-20; earlier pending notes are historical.
 
 - **Local files and multi-message navigation:** Open files in document tabs and
   navigate concatenated or MLLP-framed messages with First, Previous, Next, Last,
@@ -108,6 +116,14 @@ for supported encodings, budgets, and save guarantees. Structural inspection and
 basic diagnostics do not provide HL7 version/profile conformance validation.
 
 ## C# scripting (Stages 5A–5B)
+
+The Script Library includes **Patient Deidentifier**, **Identifier Pseudonymizer** and
+**Timestamp Shifter**. Review a preset, duplicate it to configure seed/day displacement,
+and Run against Current or Whole document. Output opens independently and unsaved with
+a Review Required filename and bounded count-only CSV report. Sources are retained.
+These workflows assist de-identification; they do not certify anonymity, PHI removal,
+compliance or unrestricted sharing. Narrow presets and unassessed container/nested
+content can retain identifying information. See the [coverage and native checklist](docs/stage9-deidentification-acceptance.md).
 
 Use New Script in the dockable/floating Script Editor and write `void Main()`.
 The same source runs against Apply to: Current message or Whole document. A fresh

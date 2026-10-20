@@ -9,7 +9,7 @@ public sealed record ScriptValue(ValueState State, string? Raw);
 /// <summary>One invocation's bounded message. Paths are Core's one-based coordinates; no UI or source sessions escape.</summary>
 public sealed class ScriptMessage
 {
-    private readonly Hl7Message message;
+    private Hl7Message message;
     private readonly CancellationToken cancellation;
     internal string? LastPath { get; private set; }
     internal bool Excluded { get; private set; }
@@ -19,6 +19,35 @@ public sealed class ScriptMessage
     /// <summary>Whether Core reported any structural/encoding diagnostic. Conservative scripts can refuse malformed input before editing.</summary>
     public bool HasDiagnostics => message.Diagnostics.Count != 0;
     internal byte[] Serialize() => Hl7Serializer.Serialize(message);
+    internal Hl7Message Model => message;
+    internal sealed record LiteralEdit(int Offset, int Length, string Text);
+    /// <summary>Workflow-only batch of literal leaf replacements from one frozen Core model.
+    /// Copies untouched encoded spans and validates once before replacing this facade's model.</summary>
+    internal void ApplyLiteralEdits(IReadOnlyList<LiteralEdit> edits)
+    {
+        cancellation.ThrowIfCancellationRequested(); LastPath = null;
+        if (!CanEdit || HasDiagnostics) throw Failure("EditRejected");
+        if (edits.Count == 0) return;
+        var original = Serialize(); var encoding = message.Encoding; var text = message.RawText;
+        var byteCursor = message.ByteOrderMark.Length; var charCursor = 0;
+        using var output = new MemoryStream(); output.Write(original.AsSpan(0, byteCursor));
+        foreach (var edit in edits.OrderBy(e => e.Offset))
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (edit.Offset < charCursor || edit.Length < 0 || edit.Offset > text.Length - edit.Length) throw Failure("EditRejected");
+            var untouched = encoding.GetByteCount(text.AsSpan(charCursor, edit.Offset - charCursor));
+            output.Write(original.AsSpan(byteCursor, untouched)); byteCursor += untouched;
+            byteCursor += encoding.GetByteCount(text.AsSpan(edit.Offset, edit.Length)); charCursor = edit.Offset + edit.Length;
+            var escaped = Hl7EscapeCodec.Encode(edit.Text, message.Delimiters, ScriptLimits.MessageCharacters, encoding);
+            var bytes = encoding.GetBytes(escaped); output.Write(bytes);
+            if (output.Length > ScriptLimits.MessageBytes) throw Failure("InputLimit");
+        }
+        output.Write(original.AsSpan(byteCursor));
+        if (output.Length > ScriptLimits.MessageBytes) throw Failure("InputLimit");
+        var candidate = Parse(output.ToArray(), encoding.CodePage);
+        if (!candidate.CanEdit || candidate.Diagnostics.Count != 0) throw Failure("EditRejected");
+        cancellation.ThrowIfCancellationRequested(); message = candidate;
+    }
     public ScriptValue Read(string path)
     {
         var value = message.Get(ParsePath(path));

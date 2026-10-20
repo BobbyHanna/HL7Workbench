@@ -9,7 +9,7 @@ public sealed record ScriptLibraryItem(Guid Id, string Name, bool Bundled = fals
 public sealed record LibraryScript(Guid Id, string Name, string Source, string Revision, bool Bundled = false, bool Obsolete = false);
 
 /// <summary>Versioned local entries. Source and name share one atomic record so renames cannot tear a script save.</summary>
-public sealed class ScriptLibrary(string directory)
+public sealed partial class ScriptLibrary(string directory)
 {
     public const int MaximumEntries = 256;
     private const int MaximumEntryBytes = 512 * 1024;
@@ -66,13 +66,13 @@ public sealed class ScriptLibrary(string directory)
     private sealed record StoredScript(int Version, Guid Id, string Name, string Source, bool RequiresUpdate = false);
     public IReadOnlyList<ScriptLibraryItem> List()
     {
-        var result = new List<ScriptLibraryItem> { new(Example.Id, Example.Name, true), new(PatientExample.Id, PatientExample.Name, true) };
+        var result = Builtins.Select(s => new ScriptLibraryItem(s.Id, s.Name, true)).ToList();
         if (!Directory.Exists(directory)) return result;
         var files = Directory.EnumerateFiles(directory, "*.json").Take(MaximumEntries + 1).ToArray();
         if (files.Length > MaximumEntries) throw new InvalidDataException("Script Library entry limit reached.");
         foreach (var file in files)
         {
-            if (!Guid.TryParseExact(Path.GetFileNameWithoutExtension(file), "N", out var id) || id == ExampleId || id == PatientExampleId)
+            if (!Guid.TryParseExact(Path.GetFileNameWithoutExtension(file), "N", out var id) || IsBuiltin(id))
                 throw new InvalidDataException("Invalid Script Library identity.");
             var entry = Open(id);
             result.Add(new(entry.Id, entry.Name, Obsolete: entry.Obsolete));
@@ -81,8 +81,7 @@ public sealed class ScriptLibrary(string directory)
     }
     public LibraryScript Open(Guid id)
     {
-        if (id == ExampleId) return Example;
-        if (id == PatientExampleId) return PatientExample;
+        if (Builtins.FirstOrDefault(s => s.Id == id) is { } builtin) return builtin;
         var bytes = ReadEntry(PathFor(id));
         var entry = JsonSerializer.Deserialize<StoredScript>(bytes) ?? throw new InvalidDataException("Invalid script record.");
         if (entry.Version is not (1 or 2 or 3) || entry.Id != id) throw new InvalidDataException("Unsupported script record.");
@@ -98,7 +97,7 @@ public sealed class ScriptLibrary(string directory)
     /// An external change must be reviewed before deletion; bundled examples are never filesystem entries.</summary>
     public void Delete(LibraryScript script)
     {
-        if (script.Bundled || script.Id == ExampleId || script.Id == PatientExampleId || script.Revision.Length == 0)
+        if (script.Bundled || IsBuiltin(script.Id) || script.Revision.Length == 0)
             throw new InvalidOperationException("Only saved user scripts can be deleted.");
         using var lease = new FileStream(Path.Combine(directory, "library.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var path = PathFor(script.Id);
@@ -108,7 +107,7 @@ public sealed class ScriptLibrary(string directory)
     public static bool ValidName(string name) => !string.IsNullOrWhiteSpace(name) && name.Length <= 120 && !name.Any(char.IsControl);
     private LibraryScript Save(LibraryScript script, bool adopt)
     {
-        if (script.Bundled || script.Id == ExampleId || script.Id == PatientExampleId) throw new InvalidOperationException("Duplicate the bundled example before saving changes.");
+        if (script.Bundled || IsBuiltin(script.Id)) throw new InvalidOperationException("Duplicate the bundled example before saving changes.");
         Validate(script.Name, script.Source); Directory.CreateDirectory(directory);
         var path = PathFor(script.Id);
         // Cooperating app instances serialize compare-and-save; external changes are detected

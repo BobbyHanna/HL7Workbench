@@ -125,6 +125,8 @@ public sealed class ViewerTestApplication : Application
     public override void Initialize()
     {
         Styles.Add(new Avalonia.Themes.Fluent.FluentTheme());
+        Styles.Add(new Avalonia.Markup.Xaml.Styling.StyleInclude(new Uri("avares://HL7Workbench.Desktop/"))
+        { Source = new Uri("avares://HL7Workbench.Desktop/Branding.axaml") });
         Styles.Add(new Avalonia.Markup.Xaml.Styling.StyleInclude(new Uri("avares://HL7Workbench.Desktop.Tests/"))
         { Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml") });
         ApplicationTheme.InitializeResources(this);
