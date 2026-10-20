@@ -58,7 +58,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
             return;
         }
         if (e.Dockable?.Context is not MessageDocument document || approvedCloses.Contains(document.Id)) return;
-        if (document.IsSaving) { e.Cancel = true; return; }
+        if (document.IsSaving || document.IsPreparingInsertion) { e.Cancel = true; return; }
         if (!document.IsDirty) return;
         e.Cancel = true;
         if (ConfirmDocumentCloseAsync is not null && closingDocuments.Add(document.Id)) _ = ConfirmCloseAsync(document, e.Dockable);

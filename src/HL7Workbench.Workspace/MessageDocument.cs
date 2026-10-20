@@ -81,7 +81,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     {
         if (disposed) throw new ObjectDisposedException(nameof(MessageDocument));
         if (number < 1 || number > MessageCount) throw new ArgumentOutOfRangeException(nameof(number));
-        if (IsSaving || IsCapturingScript) return;
+        if (IsSaving || IsCapturingScript || IsPreparingInsertion) return;
         if (number == MessageNumber && !IsLoading && Failure is null && (message is not null || Source is not null)) return;
         var logical = sequence[number - 1];
         request?.Cancel();

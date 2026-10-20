@@ -1,5 +1,28 @@
 # Architecture
 
+As of 2026-10-20, Stage 8D has passed user native Windows acceptance and one local
+checkpoint is authorized after the fresh verification gate. Older pending statements
+are historical. Stage 9 and approved-icon integration follow only after that gate;
+they must remain uncommitted and stop for native acceptance. No external Git or
+publication operation is authorized. The icon source is excluded from Stage 8D.
+
+Stage 8D follows the completed Stage 8C checkpoint
+ddc18ae63df7ddb31ba55ee35c3c6feffd0d3891. The checkpoint gate passed; older pending
+authorization statements below are historical. Stage 8D remains uncommitted pending
+native Windows acceptance, with no external publication authorization.
+
+Core now produces a bounded immutable synthetic v2.5.1 batch from normalized fixed
+options using a specified PRNG and canonical CR endings. Workspace generates in the
+background, captures the destination/version, validates a prospective streaming save
+under a transient mutation lock, then publishes one existing batch insertion/history
+operation. Source bytes are neither decoded nor reconstructed. New output is privately
+owned until ready and opens as independent unsaved inserted-origin messages.
+Desktop owns only dialog configuration, lightweight identifier preview and post-dialog
+activation/focus; it uses the same four logical positions and existing root history.
+No dependencies, Dock schema, scripting API, original identity or save semantics change.
+See [ADR 0012](decisions/0012-deterministic-synthetic-generation.md) and
+[Stage 8D acceptance](stage8d-synthetic-generator-acceptance.md).
+
 Stage 8C passed user native Windows acceptance on 2026-10-18, from the Stage 8B
 checkpoint 16ebc6d2a2a9d36ddfb20c766976c18990846bb2. One local Stage 8C commit is
 authorized; older pending/no-commit statements below are historical. Stage 8D is

@@ -93,7 +93,7 @@ public sealed class FileDocumentView : ContentControl
     }
     public async Task NavigateAsync(int number)
     {
-        if (document.IsSaving || number < 1 || number > document.MessageCount) return;
+        if (document.IsSaving || document.IsPreparingInsertion || number < 1 || number > document.MessageCount) return;
         var id = document.GetMessageId(number);
         if (!document.IsNavigationMatch(id))
         { status.Text = "This message is outside the search filter. Choose a matching position or clear the filter."; return; }
@@ -103,7 +103,7 @@ public sealed class FileDocumentView : ContentControl
     /// <summary>Filtered navigation never appends; only unfiltered logical EOF offers a blank insertion.</summary>
     public async Task NextAsync()
     {
-        if (document.IsSaving || document.IsCapturingScript || document.IsLoading) return;
+        if (document.IsSaving || document.IsPreparingInsertion || document.IsCapturingScript || document.IsLoading) return;
         if (document.NavigationMatches is not null || document.MessageNumber < document.MessageCount)
         { await NavigateAsync(NavigatorTarget(2)); return; }
         if (document.MessageNumber == 0) return;
@@ -116,7 +116,7 @@ public sealed class FileDocumentView : ContentControl
         }
         await InsertMessageAsync(MessageInsertionPosition.End);
     }
-    private bool CanGoNext() => !document.IsLoading && !document.IsSaving && !document.IsCapturingScript &&
+    private bool CanGoNext() => !document.IsLoading && !document.IsSaving && !document.IsPreparingInsertion && !document.IsCapturingScript &&
         (NavigatorTarget(2) is > 0 and var target && target <= document.MessageCount ||
          document.NavigationMatches is null && document.MessageNumber > 0 && document.MessageNumber == document.MessageCount &&
          MessageInsertionWorkflow.CanInsert(document, MessageInsertionPosition.End));
@@ -224,7 +224,7 @@ public sealed class FileDocumentView : ContentControl
             for (var i = 0; i < directions.Count; i++)
             {
                 var target = NavigatorTarget(i);
-                directions[i].IsEnabled = i == 2 ? CanGoNext() : !document.IsLoading && !document.IsSaving && !document.IsCapturingScript &&
+                directions[i].IsEnabled = i == 2 ? CanGoNext() : !document.IsLoading && !document.IsSaving && !document.IsPreparingInsertion && !document.IsCapturingScript &&
                     target > 0 && target <= document.MessageCount && target != document.MessageNumber;
             }
             NextMessageCommand.Refresh();

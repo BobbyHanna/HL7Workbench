@@ -8,7 +8,7 @@ internal sealed class DocumentSaveWorkflow(DocumentManager documents)
     private readonly HashSet<MessageDocument> pending = [];
     internal async Task<bool> SaveAsync(MessageDocument document, bool saveAs, Func<Task<FileSaveDestination?>> choose, CancellationToken token)
     {
-        if (document.IsSaving || !documents.Documents.Contains(document) || !pending.Add(document)) return false;
+        if (document.IsSaving || document.IsPreparingInsertion || !documents.Documents.Contains(document) || !pending.Add(document)) return false;
         try
         {
             var version = document.ContentVersion; var identity = document.SavePath;
@@ -16,7 +16,7 @@ internal sealed class DocumentSaveWorkflow(DocumentManager documents)
             {
                 var destination = await choose();
                 if (destination is null) return false;
-                if (!documents.Documents.Contains(document) || document.ContentVersion != version || document.SavePath != identity || document.IsSaving)
+                if (!documents.Documents.Contains(document) || document.ContentVersion != version || document.SavePath != identity || document.IsSaving || document.IsPreparingInsertion)
                     throw new InvalidOperationException("Document changed while choosing a destination. Retry Save As.");
                 await document.SaveAsync(destination, token);
             }

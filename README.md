@@ -6,6 +6,9 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 8D synthetic generation passed user native Windows acceptance on 2026-10-20.
+Earlier pending-acceptance notes below are retained as historical implementation records.
+
 - **Local files and multi-message navigation:** Open files in document tabs and
   navigate concatenated or MLLP-framed messages with First, Previous, Next, Last,
   and direct message-number controls.
@@ -37,6 +40,37 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
   offer Save, Discard, or Cancel; canceled or failed saves retain working edits.
 
 ### Editing scope and limits
+
+**Generate Messages** in Home or File opens the local synthetic HL7 v2.5.1 generator.
+Choose ADT^A01 (admission), ADT^A04 (registration), ADT^A08 (update), ORM^O01 (order)
+or ORU^R01 (results). Defaults create one new unsaved ADT^A01 with seed 42,
+timestamp `2030-01-01T00:00:00+00:00` and prefix `SYN`. An empty seed also means 42.
+Use a timestamp with seconds and an explicit offset (or Z); it normalizes to UTC.
+Prefixes normalize to uppercase ASCII letters/digits/hyphens/underscores, 1–12 characters.
+The preview shows configuration and the expected control-ID range without generating
+message bodies. Data is conspicuously fictional, generated entirely locally, and
+never derived from the active patient or an external dataset.
+
+Choose a new independent unsaved tab, or the document captured when the dialog opened
+and Before Current/After Current/Beginning/End. Generation enables that document's
+Edit Mode and selects/focuses the first generated message. One Ctrl+Z removes the
+whole batch; one Ctrl+Y restores the same identities/order, also with Edit Mode off.
+Save As uses the normal workflow; generation never saves automatically.
+
+Requests allow 1–1,000 messages and at most 4 Mi UTF-16 units, within existing editor,
+document and history budgets. Generation/validation run in the background; Cancel
+or closing the busy dialog cancels before publication. Existing-document insertion
+first proves the prospective save in private temporary storage. This needs temporary
+disk space for the whole prospective file and can take time on large sources. Unsafe
+joins, ambiguous/batch containers, incomplete drafts or exhausted budgets reject the
+whole request. Complete/undo the draft, choose a safe position, or use a new document.
+No source bytes are repaired or rewritten.
+
+Identical normalized options produce identical canonical UTF-8/CR bytes within
+generator version 1; future versions may change output. Control IDs repeat for repeated
+configurations and guarantee uniqueness within each batch. These are useful synthetic
+examples, without a clinical or implementation-guide conformance claim. Stage 8D
+awaits native Windows acceptance; see the [acceptance record](docs/stage8d-synthetic-generator-acceptance.md).
 
 Stage 8C adds **Add Message** in the Home ribbon, File menu and existing message
 navigator. Choose Before Current, After Current, Beginning or End; positions always

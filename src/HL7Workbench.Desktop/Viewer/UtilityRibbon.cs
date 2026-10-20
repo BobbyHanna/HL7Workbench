@@ -126,7 +126,7 @@ public sealed class UtilityRibbon : Grid
         if (SelectedTab == 0)
         {
             Add("Files", Row(Existing("Open File…", "Open", large: true), TwoRows(Existing("Save HL7", "Save"), Existing("Save HL7 As…", "Save"))));
-            var insert = CommandButton("Add Message", null, "New", large: true, dismiss: false);
+            var insert = CommandButton("Add Message", null, "New", dismiss: false);
             var positions = new MenuFlyout();
             positions.Closed += (_, _) => { if (!IsExpanded) TemporaryPopup.IsOpen = false; };
             foreach (var item in MessageInsertionWorkflow.MenuItems(p => actions[MessageInsertionWorkflow.CommandName(p)]))
@@ -135,7 +135,7 @@ public sealed class UtilityRibbon : Grid
                 positions.Items.Add(item);
             }
             insert.Flyout = positions;
-            Add("Messages", insert);
+            Add("Messages", TwoRows(insert, Existing("Generate Messages", "New")));
             Add("Workspace", Row(TwoRows(Existing("Save Layout", "Layout"), Existing("Restore Layout", "Restore"),
                 Existing("Reset Layout / Recover Windows", "Restore")), Existing("Preferences…", "Settings", large: true)));
         }

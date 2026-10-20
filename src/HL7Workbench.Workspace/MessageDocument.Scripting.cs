@@ -25,7 +25,7 @@ public sealed partial class MessageDocument
         MessageId? targetMessage, long revision, CancellationToken token)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
-        if (IsSaving || IsCapturingScript || IsLoading || !IsSearchCurrent(revision))
+        if (IsSaving || IsCapturingScript || IsPreparingInsertion || IsLoading || !IsSearchCurrent(revision))
             throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Input, "InputUnavailable"));
         IsCapturingScript = true; PropertyChanged?.Invoke(this, new(nameof(IsCapturingScript)));
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, lifetime.Token);

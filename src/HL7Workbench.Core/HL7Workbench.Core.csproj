@@ -1,1 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <InternalsVisibleTo Include="HL7Workbench.Core.Tests" />
+  </ItemGroup>
+</Project>

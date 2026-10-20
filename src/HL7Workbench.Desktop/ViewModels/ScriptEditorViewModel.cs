@@ -70,7 +70,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public ScriptScope Scope { get => scope; set { if (!CanManage || scope == value) return; scope = value; Changed(this, new(nameof(Scope))); } }
     public bool IsBusy { get; private set; }
     public bool CanRun => CanManage && !Session.IsObsolete && Session.Source.Length <= ScriptLimits.ScriptCharacters &&
-        documents.ActiveDocument is { IsLoading: false, IsSaving: false, IsCapturingScript: false, MessageCount: > 0 };
+        documents.ActiveDocument is { IsLoading: false, IsSaving: false, IsCapturingScript: false, IsPreparingInsertion: false, MessageCount: > 0 };
     public bool CanReview => !disposed && outputId is not null && documents.Documents.Any(d => d.Id == outputId);
     public string Status { get; private set; } = "Results open as a new unsaved HL7 document.";
     public string Target => documents.ActiveDocument is { } d ? $"Source: document {d.ActivityNumber}, message {d.MessageNumber} of {d.MessageCount}" : "Open an HL7 document to run a script.";

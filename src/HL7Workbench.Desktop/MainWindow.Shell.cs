@@ -48,8 +48,9 @@ public partial class MainWindow
         var actions = new Dictionary<string, ICommand>
         {
             ["Open File…"] = Action(OpenFile),
-            ["Save HL7"] = Action(SaveDocument, () => documents.ActiveDocument is { IsSaving: false, IsLoading: false }),
-            ["Save HL7 As…"] = Action(SaveDocumentAs, () => documents.ActiveDocument is { IsSaving: false, IsLoading: false }),
+            ["Save HL7"] = Action(SaveDocument, () => documents.ActiveDocument is { IsSaving: false, IsLoading: false, IsPreparingInsertion: false }),
+            ["Save HL7 As…"] = Action(SaveDocumentAs, () => documents.ActiveDocument is { IsSaving: false, IsLoading: false, IsPreparingInsertion: false }),
+            ["Generate Messages"] = new UiCommand(GenerateMessagesAsync),
             ["Save Layout"] = Action(SaveLayout), ["Restore Layout"] = Action(RestoreLayout), ["Preferences…"] = Action(ShowPreferences),
             ["Reset Layout / Recover Windows"] = Action(ResetLayout),
             ["Message Browser"] = Action(ShowBrowser), ["Segment Navigator"] = Action(ShowNavigator), ["Field Inspector"] = Action(ShowFields),
@@ -62,6 +63,7 @@ public partial class MainWindow
             actions.Add(MessageInsertionWorkflow.CommandName(position), new UiCommand(() => InsertMessageAsync(position),
                 () => MessageInsertionWorkflow.CanInsert(documents.ActiveDocument, position)));
         AddMessageMenu.ItemsSource = MessageInsertionWorkflow.MenuItems(p => actions[MessageInsertionWorkflow.CommandName(p)]);
+        GenerateMessagesMenu.Command = actions["Generate Messages"];
         shellCommands = actions.Values.OfType<UiCommand>().ToArray();
         documents.PropertyChanged += ShellCommandsChanged;
         RibbonHost.Content = new UtilityRibbon(preferences, scripts, actions);

@@ -47,7 +47,7 @@ public sealed partial class MessageDocument
         message.RawText.Length > MessagePresentation.MaximumEditorCharacters || message.Segments.Any(s => s.Raw.Length > MaximumEditableLineCharacters) ?
             "Message exceeds the complete-editor or line rendering limit; source inspection remains available." :
         !(message.Encoding.IsSingleByte || message.Encoding.CodePage is 65001 or 1200 or 1201) ? "This encoding supports inspection and exact copying; manual editing is unavailable." : null;
-    public bool CanEditText => !disposed && !IsSaving && !IsCapturingScript && IsEditMode && EditingUnavailableReason is null;
+    public bool CanEditText => !disposed && !IsSaving && !IsCapturingScript && !IsPreparingInsertion && IsEditMode && EditingUnavailableReason is null;
 
     /// <summary>Updates a bounded draft synchronously; parsing is debounced and version-checked off the UI thread.</summary>
     public void ReplaceWorkingText(string text)
@@ -133,7 +133,7 @@ public sealed partial class MessageDocument
     private async Task SaveCoreAsync(string? destination, FileSaveDestination? authorization, CancellationToken token)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
-        if (IsSaving || IsCapturingScript) throw new InvalidOperationException("A save or script capture is already running.");
+        if (IsSaving || IsCapturingScript || IsPreparingInsertion) throw new InvalidOperationException("Wait for saving, script capture or generated-batch validation.");
         var path = Path.GetFullPath(destination ?? SavePath ?? throw new InvalidOperationException("Choose a local destination with Save As."));
         if (Snapshot is { } owned && PhysicalPath(path).StartsWith(PhysicalPath(owned.DirectoryPath) + Path.DirectorySeparatorChar,
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))

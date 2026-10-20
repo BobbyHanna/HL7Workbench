@@ -15,6 +15,10 @@ public partial class MainWindow
         { Status.Text = feedback; return; }
         Status.Text = feedback;
         factory.OpenDocument(document!.Id);
+        await FocusInsertedMessageAsync(document, id);
+    }
+    private async Task FocusInsertedMessageAsync(MessageDocument document, MessageId id)
+    {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             // Menus may close, tabs may change and Dock may rebuild the view before

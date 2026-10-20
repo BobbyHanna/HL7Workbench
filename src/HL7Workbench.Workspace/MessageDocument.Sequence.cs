@@ -56,6 +56,10 @@ public sealed partial class MessageDocument
 
     /// <summary>Atomically inserts one ordered batch as one history operation. No generator or UI behavior is implied.</summary>
     public IReadOnlyList<MessageId> InsertMessages(MessageInsertionPosition position, IReadOnlyList<string> texts)
+        => PublishInsertion(PrepareInsertion(position, texts));
+
+    private sealed record PreparedInsertion(int Index, LogicalMessage[] Entries, EditableMessageBuffer[] Buffers, long Characters);
+    private PreparedInsertion PrepareInsertion(MessageInsertionPosition position, IReadOnlyList<string> texts, CancellationToken token = default, bool generatedContent = false)
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         if (!Enum.IsDefined(position)) throw new ArgumentOutOfRangeException(nameof(position));
@@ -84,8 +88,11 @@ public sealed partial class MessageDocument
         long characters = 0;
         for (var i = 0; i < requested.Length; i++)
         {
+            token.ThrowIfCancellationRequested();
             var text = requested[i] ?? throw new ArgumentException("A draft cannot be null.", nameof(texts));
-            ValidateInsertedText(text);
+            // Only the closed-format Core generator can supply prevalidated content.
+            // Arbitrary UI/API drafts retain their existing scanner validation.
+            if (!generatedContent) ValidateInsertedText(text);
             characters = checked(characters + 2L * text.Length);
             if (characters > MaximumRetainedEditCharacters) throw new Hl7LimitException("RetainedEditHistory");
         }
@@ -97,6 +104,12 @@ public sealed partial class MessageDocument
             entries[i] = new(MessageId.Create(), MessageOrigin.Inserted, null);
             prepared[i] = new(requested[i], searchEncoding);
         }
+        return new(index, entries, prepared, characters);
+    }
+    private IReadOnlyList<MessageId> PublishInsertion(PreparedInsertion insertion)
+    {
+        var (index, entries, prepared, characters) = insertion;
+        CheckHistoryBudget(characters, 0);
         buffers.EnsureCapacity(buffers.Count + entries.Length); undo.EnsureCapacity(undo.Count + 1);
         sequence.Insert(index, entries);
         DropRedo();
@@ -114,7 +127,7 @@ public sealed partial class MessageDocument
         if (structure.Diagnostics.Any(d => d.Code == "MultipleMessages"))
             throw new InvalidOperationException("One insertion draft cannot contain multiple MSH messages. Use batch insertion.");
     }
-    private bool CanMutateHistory => !disposed && !IsSaving && !IsCapturingScript;
+    private bool CanMutateHistory => !disposed && !IsSaving && !IsCapturingScript && !IsPreparingInsertion;
     private void CheckHistoryBudget(long addedBufferCharacters, long addedHistoryCharacters)
     {
         if (bufferCharacters - detachedCharacters + historyCharacters - redoCharacters + addedBufferCharacters + addedHistoryCharacters > MaximumRetainedEditCharacters ||

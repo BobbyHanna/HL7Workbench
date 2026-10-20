@@ -4,6 +4,76 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 8D checkpoint — native accepted; sequential Stage 9 and icon authorization
+
+On 2026-10-20 the user confirmed native Windows acceptance of Stage 8D and authorized
+one local checkpoint, `feat: add Stage 8D synthetic HL7 message generator`, after a
+fresh audit/verification gate. All 35 accepted paths match the saved final manifest.
+The unchanged local _TEST.hl7 and newly supplied assets/branding/workbench-icon-source.png
+are excluded from that checkpoint. The artwork is preserved for the later icon phase.
+This supersedes earlier pending/native-acceptance/no-commit statements below.
+
+After successful checkpoint verification/commit and its clean tracked-tree/empty-index
+gate, implement Stage 9 de-identification aids through the existing Script Library
+and isolated ScriptHost, then integrate derivatives of the approved icon. Do not
+begin those phases if the checkpoint fails. Stage 9/icon changes remain unstaged and
+uncommitted and stop for native Windows acceptance. No push, tag, release, packaging,
+deployment, publication or Stage 10 work is authorized.
+
+Fresh checkpoint verification passed locked restore, Release 0 warnings/errors,
+all 1,416 solution tests (145.094 s), all 698 Workspace stress cases (251.846 s),
+both ScriptHost smoke lifecycles, eight fixture blobs, protected/excluded/icon-source
+hashes and whitespace checks. The exact 35-file inventory and manifests are retained
+under ignored artifacts/stage8d-checkpoint-20261020. Application/test bytes remain
+identical to the native-accepted Stage 8D manifest; only five documentation records
+changed before staging. The hash and post-commit gate are recorded after creation.
+
+## Stage 8D synthetic generator — implemented; native acceptance pending
+
+The mandatory Stage 8C gate passed after local commit
+`ddc18ae63df7ddb31ba55ee35c3c6feffd0d3891` (`feat: add Stage 8C message insertion UI`):
+exactly 30 accepted paths, clean tracked tree/empty index, unchanged excluded user
+file, locked restore, zero-warning Release, 1,327 solution and 656 complete Workspace
+stress cases, both ScriptHost lifecycles, eight fixture blobs and whitespace checks.
+Its manifests/results remain under ignored artifacts/stage8c-checkpoint.
+This latest sequential authorization supersedes older no-8D statements below.
+
+Stage 8D adds Core's deterministic version-1 synthetic HL7 v2.5.1 A01/A04/A08/O01/R01
+generator, Workspace background generation/prospective streaming validation/one-batch
+publication, and Home/File Generate Messages with compact configuration and identifier
+preview. Defaults: new unsaved A01, count 1, seed 42, fixed UTC 2030-01-01 midnight,
+prefix SYN. Generated content uses CR, invariant formatting and an explicit PRNG;
+all identity/provider/facility data is obviously fictional. No imported data is used.
+
+All four insertion positions use the existing sequence/history and stable session IDs.
+Cancellation/failure before publication preserves text, membership, selection, revisions,
+save points and Redo. New output has no filesystem destination or original provenance.
+Prospective validation uses temporary disk proportional to the entire output but
+bounded memory, so unsafe joins/containers/unfinished drafts reject before insertion.
+The existing root shortcut, clipboard and rejected-input transaction fixes are retained.
+See [ADR 0012](decisions/0012-deterministic-synthetic-generation.md) and
+[Stage 8D acceptance](stage8d-synthetic-generator-acceptance.md) for contract, limits,
+verification, performance evidence and executable native Windows steps.
+
+Stage 8D is intentionally uncommitted and awaits native Windows acceptance. No further
+staging/commit, push, tag, release, package, deploy or publication is authorized.
+The excluded samples/synthetic-only/stage5b-repeated-patients_TEST.hl7 remains untouched.
+
+Final Stage 8D verification passed locked restore, Release with zero warnings/errors,
+27 focused Core cases, 132 focused Workspace cases, 65 focused Desktop cases plus
+a 52-case overlapping ribbon/script-editor retest, all 1,416 solution cases and all
+698 complete Workspace stress cases (267.057 s). Both ScriptHost Release-layout smoke
+lifecycles, eight fixture blobs, excluded-user-file integrity and whitespace checks
+passed. New coverage adds 89 cases (27 Core/42 Workspace/20 Desktop), with none removed.
+Stress covered 1/100/1,000 generation, 100,000 live messages and 100/256/512 MiB source
+insertion/save byte preservation. The 512 MiB generation case allocated 14,397,304
+bytes and retained 1,287,272 bytes; observed costs are not performance guarantees.
+Home command overflow was corrected using the existing compact two-row layout, and
+new-output focus waits for actual Dock mounting; existing native input/history files
+remain byte-identical. The final inventory is 35 unstaged paths (21 modified/14 new),
+plus the unchanged excluded user file. Useful reports and reusable generated fixtures
+remain ignored. Stop for native Windows Stage 8D acceptance.
+
 ## Stage 8C checkpoint — native accepted; sequential Stage 8D authorization
 
 On 2026-10-18 the user confirmed successful native Windows Stage 8C acceptance and

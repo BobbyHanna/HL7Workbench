@@ -23,9 +23,9 @@ public sealed partial class MessageDocument
             throw new InvalidOperationException("Structural insertion in batch containers, provisional messages or ambiguous framing is unsupported. Original bytes and existing drafts are retained.");
     }
     private MessageSavePlan BuildSavePlan(CancellationToken token, IReadOnlyList<LogicalMessage>? capturedOrder = null,
-        MessageId? currentScriptTarget = null)
+        MessageId? currentScriptTarget = null, IReadOnlyDictionary<MessageId, EditableMessageBuffer>? insertionBuffers = null)
     {
-        var plan = new MessageSavePlan(Snapshot, searchEncoding, Index is not null || HasStructuralChanges);
+        var plan = new MessageSavePlan(Snapshot, searchEncoding, Index is not null || HasStructuralChanges || insertionBuffers is not null);
         if (HasStructuralChanges) ValidateStructuralSourceBoundary();
         var pending = new List<LogicalMessage>();
         var regions = Index?.Regions.Where(r => r.MessageNumber is null).ToArray() ?? [];
@@ -36,7 +36,7 @@ public sealed partial class MessageDocument
         void Validate(LogicalMessage entry, Action action)
         {
             try { action(); }
-            catch (Exception error) when (capturedOrder is not null && error is Hl7LimitException or System.Text.EncoderFallbackException or InvalidOperationException)
+            catch (Exception error) when (insertionBuffers is null && capturedOrder is not null && error is Hl7LimitException or System.Text.EncoderFallbackException or InvalidOperationException)
             { throw new CaptureMessageException(entry.Id, error); }
         }
         void GapsThrough(long end)
@@ -53,13 +53,15 @@ public sealed partial class MessageDocument
         {
             foreach (var entry in pending)
             {
-                token.ThrowIfCancellationRequested(); var buffer = buffers[entry.Id];
+                token.ThrowIfCancellationRequested(); var buffer = insertionBuffers?.GetValueOrDefault(entry.Id) ?? buffers[entry.Id];
                 Validate(entry, () =>
                 {
-                    var parsed = buffer.Parse();
                     if (buffer.Text.Length == 0 || !buffer.Text.StartsWith("MSH", StringComparison.Ordinal))
                         throw new InvalidOperationException($"Save refused: message {GetLogicalPosition(entry.Id)} is an inserted draft that needs a recoverable MSH start. Empty drafts cannot be omitted. Complete the draft or undo insertion.");
-                    ValidatePayloadBoundary(buffer, parsed);
+                    // These overlays are exclusively closed-format, bounded Core
+                    // generator output. Avoid materializing 1,000 full hierarchies;
+                    // strict encoding plus the prospective index/byte proof still run.
+                    if (insertionBuffers?.ContainsKey(entry.Id) != true) ValidatePayloadBoundary(buffer, buffer.Parse());
                     plan.Inserted(entry, buffer, framed);
                 });
             }

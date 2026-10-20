@@ -41,7 +41,7 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
     {
         var document = documents.SingleOrDefault(d => d.Id == id);
         if (document is null) return true;
-        if (document.IsSaving || document.IsDirty && !discardChanges) return false;
+        if (document.IsSaving || document.IsPreparingInsertion || document.IsDirty && !discardChanges) return false;
         documents.Remove(document);
         document.PropertyChanged -= ContentChanged;
         document.Dispose();
@@ -55,7 +55,7 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
     {
         if (e.PropertyName == nameof(MessageDocument.DisplayTitle)) RefreshGeneratedTitles();
         if (sender is MessageDocument document && e.PropertyName == "ActiveContent") document.ObserveActivity();
-        if (ReferenceEquals(sender, ActiveDocument) && e.PropertyName is "ActiveContent" or nameof(MessageDocument.IsSaving) or nameof(MessageDocument.IsCapturingScript))
+        if (ReferenceEquals(sender, ActiveDocument) && e.PropertyName is "ActiveContent" or nameof(MessageDocument.IsSaving) or nameof(MessageDocument.IsCapturingScript) or nameof(MessageDocument.IsPreparingInsertion))
             PropertyChanged?.Invoke(this, new("ActiveContent"));
     }
     private void RefreshGeneratedTitles()

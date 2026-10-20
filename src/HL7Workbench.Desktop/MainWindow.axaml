@@ -11,6 +11,7 @@
         <MenuItem Header="_Save" Click="SaveDocument" InputGesture="Ctrl+S" />
         <MenuItem Header="Save _As…" Click="SaveDocumentAs" InputGesture="Ctrl+Shift+S" />
         <MenuItem x:Name="AddMessageMenu" Header="_Add Message" />
+        <MenuItem x:Name="GenerateMessagesMenu" Header="_Generate Messages…" />
       </MenuItem>
       <MenuItem Header="_Settings">
         <MenuItem Header="_Preferences…" Click="ShowPreferences" />

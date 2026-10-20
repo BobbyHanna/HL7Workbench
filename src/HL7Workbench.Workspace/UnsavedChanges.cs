@@ -8,7 +8,7 @@ public static class UnsavedChanges
     public static async Task<bool> ConfirmAsync(MessageDocument document,
         Func<MessageDocument, Task<UnsavedChangesDecision>> prompt, Func<MessageDocument, Task<bool>> save)
     {
-        if (document.IsSaving) return false;
+        if (document.IsSaving || document.IsPreparingInsertion) return false;
         if (!document.IsDirty) return true;
         var version = document.ContentVersion;
         var choice = await prompt(document);
