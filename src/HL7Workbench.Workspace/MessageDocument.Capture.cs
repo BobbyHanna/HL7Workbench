@@ -11,4 +11,6 @@ public sealed partial class MessageDocument
 
     internal LogicalMessage? FindMessage(MessageId id) => sequence.Position(id) is > 0 and var position ? sequence[position - 1] : null;
     internal MessageId OriginalMessageId(int sourceOrdinal) => originalIds[sourceOrdinal - 1];
+    internal FileSaveDestination[] ExtractionDestinations() => new[] { associatedDestination, Snapshot?.OriginalDestination }
+        .OfType<FileSaveDestination>().Distinct().ToArray();
 }

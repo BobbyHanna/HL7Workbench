@@ -18,6 +18,11 @@ public sealed class FileSaveDestination
     public string Path { get; }
     public bool ReplacesExistingFile => version is not null;
     internal bool IsWithinDirectory(string directory) => physicalPath.StartsWith(PhysicalPath(directory) + System.IO.Path.DirectorySeparatorChar, Comparison);
+    // Read-only exports must not replace their source, including a Windows hard-link
+    // alias. Reuse the identities already captured for safe publication; no path/content logging.
+    internal bool RefersToSameFile(FileSaveDestination other) => string.Equals(physicalPath, other.physicalPath, Comparison) ||
+        OperatingSystem.IsWindows() && version is not null && other.version is not null && version.Identity.FileId != 0 &&
+        version.Identity.Volume == other.version.Identity.Volume && version.Identity.FileId == other.version.Identity.FileId;
     private FileSaveDestination(string path, string physicalPath, Version? version)
     { Path = path; this.physicalPath = physicalPath; this.version = version; }
 

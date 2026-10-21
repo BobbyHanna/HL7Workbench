@@ -1,4 +1,4 @@
-using System.Text;
+using HL7Workbench.Core;
 
 namespace HL7Workbench.Scripting;
 
@@ -88,17 +88,8 @@ public sealed class ScriptBatch
         Check();
         if (!header && reportRows >= ScriptLimits.ReportRows) throw Failure("ReportLimit");
         if (values.Any(v => v?.Length > ScriptLimits.ReportCellCharacters)) throw Failure("ReportLimit");
-        // All cells (including headings) are quoted. Prefix an apostrophe when a spreadsheet
-        // could interpret a formula, including after whitespace/control characters. Null == empty.
-        var text = string.Join(",", values.Select(v =>
-        {
-            var cell = v ?? "";
-            var start = 0;
-            while (start < cell.Length && (char.IsWhiteSpace(cell[start]) || char.IsControl(cell[start]))) start++;
-            if (start < cell.Length && cell[start] is '=' or '+' or '-' or '@' || cell.Length > 0 && cell[0] is '\t' or '\r' or '\n') cell = "'" + cell;
-            return "\"" + cell.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
-        })) + "\r\n";
-        var bytes = new UTF8Encoding(false, true).GetBytes(text);
+        // Share the existing spelling/formula policy with read-only field extraction.
+        var bytes = CsvRecordEncoder.Encode(values);
         if (reportBytes + bytes.Length > ScriptLimits.ReportBytes || pendingBytes + bytes.Length > ScriptLimits.ReportOperationBytes)
             throw Failure("ReportLimit");
         pending.Add(new(name, bytes, header)); pendingBytes += bytes.Length; reportBytes += bytes.Length;

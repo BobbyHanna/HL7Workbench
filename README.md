@@ -6,6 +6,14 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 9C is checkpointed locally. Stage 10 adds read-only **Field Extraction** from
+View or an HL7 document's **Extract Fields** action: configurable paths, first or
+expanded matches, paged results, literal/state/numeric filters, sorting, saved user
+configurations and complete selected-result CSV export. Captured revisions and
+stale/closed sources remain explicit. See the [extraction guide](docs/field-extraction.md)
+for alignment, value states, privacy and limits. Stage 10 passed user native Windows
+acceptance on 2026-10-21; one local checkpoint is authorized after fresh verification.
+
 Stage 8D synthetic generation passed user native Windows acceptance on 2026-10-20.
 Earlier pending-acceptance notes below are retained as historical implementation records.
 The approved M/W application icon is integrated; see [branding](docs/branding.md)

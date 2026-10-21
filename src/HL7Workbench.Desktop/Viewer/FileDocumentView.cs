@@ -24,6 +24,7 @@ public sealed class FileDocumentView : ContentControl
     private readonly Button retry = new() { Content = "Retry" };
     private readonly Button cancel = new() { Content = "Cancel scan" };
     public Button AddMessage { get; } = new() { Content = "Add Message", Margin = new(2) };
+    public Button ExtractFields { get; } = new() { Content = "Extract fields", Margin = new(2) };
     public UiCommand NextMessageCommand { get; }
     public IReadOnlyDictionary<MessageInsertionPosition, UiCommand> InsertionCommands { get; }
     public MessageDocument Document => document;
@@ -71,6 +72,8 @@ public sealed class FileDocumentView : ContentControl
         go.Click += async (_, _) => await JumpAsync(); toolbar.Children.Add(go);
         Button(">", "Next matching/logical message", () => NavigatorTarget(2)); Button(">|", "Last matching/logical message", () => NavigatorTarget(3));
         toolbar.Children.Add(AddMessage);
+        ExtractFields.Click += (_, _) => RaiseEvent(new RawInspectorRequestEventArgs(document, null, null) { RoutedEvent = ViewerRequests.FieldExtractionEvent });
+        toolbar.Children.Add(ExtractFields);
         retry.Click += async (_, _) => await NavigateAsync(document.MessageNumber);
         toolbar.Children.Add(retry);
         cancel.Click += (_, _) => document.CancelScan(); toolbar.Children.Add(cancel);

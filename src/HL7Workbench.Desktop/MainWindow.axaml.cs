@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private readonly InspectionToolViewModel fields;
     private readonly ScriptEditorViewModel scripts;
     private readonly ScriptApiReferenceViewModel scriptReference = new();
+    private readonly ExtractionConfigurationSession extractionDraft;
     private readonly SearchViewModel search;
     private readonly CancellationTokenSource lifetime = new();
     private bool opening;
@@ -35,6 +36,7 @@ public partial class MainWindow : Window
         scripts = new(documents, new ScriptLibrary(Path.Combine(configurationDirectory, "Scripts")),
             preferencesPath: Path.Combine(configurationDirectory, "script-editor-preferences.json"));
         scripts.PromptUnsavedAsync = PromptUnsavedScriptAsync;
+        extractionDraft = new(new ExtractionLibrary(Path.Combine(configurationDirectory, "Extractions")));
         search = new(documents, new SearchLibrary(Path.Combine(configurationDirectory, "Searches")), preferences);
         registry.Register(new(WorkspaceDockFactory.BrowserId, "Message Browser", () => browser));
         registry.Register(new(WorkspaceDockFactory.ActivityLogId, "Activity Log", () => new ActivityLogViewModel(documents.Activity), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
@@ -44,6 +46,7 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
         registry.Register(new(WorkspaceDockFactory.ScriptApiReferenceId, "Script API Reference", () => scriptReference, Optional: true, RestoreVisibility: true));
         scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
+        registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);
@@ -73,6 +76,7 @@ public partial class MainWindow : Window
         {
             OpenComparison().CompareWithOriginal(e.Document); e.Handled = true;
         });
+        AddHandler(Viewer.ViewerRequests.FieldExtractionEvent, (_, e) => { OpenFieldExtraction(e.Document); e.Handled = true; });
         browser.OpenRequested += factory.OpenDocument;
         WorkspaceDock.Layout = factory.CreateLayout();
         InitializeShell();

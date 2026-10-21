@@ -1,5 +1,39 @@
 # Architecture
 
+Stage 10 passed user native Windows acceptance on 2026-10-21. One exact 33-path local
+checkpoint is authorized after fresh verification; older pending statements below
+are historical. Stage 11 Synthea/FHIR integration follows only after checkpoint
+success, remains uncommitted and stops for native acceptance. No external Git or
+publication operation is authorized.
+
+Stage 9C passed native Windows acceptance and is checkpointed locally as
+867016c3d1eab969c4a1853994eedb95621ad4f0. Stage 10 implements read-only extraction;
+its changes remain unstaged/uncommitted pending native acceptance. Older milestone
+authorization/pending statements below are historical.
+
+Field Extraction reuses immutable MessageDocument search captures/read leases,
+indexed payload access, large-message decoded spools and Core's structural scanner,
+path and escape APIs. Core selection preserves explicit occurrence/repetition intent;
+ordinal alignment broadcasts scalar columns without Cartesian multiplication or
+clinical group inference. Complete bounded values enter a private sealed snapshot
+journal; only row offsets, stable identity metadata, selected integer indexes and
+bounded sort keys remain resident. Pages carry abbreviated presentation cells.
+Filtering/sorting and CSV read authoritative journal values in cancellable background
+operations. Source edits cancel scanning and mark completed results stale; document
+closure/replacement cannot retarget stable message navigation.
+
+Workspace owns extraction/configuration/result lifetimes without UI/Dock types.
+Desktop supplies an ordinary optional release-on-close tool and retains only its
+configuration draft separately; saved layouts contain placement, not source/results
+or comparison literals. User configuration records contain selectors/preferences
+only, with bounded validation, optimistic revisions and existing atomic destination
+publication. CSV uses the existing file consent/version/atomic write boundary and
+rejects source/storage aliases. A pure Core CSV record encoder is shared with
+ScriptBatch to retain identical escaping/formula policy; scripting bounds, worker,
+save semantics, message identity, Dock schema and dependencies do not change.
+See [ADR 0014](decisions/0014-read-only-field-extraction.md), the
+[user guide](field-extraction.md) and [acceptance record](stage10-extraction-analysis-acceptance.md).
+
 Stage 9 and optimized branding passed user native Windows acceptance on 2026-10-20.
 One local checkpoint is authorized after fresh verification; earlier pending notes
 below are historical. Stage 9C follows only after that checkpoint succeeds and must

@@ -20,6 +20,9 @@ internal static class ConfirmationDialog
     internal static Window DeleteSearch(string name) => Create("Delete Search",
         $"Delete saved search ‘{name}’? Its local definition will be permanently removed. The current query, results and source documents are kept.",
         ("Delete Search", true), ("Cancel", false));
+    internal static Window DeleteExtraction(string name) => Create("Delete Extraction Configuration",
+        $"Delete saved extraction configuration ‘{name}’? Its local definition will be removed; HL7 sources and exported CSV files are kept.",
+        ("Delete Configuration", true), ("Cancel", false));
     private static Window Create<T>(string title, string prompt, params (string Label, T Result)[] choices)
     {
         var dialog = new Window { Title = title, Width = 420, MinWidth = 400, MaxWidth = 440, SizeToContent = SizeToContent.Height,

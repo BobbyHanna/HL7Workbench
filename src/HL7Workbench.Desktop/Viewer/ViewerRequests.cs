@@ -18,6 +18,8 @@ public sealed class RawInspectorRequestEventArgs(MessageDocument document, Chara
 /// <summary>View-to-shell intent, without coupling viewer controls to Dock.</summary>
 public static class ViewerRequests
 {
+    public static readonly RoutedEvent<RawInspectorRequestEventArgs> FieldExtractionEvent =
+        RoutedEvent.Register<Control, RawInspectorRequestEventArgs>("FieldExtraction", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<RawInspectorRequestEventArgs> CompareOriginalEvent =
         RoutedEvent.Register<Control, RawInspectorRequestEventArgs>("CompareOriginal", RoutingStrategies.Bubble);
     public static void AttachComparisonMenu(Control control, MessageDocument document)

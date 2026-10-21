@@ -4,6 +4,70 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 10 native acceptance — checkpoint then Stage 11 authorization
+
+On 2026-10-21 the user confirmed Stage 10 native Windows acceptance. One exact
+33-path local checkpoint is authorized after a fresh established verification gate,
+message `feat: add Stage 10 HL7 field extraction and analysis`, expected parent
+867016c3d1eab969c4a1853994eedb95621ad4f0. Accepted implementation/test hashes,
+protected fixtures/artwork and excluded untracked HL7 match; index empty. Older
+pending/no-commit/Stage-11 restrictions below are historical. If checkpoint fails,
+stop. Evidence: artifacts/stage10-checkpoint-20261021.
+
+Fresh Stage 10 checkpoint gate passed: locked restore; Release 0 warnings/errors;
+1,602 solution tests and 761 complete Workspace stress tests, no failures/skips;
+both ScriptHost lifecycles, API-reference synchronization, eight exact fixture blobs,
+all 13 protected hashes, unchanged icon derivatives and text whitespace. All accepted
+implementation/test bytes match; only native-acceptance records were updated.
+
+After clean tracked-tree/empty-index checkpoint verification, proceed automatically
+to Stage 11: local/offline, explicitly synthetic-only FHIR R4 Bundle import, bounded
+session patient/timeline browsing and conservative documented ADT/ORU generation
+into independent unsaved HL7 documents with count-only Generation Reports. Reuse
+existing generator/publication/Dock infrastructure. Stage 11 must remain unstaged
+and uncommitted and stop for native Windows acceptance. No push/tag/package/deploy/
+release/publication or Stage 12 is authorized.
+
+## Stage 10 implementation — awaiting native Windows acceptance
+
+Stage 9C checkpoint completed as **867016c3d1eab969c4a1853994eedb95621ad4f0**, the
+authorized exact 28-path local commit with parent ea897decdbd79d067d13552e972ab456885a61d6.
+Post-commit tracked tree/index were clean; the excluded _TEST.hl7 was preserved.
+Fresh checkpoint verification passed 1,544 solution and 733 complete Workspace
+stress tests, locked restore, zero-warning Release build, both ScriptHost smoke
+lifecycles, generated-reference synchronization, eight fixture blobs and all 13
+protected hashes. Evidence: artifacts/stage9c-checkpoint-20261021.
+
+Stage 10 adds View/document Field Extraction, editable ordered path configurations,
+the immutable duplicable Interface Overview, First Match/ordinal Expand Matches,
+explicit value states, captured-revision/stale/closed results and stable navigation.
+Core scanner/path/escape APIs and Workspace immutable captures remain authoritative.
+Private disk-backed results feed 100-row virtualized pages, cancellable literal/state/
+numeric filters, stable sorting, bounded summaries and complete selected-result CSV.
+CSV retains formula/state fidelity and uses existing atomic publication/source alias
+guards. Saved user definitions retain preferences without source/results/filter
+literals; optional tool closure drains storage and retains the configuration draft
+only. No source mutation, worker protocol, new dependency or Dock schema change.
+
+Ceilings are explicit: 32 columns, 4,096 rows/message, 1,000,000 result rows, 1 GiB
+journal, 65,536 UTF-16 units/value, 4 MiB sort keys, 1,024 distinct hashes/column and
+4 GiB CSV. Expansion is ordinal alignment, not a clinical group join; diagnostics
+and truncation require review. See docs/field-extraction.md and ADR 0014.
+
+Stage 10 final verification results and the exact inventory are recorded in
+docs/stage10-extraction-analysis-acceptance.md. Final gate passed: locked restore;
+Release build with 0 warnings/errors; focused 22 Core, 28 Workspace/library,
+86 Desktop and 63 shared-CSV/API/real-worker Scripting cases; **1,602 solution tests**
+(2m 59.818s), **761 complete Workspace stress tests** (5m 12.293s), no failures/skips;
+both ScriptHost lifecycles, generated-reference sync, eight fixture blobs, all 13
+protected hashes, unchanged ICO/master and whitespace. Verified implementation/test
+hashes are unchanged. Evidence: artifacts/stage10. HEAD remains the Stage 9C
+checkpoint, index empty; 33 Stage 10 paths (15 modified, 18 new) plus the unchanged
+excluded untracked HL7. All Stage 10 changes must remain
+unstaged/uncommitted. Stop for native Windows acceptance; no Stage 10 commit, push,
+tag, package, deploy, publication, release or Stage 11 is authorized. Earlier pending
+Stage 9C/checkpoint instructions below are historical.
+
 ## Stage 9C native acceptance — checkpoint then Stage 10 authorization
 
 On 2026-10-21 the user confirmed Stage 9C native Windows acceptance and authorized
