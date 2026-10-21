@@ -156,7 +156,7 @@ public sealed class SearchToolTests
                 window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); Assert.Equal(1, focusRequests);
                 var idleSearch = model.SearchingTask;
                 var menu = window.FindControl<Menu>("MainMenu")!;
-                Assert.Equal(new[] { "_File", "_Settings", "_View" }, menu.Items.Cast<MenuItem>().Select(m => m.Header));
+                Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menu.Items.Cast<MenuItem>().Select(m => m.Header));
                 var findMenu = ((MenuItem)menu.Items[2]!).Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_Find Messages"));
                 Assert.Same(model.OpenCommand, findMenu.Command); Assert.Equal("Find Messages", AutomationProperties.GetName(findMenu));
                 Assert.Equal(Avalonia.Input.Key.F, findMenu.InputGesture!.Key); Assert.Equal(KeyModifiers.Control, findMenu.InputGesture.KeyModifiers);

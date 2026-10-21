@@ -27,7 +27,7 @@ public sealed partial class ScriptEditorTests
     private static void SendShellKey(Control control, Avalonia.Input.Key key) => control.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
 
     [Fact]
-    public async Task ActualMainWindowHasOnlyFileSettingsAndViewMenusWithExistingToolsAndShortcuts()
+    public async Task ActualMainWindowHasFileSettingsViewAndHelpMenusWithExistingToolsAndShortcuts()
     {
         await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
         await ui.Dispatch(() =>
@@ -37,7 +37,8 @@ public sealed partial class ScriptEditorTests
             {
                 var menu = window.FindControl<Menu>("MainMenu")!;
                 var menus = menu.Items.Cast<MenuItem>().ToArray();
-                Assert.Equal(new[] { "_File", "_Settings", "_View" }, menus.Select(i => i.Header));
+                Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menus.Select(i => i.Header));
+                Assert.Equal("Script _API Reference", Assert.Single(menus[3].Items.Cast<MenuItem>()).Header);
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
                 Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "_Find Messages", "Full _Source Viewer" },
                     menus[2].Items.Cast<MenuItem>().Select(i => i.Header));

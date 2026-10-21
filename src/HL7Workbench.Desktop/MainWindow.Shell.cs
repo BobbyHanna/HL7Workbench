@@ -30,6 +30,7 @@ public partial class MainWindow
             Dispatcher.UIThread.Post(scripts.NotifyEditorShown);
         };
         scripts.ConfirmDeleteAsync = ConfirmDeleteScriptAsync;
+        scripts.ApiReferenceRequested += () => ShowScriptApiReference(this, new());
         scripts.ShowReportsAsync = () => new ScriptReportsWindow(scripts).ShowDialog(DialogOwner());
         search.OpenRequested += () => { factory.ShowTool(WorkspaceDockFactory.SearchResultsId); Dispatcher.UIThread.Post(search.NotifyShown); };
         search.ConfirmDeleteAsync = name => ConfirmationDialog.DeleteSearch(name).ShowDialog<bool>(DialogOwner());

@@ -36,6 +36,7 @@ public sealed class ScriptEditorView : Grid
     public TextBlock ScopeLabel { get; } = new() { Text = "Apply to:", VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public Button New { get; } = new() { Content = "New" };
     public Button Save { get; } = new() { Content = "Save Script" };
+    public Button ApiReference { get; } = new() { Content = "API Reference" };
     public MenuItem Duplicate { get; } = new() { Header = "Duplicate Script" };
     public MenuItem Rename { get; } = new() { Header = "Rename Script" };
     public MenuItem Delete { get; } = new() { Header = "Delete Script…" };
@@ -69,7 +70,9 @@ public sealed class ScriptEditorView : Grid
         foreach (var item in new[] { Duplicate, Rename, Delete, Review, Reports }) actions.Items.Add(item);
         Actions.Flyout = actions; AutomationProperties.SetName(Actions, "Script actions");
         var nameHost = new Grid(); nameHost.Children.Add(NameDisplay); nameHost.Children.Add(ScriptName);
-        LibraryToolbar = Toolbar(Library, nameHost, New, Save, Actions);
+        ApiReference.Command = model.ApiReferenceCommand;
+        ToolTip.SetTip(ApiReference, "Open the offline Script API Reference, searchable examples and starter templates.");
+        LibraryToolbar = Toolbar(Library, nameHost, New, Save, Actions, ApiReference);
         Children.Add(LibraryToolbar);
         ExecutionToolbar = Toolbar(ScopeLabel, ExecutionScope, Run, Cancel, ExecutionStatus);
         SetRow(ExecutionToolbar, 1); Children.Add(ExecutionToolbar);
@@ -87,7 +90,8 @@ public sealed class ScriptEditorView : Grid
         DiagnosticPanel.Content = Diagnostics;
         ToolTip.SetTip(DiagnosticPanel, "Expand diagnostics, then double-click an entry to navigate to its script line.");
         SetRow(DiagnosticPanel, 4); Children.Add(DiagnosticPanel);
-        Library.ItemTemplate = new FuncDataTemplate<ScriptLibraryItem>((item, _) => new TextBlock { Text = item is null ? "" : (item.Obsolete ? "[Needs update] " : "") + item.Name });
+        Library.ItemTemplate = new FuncDataTemplate<ScriptLibraryItem>((item, _) => new TextBlock { Text = item is null ? "" :
+            (item.Bundled ? "Built-in · " : "My Scripts · ") + (item.Obsolete ? "[Needs update] " : "") + item.Name });
         ToolTip.SetTip(New, "Create one C# script with void Main() for either scope. Top-level state initializes once; optional void Complete() runs after all messages.");
         ToolTip.SetTip(NameDisplay, "Click to rename. Enter confirms; Escape cancels. Save Script persists the name and code. Duplicate bundled examples first.");
         ToolTip.SetTip(ScriptName, "Enter confirms the name; Escape cancels. Invalid names leave the previous name intact.");

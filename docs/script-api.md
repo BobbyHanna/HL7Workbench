@@ -1,5 +1,40 @@
 # Unified C# scripting API
 
+## Offline reference and starter examples (Stage 9C)
+
+Open **Help → Script API Reference** or the visible **API Reference** button beside
+the Script Library controls. The dockable/modeless tool works without a document or
+network. Search class/member/property names or keywords, select a category, inspect
+signatures/parameters/returns/limits and use Back to restore previous navigation.
+Copy signature or Copy example uses the normal clipboard; paste examples into an
+editable script with Ctrl+V. Built-ins remain read-only until Duplicate Script.
+
+Search `starter` for six complete examples: guarded PID read/write, host-driven
+message iteration, an existing field repetition, independent output, a count-only
+bounded CSV and the existing synthetic identity helper. **Create editable script**
+opens an unsaved My Scripts draft after the normal Save/Discard/Cancel prompt. Save
+Script, reopen and Run in either Apply to scope. This adds no duplicate built-in
+presets; duplicate Patient Deidentifier to customize its complete supported policy.
+User copies keep independent IDs/source through application/built-in updates.
+
+The authoritative [versioned JSON](script-api-reference.json) is embedded verbatim
+in Workspace and drives in-app descriptions, search and starter source. The
+[readable reference](script-api-reference.md) is generated from it, including every
+supported declared public facade/helper member. Edit JSON, run
+`python build/WriteScriptApiReference.py`, and check with `--check`. The permanent
+tests classify every public scripting type, compare supported member inventories
+(including overload counts) and compile/execute every distinct complete example
+through the real worker. Generated record/inherited .NET members and parent transport
+types are explicitly outside host authoring operations. The sections below explain
+the existing workflows and transaction contracts; member details live in the catalog.
+
+The existing public SyntheticIdentityLibrary and DeidentificationWorkflow already
+work in authored scripts. No additional facade, execution capability, dependency,
+engine/editor rewrite or completion system is introduced. Helpers use bundled data
+and execution-local mappings without IO/network. Trusted arbitrary C# still has the
+user's permissions; ScriptHost containment is not an OS security sandbox. See the
+[Stage 9C acceptance record](stage9c-script-developer-experience-acceptance.md).
+
 Stage 9 adds three reviewable/duplicable Script Library presets: **Patient Deidentifier**,
 **Identifier Pseudonymizer**, **Timestamp Shifter**. Each initializes a run-local
 `DeidentificationWorkflow(new DeidentificationOptions { Preset = ..., Seed = 42 }, Cancellation)`,
@@ -34,7 +69,7 @@ Whole document**, and Run. The identical script works in either scope. There are
 no Message/Batch script types. Duplicate makes editable copies of immutable examples
 or the current draft; Ctrl+S saves the script, independently of the HL7 document.
 The Scripts ribbon and editor ⋯ share commands. The permanent menu is File | Settings |
-View; Scripts ribbon → Open Script Editor also reveals/focuses the retained tool. Click the
+View | Help; Scripts ribbon → Open Script Editor also reveals/focuses the retained tool. Click the
 current name to rename; Enter/focus loss confirms a valid draft name, Escape cancels,
 and Save Script persists it with current code. Delete Script requires saved user
 ownership, dirty-draft handling and confirmation; immutable examples are protected.

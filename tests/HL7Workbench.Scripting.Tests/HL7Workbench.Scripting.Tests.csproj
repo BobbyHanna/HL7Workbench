@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../docs/script-api-reference.json" LogicalName="HL7Workbench.ScriptApiReference.json" />
     <ProjectReference Include="../../src/HL7Workbench.Scripting/HL7Workbench.Scripting.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>

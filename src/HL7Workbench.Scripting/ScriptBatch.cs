@@ -22,7 +22,8 @@ public sealed class ScriptBatch
     private Action? process, complete;
     internal ScriptMessage CurrentMessage
     { get { Check(); return current ?? throw Failure("LifecyclePhase"); } }
-    /// <summary>Original one-based document ordinal during Main; zero in initialization/Complete.</summary>
+    /// <summary>One-based captured job ordinal during Main; zero in initialization/Complete.
+    /// Current-message scope uses 1 regardless of the selected document position.</summary>
     public int MessageNumber => currentNumber;
 
     /// <summary>Suggests only an output filename, including from Complete. The last valid suggestion wins;

@@ -18,6 +18,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string NavigatorId = "tool.segment-navigator";
     public const string FieldInspectorId = "tool.field-inspector";
     public const string ScriptEditorId = "tool.script-editor";
+    public const string ScriptApiReferenceId = "tool.script-api-reference";
     // Keep the original Search Results identity so saved layouts restore Find Messages.
     public const string SearchResultsId = "tool.search-results";
     public const string ComparisonId = "tool.message-comparison";

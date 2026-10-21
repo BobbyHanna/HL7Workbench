@@ -36,8 +36,9 @@ public sealed partial class ScriptEditorTests
                 var selected = Assert.IsType<ScriptLibraryItem>(view.Library.SelectedItem);
                 Assert.Equal(model.Session.DisplayName, selected.Name); Assert.False(selected.Obsolete);
                 var toolbar = ((StackPanel)view.LibraryToolbar.Content!).Children;
-                Assert.Equal(5, toolbar.Count); Assert.Same(view.Library, toolbar[0]); Assert.Same(view.New, toolbar[2]);
+                Assert.Equal(6, toolbar.Count); Assert.Same(view.Library, toolbar[0]); Assert.Same(view.New, toolbar[2]);
                 Assert.Same(view.Save, toolbar[3]); Assert.Same(view.Actions, toolbar[4]); Assert.NotNull(view.Actions.Flyout);
+                Assert.Same(view.ApiReference, toolbar[5]); Assert.Same(model.ApiReferenceCommand, view.ApiReference.Command);
                 Assert.Same(model.DuplicateCommand, view.Duplicate.Command); Assert.Same(model.ReportsCommand, view.Reports.Command);
                 Assert.True(model.Session.Save()); var id = model.Session.Id; var saved = model.Session.Source;
                 model.Session.Source += "\n// synthetic draft"; var draft = model.Session.Source;

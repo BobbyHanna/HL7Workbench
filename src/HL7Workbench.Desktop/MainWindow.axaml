@@ -25,6 +25,9 @@
         <MenuItem x:Name="FindMessagesMenu" Header="_Find Messages" InputGesture="Ctrl+F" ToolTip.Tip="Open Find Messages and focus the search value (Ctrl+F)" AutomationProperties.Name="Find Messages" />
         <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
       </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem x:Name="ScriptApiReferenceMenu" Header="Script _API Reference" Click="ShowScriptApiReference" />
+      </MenuItem>
     </Menu>
     <ContentControl x:Name="RibbonHost" Grid.Row="1" />
     <dock:DockControl x:Name="WorkspaceDock" Grid.Row="2" />

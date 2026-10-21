@@ -29,6 +29,7 @@ public sealed class DockContentTemplate : IDataTemplate
         if (context is FullRawInspectorViewModel raw) return new Viewer.FullRawInspectorHost(raw);
         if (context is ActivityLogViewModel activity) return new Viewer.ActivityLogView(activity);
         if (context is ScriptEditorViewModel script) return new Viewer.ScriptEditorView(script);
+        if (context is ScriptApiReferenceViewModel reference) return new Viewer.ScriptApiReferenceView(reference);
         if (context is SearchViewModel search) return new Viewer.SearchResultsView(search);
         if (context is ComparisonViewModel comparison) return new Viewer.ComparisonView(comparison);
         if (context is InspectionToolViewModel inspection) return new Viewer.InspectionToolHost(inspection);

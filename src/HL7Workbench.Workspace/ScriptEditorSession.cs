@@ -91,6 +91,13 @@ public sealed class ScriptEditorSession : INotifyPropertyChanged
         if (!await ConfirmChangesAsync(prompt)) return false;
         Apply(new(Guid.NewGuid(), "New script", "void Main()\n{\n}\n", "")); return true;
     }
+    /// <summary>Creates an unsaved user draft from a bundled starter, using the same dirty-draft consent as New.</summary>
+    public async Task<bool> CreateFromReferenceAsync(string entryId, Func<Task<UnsavedChangesDecision>> prompt)
+    {
+        var starter = ScriptApiReference.Current.Entries.SingleOrDefault(e => e.Id == entryId && e.TemplateName is not null);
+        if (starter is null || !await ConfirmChangesAsync(prompt)) return false;
+        Apply(new(Guid.NewGuid(), starter.TemplateName!, starter.Example, "")); return true;
+    }
     /// <summary>Duplicate the actual draft, including unsaved content, without overwriting its saved original.</summary>
     public bool Duplicate()
     {

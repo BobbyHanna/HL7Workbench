@@ -1,0 +1,928 @@
+{
+  "Version": 1,
+  "ApiVersion": 2,
+  "Scope": "Supported user-script facade and helpers in HL7Workbench.Scripting, API 2. Inherited .NET members and compiler-generated record equality, printing, copying and deconstruction use ordinary C# semantics; they are not host operations. Host transport/orchestration types are classified separately and are not supported authoring facilities.",
+  "SupportedTypes": [
+    "ScriptGlobals",
+    "ScriptMessage",
+    "ScriptSegment",
+    "ScriptValue",
+    "ValueState",
+    "ScriptBatch",
+    "ScriptDeferredMessage",
+    "ScriptCsvReport",
+    "ScriptScope",
+    "ScriptPhase",
+    "ScriptDiagnostic",
+    "ScriptRunException",
+    "ScriptLimits",
+    "ScriptOutputFileName",
+    "SyntheticIdentityLibrary",
+    "SyntheticIdentity",
+    "DeidentificationWorkflow",
+    "DeidentificationOptions",
+    "DeidentificationPreset",
+    "DeidentificationSummary",
+    "DeidentificationCategory",
+    "DeidentificationCategoryCount"
+  ],
+  "InfrastructureTypes": {
+    "ScriptDefinition": "Host submission and API-version DTO, not a script entry point.",
+    "ScriptWorkerOptions": "Parent process configuration; scripts cannot reconfigure their owning worker.",
+    "ScriptWorkerSession": "Parent worker orchestration/transport, not a facade operation.",
+    "ScriptMessageResult": "Parent transport result DTO.",
+    "ScriptProgress": "Parent progress DTO.",
+    "ScriptReportChunk": "Parent report journal transport DTO."
+  },
+  "Entries": [
+    {
+      "Id": "lifecycle",
+      "Title": "Main / Complete and execution scopes",
+      "Category": "Getting started",
+      "Members": [
+        "ScriptScope.CurrentMessage",
+        "ScriptScope.WholeDocument"
+      ],
+      "Signature": "void Main()\nvoid Complete() // optional\nenum ScriptScope { CurrentMessage, WholeDocument }",
+      "Description": "Initialization runs once, Main once per captured selected message in logical input order, then optional Complete once after all Main calls succeed. Top-level variables persist within a run; each Run starts a fresh worker. Select Current message or Whole document in the editor. The host performs iteration; there is no document enumeration/navigation API in scripts.",
+      "Parameters": "Main/Complete: no parameters. Scope is selected by the application, not changed from inside Main.",
+      "Returns": "Both entry points return void. A successful run publishes a new independent unsaved output document.",
+      "Example": "int processed = 0;\nvar counts = Batch.Report(\"counts\", \"Messages\");\nvoid Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n    processed++; // The host calls Main once per selected message, in order.\n}\nvoid Complete()\n{\n    counts.Row(processed.ToString(System.Globalization.CultureInfo.InvariantCulture));\n}",
+      "Limitations": "Exactly one top-level instance, synchronous, nongeneric, parameterless void Main and at most one matching Complete. No overloads, static/async/Task entries or background work. Failure skips Complete and discards staged output/reports. Never retain Message or ScriptSegment across invocations.",
+      "Keywords": "lifecycle initialization scope batch loop iterate messages",
+      "TemplateName": "Count selected messages"
+    },
+    {
+      "Id": "customization",
+      "Title": "Built-ins, My Scripts and starter examples",
+      "Category": "Getting started",
+      "Members": [],
+      "Signature": "Duplicate Script → Rename Script → Save Script",
+      "Description": "Built-in scripts are application-owned read-only entries. Duplicate Script saves an independent copy in My Scripts with a new ID. Rename and edit that copy, Save Script, reopen it and Run. Built-in updates do not rewrite user copies. Starter topics offer Create editable script, which creates an unsaved draft through the normal unsaved-change prompt.",
+      "Parameters": "Use a descriptive local name (1–120 characters, no control characters). Choose Apply to scope before Run.",
+      "Returns": "Saved user records keep their own stable identity and source. Ctrl+S in the script editor saves the script.",
+      "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
+      "Limitations": "Saving a script does not save HL7 output. Dirty drafts prompt before switching; failed saves keep the draft. Old development scripts require explicit rewrite/adoption. Duplicate Patient Deidentifier to configure its supported policy rather than creating another library preset.",
+      "Keywords": "library built-in immutable duplicate rename save reopen templates starter user scripts",
+      "TemplateName": null
+    },
+    {
+      "Id": "globals",
+      "Title": "ScriptGlobals: Message, Batch, Cancellation",
+      "Category": "Lifecycle and globals",
+      "Members": [
+        "ScriptGlobals.Message",
+        "ScriptGlobals.Batch",
+        "ScriptGlobals.Cancellation"
+      ],
+      "Signature": "ScriptMessage Message { get; }\nScriptBatch Batch { get; }\nCancellationToken Cancellation { get; }",
+      "Description": "The worker supplies these globals without construction. Message resolves to the current Main invocation; Batch owns this job’s advanced facilities; Cancellation is the run token.",
+      "Parameters": "No parameters. Use Cancellation.ThrowIfCancellationRequested() inside long loops.",
+      "Returns": "Message is the bounded current facade, Batch the same run object and Cancellation the same execution token.",
+      "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
+      "Limitations": "Message is unavailable during initialization and Complete (LifecyclePhase). Do not cache a facade, start background callbacks, or suppress cancellation.",
+      "Keywords": "ScriptGlobals token cancellation globals",
+      "TemplateName": null
+    },
+    {
+      "Id": "read",
+      "Title": "ScriptMessage.Read: inspect value state",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptMessage.Read"
+      ],
+      "Signature": "ScriptValue Read(string path)",
+      "Description": "Reads the original encoded spelling and its structural state without implicitly decoding HL7 escapes. Prefer this before Text when a field may be absent or explicitly null.",
+      "Parameters": "path: Core path such as PID-5.1, PID[2]-3[2].4.1, or OBX-5.1.2. Omitted segment/repetition indexes mean 1.",
+      "Returns": "ScriptValue with State and nullable Raw; no value is silently substituted for missing/null.",
+      "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "read field component subcomponent path missing explicit null raw",
+      "TemplateName": "Read and modify PID"
+    },
+    {
+      "Id": "text",
+      "Title": "ScriptMessage.Text: decoded text",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptMessage.Text"
+      ],
+      "Signature": "string Text(string path)",
+      "Description": "Explicitly decodes HL7 escape sequences using the message’s delimiters. An existing empty value returns an empty string.",
+      "Parameters": "path: one-based Core HL7 coordinates, independent of actual separator characters.",
+      "Returns": "Decoded string; throws a fixed MissingValue diagnostic for missing/null or DecodeDiagnostic for unresolved escapes.",
+      "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "read decoded escape Text string",
+      "TemplateName": null
+    },
+    {
+      "Id": "states",
+      "Title": "ScriptValue and ValueState",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptValue..ctor",
+        "ScriptValue.State",
+        "ScriptValue.Raw",
+        "ValueState.Missing",
+        "ValueState.Empty",
+        "ValueState.ExplicitNull",
+        "ValueState.Value"
+      ],
+      "Signature": "record ScriptValue(ValueState State, string? Raw)\nenum ValueState { Missing, Empty, ExplicitNull, Value }",
+      "Description": "State distinguishes no structural position, an existing empty position, HL7 explicit null (two quotes), and a nonempty value. Raw preserves escape spelling rather than decoded text.",
+      "Parameters": "State: structural state. Raw: original spelling supplied by Read; null for missing positions.",
+      "Returns": "Read returns a value record; constructing one does not modify a message.",
+      "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
+      "Limitations": "Record equality/with/deconstruction are ordinary generated C# features. Only controlled ScriptMessage/ScriptSegment methods mutate HL7.",
+      "Keywords": "ScriptValue state null empty missing",
+      "TemplateName": null
+    },
+    {
+      "Id": "set-text",
+      "Title": "ScriptMessage.SetText: write a literal",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptMessage.SetText"
+      ],
+      "Signature": "void SetText(string path, string value)",
+      "Description": "Writes a literal value through Core, escaping reserved characters for the actual message delimiters. Use for generated names and other literal replacements.",
+      "Parameters": "path: supported existing or expandable field coordinate. value: literal text, not pre-escaped HL7.",
+      "Returns": "No return value; invalid paths/unsafe edits fail with fixed diagnostics.",
+      "Example": "// Every successful run already creates an independent unsaved document.\nBatch.SetOutputFileName(\"Synthetic_Output.hl7\");\nvoid Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics)\n        Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "write field literal escaped SetText independent output",
+      "TemplateName": "Independent output"
+    },
+    {
+      "Id": "set-raw",
+      "Title": "ScriptMessage.SetRaw: explicit HL7 spelling",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptMessage.SetRaw"
+      ],
+      "Signature": "void SetRaw(string path, string value)",
+      "Description": "Writes explicitly encoded HL7 spelling through Core validation. Prefer SetText for literal data so custom delimiters and escape characters are encoded correctly.",
+      "Parameters": "path: supported Core coordinate. value: raw HL7 spelling in the message’s delimiters.",
+      "Returns": "No return value; rejection retains the previous model.",
+      "Example": "void Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics) Message.SetRaw(\"PID-5.1\", \"SYNTHETIC\");\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "SetRaw encoded raw delimiters",
+      "TemplateName": null
+    },
+    {
+      "Id": "null-clear",
+      "Title": "ScriptMessage.SetNull and Clear",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptMessage.SetNull",
+        "ScriptMessage.Clear"
+      ],
+      "Signature": "void SetNull(string path)\nvoid Clear(string path)",
+      "Description": "SetNull writes an explicit HL7 null. Clear empties an existing position without removing it; a missing target is a no-op.",
+      "Parameters": "path: Core one-based coordinate.",
+      "Returns": "No return value. Missing, empty and explicit null have different meanings.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    Message.Clear(\"PID-9\");\n    if (Message.Read(\"PID-7\").State == ValueState.Value) Message.SetNull(\"PID-7\");\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "SetNull Clear delete empty null",
+      "TemplateName": null
+    },
+    {
+      "Id": "editability",
+      "Title": "ScriptMessage.CanEdit / HasDiagnostics",
+      "Category": "Read and write",
+      "Members": [
+        "ScriptMessage.CanEdit",
+        "ScriptMessage.HasDiagnostics"
+      ],
+      "Signature": "bool CanEdit { get; }\nbool HasDiagnostics { get; }",
+      "Description": "CanEdit exposes Core editability. HasDiagnostics reports any structural/encoding diagnostic, allowing conservative scripts to refuse malformed input before writing.",
+      "Parameters": "No parameters.",
+      "Returns": "Booleans, not a conformance or privacy guarantee.",
+      "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
+      "Limitations": "Do not silently normalize malformed input. A script may explicitly throw to fail the run or leave the message unchanged for review.",
+      "Keywords": "CanEdit HasDiagnostics malformed validation",
+      "TemplateName": null
+    },
+    {
+      "Id": "segments",
+      "Title": "Segments and repeated fields",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptMessage.Segments",
+        "ScriptSegment.Identifier",
+        "ScriptSegment.Occurrence"
+      ],
+      "Signature": "IReadOnlyList<ScriptSegment> Segments(string identifier)\nstring ScriptSegment.Identifier { get; }\nint ScriptSegment.Occurrence { get; }",
+      "Description": "Enumerates address views for a three-character segment identifier, in occurrence order. Each view re-resolves against the current model after writes; Identifier and one-based Occurrence identify the segment.",
+      "Parameters": "identifier: segment ID, for example PID or OBX, without field/path suffixes.",
+      "Returns": "Read-only list (empty if no match). Repetition indexes remain explicit in relative paths.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "Segments ScriptSegment occurrence repetition repeat custom delimiters",
+      "TemplateName": "Edit existing repetition"
+    },
+    {
+      "Id": "segment-read",
+      "Title": "ScriptSegment.Read",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptSegment.Read"
+      ],
+      "Signature": "ScriptValue Read(string relativePath)",
+      "Description": "Reads a segment-relative value with structural state and original spelling.",
+      "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
+      "Returns": "ScriptValue with State and Raw.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "segment relative field path Read",
+      "TemplateName": null
+    },
+    {
+      "Id": "segment-text",
+      "Title": "ScriptSegment.Text",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptSegment.Text"
+      ],
+      "Signature": "string Text(string relativePath)",
+      "Description": "Decodes a segment-relative value, with the same missing/null/escape rules as Message.Text.",
+      "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
+      "Returns": "Decoded string or fixed diagnostic.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "segment relative field path Text",
+      "TemplateName": null
+    },
+    {
+      "Id": "segment-settext",
+      "Title": "ScriptSegment.SetText",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptSegment.SetText"
+      ],
+      "Signature": "void SetText(string relativePath, string value)",
+      "Description": "Escapes and writes a segment-relative literal through Core.",
+      "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
+      "Returns": "No return value.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "segment relative field path SetText",
+      "TemplateName": null
+    },
+    {
+      "Id": "segment-setraw",
+      "Title": "ScriptSegment.SetRaw",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptSegment.SetRaw"
+      ],
+      "Signature": "void SetRaw(string relativePath, string value)",
+      "Description": "Writes explicit encoded HL7 spelling through Core.",
+      "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
+      "Returns": "No return value.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "segment relative field path SetRaw",
+      "TemplateName": null
+    },
+    {
+      "Id": "segment-setnull",
+      "Title": "ScriptSegment.SetNull",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptSegment.SetNull"
+      ],
+      "Signature": "void SetNull(string relativePath)",
+      "Description": "Writes an explicit null at a segment-relative coordinate.",
+      "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
+      "Returns": "No return value.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "segment relative field path SetNull",
+      "TemplateName": null
+    },
+    {
+      "Id": "segment-clear",
+      "Title": "ScriptSegment.Clear",
+      "Category": "Segments and paths",
+      "Members": [
+        "ScriptSegment.Clear"
+      ],
+      "Signature": "void Clear(string relativePath)",
+      "Description": "Empties an existing relative position; missing targets remain absent.",
+      "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
+      "Returns": "No return value.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "segment relative field path Clear",
+      "TemplateName": null
+    },
+    {
+      "Id": "paths",
+      "Title": "HL7 paths, repetitions and custom delimiters",
+      "Category": "Segments and paths",
+      "Members": [],
+      "Signature": "PID[2]-3[2].4.1\nOBX-5.1.2\nsegment.Read(\"5[2].1\")",
+      "Description": "The first example addresses segment occurrence 2, field 3, repetition 2, component 4, subcomponent 1. Addresses use Core coordinates, not literal separators. The parser reads MSH delimiters, so no script should split raw composites on ^, ~ or &.",
+      "Parameters": "Indexes are positive and one-based. Segment-only reads and special MSH positions follow Core path/edit rules.",
+      "Returns": "Read/Text/controlled mutations use the same coordinate grammar.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
+      "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
+      "Keywords": "path syntax repeated fields custom delimiters component subcomponent MSH encoding",
+      "TemplateName": null
+    },
+    {
+      "Id": "exclude",
+      "Title": "ScriptMessage.Exclude",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptMessage.Exclude"
+      ],
+      "Signature": "void Exclude()",
+      "Description": "Omits the current message’s normal output. It does not cancel the job or suppress an already held/deferred copy.",
+      "Parameters": "No parameters. Call during Main.",
+      "Returns": "No return value.",
+      "Example": "void Main()\n{\n    if (Batch.MessageNumber > 1) Message.Exclude();\n}",
+      "Limitations": "Filtering/deferred output requires extractable plain messages or complete unambiguous MLLP envelopes. Batch wrappers/opaque regions cannot be silently discarded; unsafe boundaries fail atomically.",
+      "Keywords": "Exclude filter output",
+      "TemplateName": null
+    },
+    {
+      "Id": "number",
+      "Title": "ScriptBatch.MessageNumber",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptBatch.MessageNumber"
+      ],
+      "Signature": "int MessageNumber { get; }",
+      "Description": "One-based job-local input ordinal during Main; zero in initialization and Complete. With Current scope it is 1 even when the selected source message has a different document position.",
+      "Parameters": "No parameters.",
+      "Returns": "Job ordinal, not a stable MessageId, document position, output counter or navigation command.",
+      "Example": "int processed = 0;\nvar counts = Batch.Report(\"counts\", \"Messages\");\nvoid Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n    processed++; // The host calls Main once per selected message, in order.\n}\nvoid Complete()\n{\n    counts.Row(processed.ToString(System.Globalization.CultureInfo.InvariantCulture));\n}",
+      "Limitations": "Source mapping stays in the parent. Tab switches do not retarget a captured run. Never persist job ordinals as document identity.",
+      "Keywords": "MessageNumber ordinal loop iterate navigation",
+      "TemplateName": null
+    },
+    {
+      "Id": "naming",
+      "Title": "ScriptBatch.SetOutputFileName",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptBatch.SetOutputFileName"
+      ],
+      "Signature": "void SetOutputFileName(string? fileName)",
+      "Description": "Suggests an output filename in initialization, Main or Complete. The last valid suggestion wins. Invalid suggestions are ignored with a fixed nonfatal notice; they never erase a valid suggestion.",
+      "Parameters": "fileName: filename only, up to 128 UTF-16 units including .hl7; the extension is appended/standardized. Paths, reserved Windows devices, controls, format characters and unsafe endings are refused.",
+      "Returns": "No return value. Without an override, the captured script name or Script Result.hl7 is used.",
+      "Example": "// Every successful run already creates an independent unsaved document.\nBatch.SetOutputFileName(\"Synthetic_Output.hl7\");\nvoid Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics)\n        Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n}",
+      "Limitations": "A filename suggestion never saves, chooses a directory or authorizes replacement. Duplicate tab labels may gain a display counter without changing the suggestion.",
+      "Keywords": "SetOutputFileName filename naming Save As output",
+      "TemplateName": null
+    },
+    {
+      "Id": "filename",
+      "Title": "ScriptOutputFileName validation",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptOutputFileName.Fallback",
+        "ScriptOutputFileName.MaximumCharacters",
+        "ScriptOutputFileName.FromScriptName",
+        "ScriptOutputFileName.TryNormalize"
+      ],
+      "Signature": "const string Fallback = \"Script Result.hl7\";\nconst int MaximumCharacters = 128;\nstatic string FromScriptName(string? name)\nstatic bool TryNormalize(string? suggestion, out string fileName)",
+      "Description": "The same portable Windows filename policy is available to scripts. FromScriptName uses Fallback if normalization fails; TryNormalize returns a success flag and an empty out string on failure.",
+      "Parameters": "name/suggestion: proposed filename, never a path. fileName: normalized output when true.",
+      "Returns": "FromScriptName returns a safe suggestion. TryNormalize returns bool and normalized text.",
+      "Example": "void Main() {}\nvoid Complete()\n{\n    if (ScriptOutputFileName.TryNormalize(\"Synthetic_Output\", out var name)) Batch.SetOutputFileName(name);\n}",
+      "Limitations": "No filesystem lookup, truncation, normalization of Unicode or extraction from paths. Other suffixes become part of the stem before .hl7 is appended.",
+      "Keywords": "ScriptOutputFileName TryNormalize FromScriptName Fallback",
+      "TemplateName": null
+    },
+    {
+      "Id": "hold",
+      "Title": "ScriptBatch.Hold and ScriptDeferredMessage",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptBatch.Hold"
+      ],
+      "Signature": "ScriptDeferredMessage Hold(ScriptMessage message)\nsealed class ScriptDeferredMessage // opaque; no public constructor or members",
+      "Description": "Retains an immutable bounded copy of the current transformed message for a later decision. Normal output remains included unless Exclude is called separately.",
+      "Parameters": "message: exactly the current Message during Main.",
+      "Returns": "Opaque copy owned by this run; no raw byte or mapping-table access.",
+      "Example": "ScriptDeferredMessage? first = null;\nvoid Main()\n{\n    if (first is null) first = Batch.Hold(Message);\n    Message.Exclude();\n}\nvoid Complete()\n{\n    if (first is not null) Batch.Emit(first);\n}",
+      "Limitations": "Hold is unavailable outside Main. Up to 128 retained copies / 16 MiB per job. Copies retain original input attribution and framing constraints.",
+      "Keywords": "ScriptDeferredMessage Hold retained deferred copy",
+      "TemplateName": null
+    },
+    {
+      "Id": "defer",
+      "Title": "ScriptBatch.Defer",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptBatch.Defer"
+      ],
+      "Signature": "void Defer(ScriptMessage message)",
+      "Description": "Holds and queues a copy immediately during Main. Queued copies drain after Complete in queue order, after normal output.",
+      "Parameters": "message: exactly the current Message during Main.",
+      "Returns": "No return value.",
+      "Example": "void Main()\n{\n    if (Batch.MessageNumber == 1) Batch.Defer(Message);\n    Message.Exclude();\n}",
+      "Limitations": "Retained and queued copies have separate 128-message/16 MiB shared job budgets. Defer does not exclude normal output by itself. No source-free message generation.",
+      "Keywords": "Defer queue deferred ordering",
+      "TemplateName": null
+    },
+    {
+      "Id": "emit",
+      "Title": "ScriptBatch.Emit",
+      "Category": "Batch and output",
+      "Members": [
+        "ScriptBatch.Emit"
+      ],
+      "Signature": "void Emit(ScriptDeferredMessage copy)",
+      "Description": "Queues one of this run’s held copies during Complete. Emission follows normal output and already deferred copies, in Emit call order.",
+      "Parameters": "copy: immutable handle returned by this run’s Hold.",
+      "Returns": "No return value.",
+      "Example": "ScriptDeferredMessage? first = null;\nvoid Main()\n{\n    if (first is null) first = Batch.Hold(Message);\n    Message.Exclude();\n}\nvoid Complete()\n{\n    if (first is not null) Batch.Emit(first);\n}",
+      "Limitations": "Only Complete and same-owner handles are accepted. Repeated emission consumes the queue budget again. Failure or cancellation publishes neither partial output nor reports.",
+      "Keywords": "Emit Complete output held",
+      "TemplateName": null
+    },
+    {
+      "Id": "publication",
+      "Title": "Atomic output, attribution and source edits",
+      "Category": "Batch and output",
+      "Members": [],
+      "Signature": "Main → Complete → deferred drain → validated independent output",
+      "Description": "Workspace captures stable input identity/revision, stages all transformed messages and CSV privately, validates output framing and publishes only after success. Original source bytes, drafts, undo history and save destination are untouched.",
+      "Parameters": "Choose Current or Whole in the editor; output always opens as a new unsaved document.",
+      "Returns": "A successful result keeps producing-run attribution. Source edits during execution preserve independent captured output with explicit stale-source attribution.",
+      "Example": "// Every successful run already creates an independent unsaved document.\nBatch.SetOutputFileName(\"Synthetic_Output.hl7\");\nvoid Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics)\n        Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n}",
+      "Limitations": "Closing the source, cancellation or failures prevent publication. Invalid input/output, unsafe extraction or framing changes fail explicitly. Reports require explicit export. Arbitrary external C# side effects cannot be rolled back.",
+      "Keywords": "atomic publication stale source independent snapshot output generation",
+      "TemplateName": null
+    },
+    {
+      "Id": "report",
+      "Title": "ScriptBatch.Report / ScriptCsvReport.Row",
+      "Category": "Reports and diagnostics",
+      "Members": [
+        "ScriptBatch.Report",
+        "ScriptCsvReport.Row"
+      ],
+      "Signature": "ScriptCsvReport Report(string name, params string[] columns)\nvoid ScriptCsvReport.Row(params string?[] values)",
+      "Description": "Define ordered report schemas only during initialization. Append rows during initialization, Main or Complete. Reports are staged with output and become exportable only after a successful run.",
+      "Parameters": "name: 1–64 ASCII letters/digits/_/-, case-insensitively unique. columns: 1–64 headings in order. values: same count/order; null and empty both export as empty quoted cells.",
+      "Returns": "Report returns a run-owned CSV writer. Row returns void.",
+      "Example": "int processed = 0;\nvar counts = Batch.Report(\"summary\", \"Processed\");\nvoid Main() { processed++; }\nvoid Complete()\n{\n    // One count-only row; no source values or identifiers are exported.\n    counts.Row(processed.ToString(System.Globalization.CultureInfo.InvariantCulture));\n}",
+      "Limitations": "8 reports; 100,000 data rows/16 MiB UTF-8 globally; 16,384 UTF-16 units/cell; 256 KiB per lifecycle operation. UTF-8 no BOM, CRLF, all cells quoted. Formula-like cells gain an apostrophe. Keep reports bounded and avoid sensitive content.",
+      "Keywords": "Report CSV ScriptCsvReport Row bounded count",
+      "TemplateName": "Bounded count report"
+    },
+    {
+      "Id": "report-name",
+      "Title": "ScriptBatch.ValidReportName",
+      "Category": "Reports and diagnostics",
+      "Members": [
+        "ScriptBatch.ValidReportName"
+      ],
+      "Signature": "static bool ValidReportName(string name)",
+      "Description": "Checks the bounded ASCII report-label grammar without accessing a filesystem.",
+      "Parameters": "name: non-null candidate label, 1–64 ASCII letters/digits, underscore or hyphen.",
+      "Returns": "True for a valid label; uniqueness is checked by Report.",
+      "Example": "var valid = ScriptBatch.ValidReportName(\"summary\");\nvoid Main() {}",
+      "Limitations": "A report label is not a file path. Invalid Report schemas fail ReportSchema; byte/row/cell exhaustion fails ReportLimit.",
+      "Keywords": "ValidReportName schema",
+      "TemplateName": null
+    },
+    {
+      "Id": "diagnostics",
+      "Title": "ScriptDiagnostic and ScriptPhase",
+      "Category": "Reports and diagnostics",
+      "Members": [
+        "ScriptDiagnostic..ctor",
+        "ScriptDiagnostic.Phase",
+        "ScriptDiagnostic.Code",
+        "ScriptDiagnostic.Line",
+        "ScriptDiagnostic.Column",
+        "ScriptDiagnostic.MessageNumber",
+        "ScriptDiagnostic.Path",
+        "ScriptDiagnostic.Description",
+        "ScriptDiagnostic.ToString",
+        "ScriptPhase.Configuration",
+        "ScriptPhase.Compilation",
+        "ScriptPhase.Execution",
+        "ScriptPhase.Protocol",
+        "ScriptPhase.Worker",
+        "ScriptPhase.Input",
+        "ScriptPhase.Output"
+      ],
+      "Signature": "record ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line = null, int? Column = null, int? MessageNumber = null, string? Path = null)\nstring Description { get; }\nstring ToString()\nenum ScriptPhase { Configuration, Compilation, Execution, Protocol, Worker, Input, Output }",
+      "Description": "Diagnostics describe safe codes/locations, not imported exception messages. The editor presents compiler locations and captured input attribution. Description maps codes to fixed text; ToString formats that safe metadata.",
+      "Parameters": "Phase: failing operation. Code: fixed/CS compiler code. Line/Column: one-based script location. MessageNumber: job-local ordinal. Path: validated HL7 coordinate when available.",
+      "Returns": "Read-only metadata and formatted description. Constructing metadata does not publish it automatically.",
+      "Example": "void Main()\n{\n    if (!Message.CanEdit) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Execution, \"EditRejected\"));\n}",
+      "Limitations": "Worker sanitization accepts a closed code/path set and omits arbitrary source text and exception messages. Never put identifiers or patient values in diagnostics; unknown text is not a safe logging channel. Compiler codes take precedence before initialization.",
+      "Keywords": "ScriptDiagnostic ScriptPhase Description ToString errors compile runtime",
+      "TemplateName": null
+    },
+    {
+      "Id": "exception",
+      "Title": "ScriptRunException.Diagnostics",
+      "Category": "Reports and diagnostics",
+      "Members": [
+        "ScriptRunException..ctor",
+        "ScriptRunException.Diagnostics"
+      ],
+      "Signature": "ScriptRunException(params ScriptDiagnostic[] diagnostics)\nIReadOnlyList<ScriptDiagnostic> Diagnostics { get; }",
+      "Description": "Signals a fixed scripting failure to the worker. Prefer allowing transformation and resource-limit failures to abort the run.",
+      "Parameters": "diagnostics: fixed safe diagnostic records, without source values.",
+      "Returns": "Exception carries the diagnostic list; inherited Exception members are ordinary .NET members.",
+      "Example": "void Main()\n{\n    if (Message.HasDiagnostics) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Execution, \"EditRejected\"));\n}",
+      "Limitations": "Do not catch errors merely to publish partial data; cancellation/limits should propagate. Imported exception text is omitted by the worker.",
+      "Keywords": "ScriptRunException Diagnostics throw fail rollback",
+      "TemplateName": null
+    },
+    {
+      "Id": "limits",
+      "Title": "ScriptLimits: fixed worker facade budgets",
+      "Category": "Limits and security",
+      "Members": [
+        "ScriptLimits.ScriptCharacters",
+        "ScriptLimits.MessageCharacters",
+        "ScriptLimits.LineCharacters",
+        "ScriptLimits.MessageBytes",
+        "ScriptLimits.Diagnostics",
+        "ScriptLimits.BatchMessages",
+        "ScriptLimits.DeferredMessages",
+        "ScriptLimits.DeferredBytes",
+        "ScriptLimits.Reports",
+        "ScriptLimits.ReportColumns",
+        "ScriptLimits.ReportCellCharacters",
+        "ScriptLimits.ReportRows",
+        "ScriptLimits.ReportBytes",
+        "ScriptLimits.ReportOperationBytes"
+      ],
+      "Signature": "const int ScriptCharacters = 65536;\nconst int MessageCharacters = 1048576;\nconst int LineCharacters = 16384;\nconst int MessageBytes = 8388608;\nconst int Diagnostics = 100;\nconst int BatchMessages = 100000;\nconst int DeferredMessages = 128;\nconst int DeferredBytes = 16777216;\nconst int Reports = 8;\nconst int ReportColumns = 64;\nconst int ReportCellCharacters = 16384;\nconst int ReportRows = 100000;\nconst int ReportBytes = 16777216;\nconst int ReportOperationBytes = 262144;",
+      "Description": "These public constants bound script source UTF-16 units, complete-message UTF-16 units, segment units, encoded message bytes, diagnostics, inputs, deferred copies and CSV operations. They are not user-settable options.",
+      "Parameters": "No parameters. Character limits use UTF-16; byte limits count encoded payload or UTF-8 CSV, as named.",
+      "Returns": "Compile-time integer constants.",
+      "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
+      "Limitations": "Defaults outside this facade: 768 MiB worker memory, 30s startup, 60s compilation, 10s each operation, 10min job, 1 GiB input/output storage, 12 MiB IPC frame. Host configuration may impose tighter bounds. Long loops must check Cancellation; timeout forcibly stops an uncooperative worker.",
+      "Keywords": "ScriptLimits timeout memory bytes characters cancellation limits",
+      "TemplateName": null
+    },
+    {
+      "Id": "security",
+      "Title": "Trusted C#, isolation and cancellation",
+      "Category": "Limits and security",
+      "Members": [],
+      "Signature": "Cancellation.ThrowIfCancellationRequested();",
+      "Description": "Scripts run in a fresh local ScriptHost process with bounded transport, journals, deadlines and Windows job memory containment. This is trusted C# running with the user’s permissions, not an operating-system security sandbox. Only run code you trust.",
+      "Parameters": "The cancellation token is available in every phase. Use it in long loops and helper calls.",
+      "Returns": "Canceled/failed runs publish no partial output or reports; safe diagnostics omit imported exception text.",
+      "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
+      "Limitations": "#r, #load and #line directives are refused. This does not prevent arbitrary trusted C# filesystem/network side effects; those cannot be rolled back. The documented synthetic helpers themselves have no IO/network or persistent mappings. No new execution capability is added by the reference. No async/background facade use.",
+      "Keywords": "security offline isolation sandbox permissions directives cancellation network filesystem",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-library",
+      "Title": "SyntheticIdentityLibrary construction and Get",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentityLibrary..ctor",
+        "SyntheticIdentityLibrary.Get",
+        "SyntheticIdentityLibrary.DictionaryVersion"
+      ],
+      "Signature": "SyntheticIdentityLibrary(uint seed, int maximumIdentities = 100000)\nSyntheticIdentity Get(string identityKey, CancellationToken cancellation = default)\nconst int DictionaryVersion = 1;",
+      "Description": "Allocates deterministic fictional profiles from the bundled vocabulary, with bounded collision probing. Construct once in initialization for within-run identity consistency. Already public and usable in authored scripts; no extra facade is required.",
+      "Parameters": "seed: reproducibility configuration, not an anonymity secret. maximumIdentities: 1–100,000. identityKey: nonempty opaque key, at most 256 UTF-16 units. cancellation: execution token.",
+      "Returns": "Same library/key returns the cached complete profile; distinct allocations do not reuse complete identities. No mapping tables are exposed.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Determinism requires the same seed, key/allocation order, dictionary and implementation. New runs require new instances; no key/profile map is persisted. Exhaustion uses TransformationLimit. Names and finite fictional phone numbers can repeat. Do not use source demographics to select replacements. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentityLibrary Get DictionaryVersion deterministic seed identity profiles",
+      "TemplateName": "Synthetic identity helper"
+    },
+    {
+      "Id": "identity-profile",
+      "Title": "SyntheticIdentity profile and construction",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity..ctor",
+        "SyntheticIdentity.Allocation",
+        "SyntheticIdentity.GivenName",
+        "SyntheticIdentity.MiddleName",
+        "SyntheticIdentity.FamilyName",
+        "SyntheticIdentity.Street",
+        "SyntheticIdentity.Locality",
+        "SyntheticIdentity.DateOfBirth",
+        "SyntheticIdentity.AdministrativeSex",
+        "SyntheticIdentity.MaritalStatus"
+      ],
+      "Signature": "record SyntheticIdentity(int Allocation, string GivenName, string MiddleName, string FamilyName, string Street, string Locality, DateOnly DateOfBirth, string AdministrativeSex, string MaritalStatus)",
+      "Description": "Library-generated profiles contain allocation slot, invented given/middle/family names, fictional street/locality, a fixed-pool DOB, administrative sex and marital status. Source demographics and the clock do not choose these values.",
+      "Parameters": "Allocation: library slot. GivenName/MiddleName/FamilyName: vocabulary names. Street/Locality: fictional address. DateOfBirth: generated date. AdministrativeSex/MaritalStatus: generated codes.",
+      "Returns": "A value record; prefer library.Get rather than manually constructing an inconsistent profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Positional properties support record init/with syntax but do not validate manually created records. DOB pool spans 1945–2013; profiles are test values, not clinical conformance or real-world identities. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity profile constructor properties names DOB sex demographics",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-identifier",
+      "Title": "SyntheticIdentity.Identifier",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.Identifier"
+      ],
+      "Signature": "string Identifier { get; }",
+      "Description": "Nine-digit local synthetic ID (100000000 + allocation).",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity Identifier address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-region",
+      "Title": "SyntheticIdentity.Region",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.Region"
+      ],
+      "Signature": "string Region { get; }",
+      "Description": "ZZ, deliberately non-deliverable.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity Region address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-postalcode",
+      "Title": "SyntheticIdentity.PostalCode",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.PostalCode"
+      ],
+      "Signature": "string PostalCode { get; }",
+      "Description": "00000, deliberately non-deliverable.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity PostalCode address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-country",
+      "Title": "SyntheticIdentity.Country",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.Country"
+      ],
+      "Signature": "string Country { get; }",
+      "Description": "USA example country code.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity Country address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-dwellingnumber",
+      "Title": "SyntheticIdentity.DwellingNumber",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.DwellingNumber"
+      ],
+      "Signature": "string DwellingNumber { get; }",
+      "Description": "Street number extracted from the generated street.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity DwellingNumber address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-unit",
+      "Title": "SyntheticIdentity.Unit",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.Unit"
+      ],
+      "Signature": "string Unit { get; }",
+      "Description": "Allocation-dependent fictional unit.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity Unit address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-areacode",
+      "Title": "SyntheticIdentity.AreaCode",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.AreaCode"
+      ],
+      "Signature": "string AreaCode { get; }",
+      "Description": "Fixed example area code 202.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity AreaCode address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-localtelephone",
+      "Title": "SyntheticIdentity.LocalTelephone",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.LocalTelephone"
+      ],
+      "Signature": "string LocalTelephone { get; }",
+      "Description": "555-0100 through 555-0199 fictional subscriber pool.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity LocalTelephone address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-telephone",
+      "Title": "SyntheticIdentity.Telephone",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.Telephone"
+      ],
+      "Signature": "string Telephone { get; }",
+      "Description": "+1 plus area code/subscriber.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity Telephone address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-email",
+      "Title": "SyntheticIdentity.Email",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.Email"
+      ],
+      "Signature": "string Email { get; }",
+      "Description": "Generated name/slot at reserved example.org.",
+      "Parameters": "No parameters.",
+      "Returns": "Derived string for the generated profile.",
+      "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
+      "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "SyntheticIdentity Email address contact",
+      "TemplateName": null
+    },
+    {
+      "Id": "identity-age",
+      "Title": "SyntheticIdentity.AgeOn",
+      "Category": "Synthetic identities",
+      "Members": [
+        "SyntheticIdentity.AgeOn"
+      ],
+      "Signature": "int AgeOn(DateOnly reference)",
+      "Description": "Calculates whole birthday years from the generated DOB using the supplied reference date; no current clock or timezone lookup.",
+      "Parameters": "reference: explicit date for age calculation.",
+      "Returns": "Integer age; reference dates before birth can yield negative values.",
+      "Example": "var identity = new SyntheticIdentityLibrary(42).Get(\"synthetic-example-key\", Cancellation);\nint age = identity.AgeOn(new DateOnly(2030, 1, 1));\nvoid Main() {}",
+      "Limitations": "Caller chooses a sensible date and clinical context; this does not validate arbitrary source age observations. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "AgeOn DateOnly birthday age",
+      "TemplateName": null
+    },
+    {
+      "Id": "workflow",
+      "Title": "DeidentificationWorkflow construction and Apply",
+      "Category": "De-identification",
+      "Members": [
+        "DeidentificationWorkflow..ctor",
+        "DeidentificationWorkflow.Apply",
+        "DeidentificationWorkflow.ShiftDays",
+        "DeidentificationWorkflow.Summary"
+      ],
+      "Signature": "DeidentificationWorkflow(DeidentificationOptions options, CancellationToken cancellation = default)\nvoid Apply(ScriptMessage message)\nint ShiftDays { get; }\nDeidentificationSummary Summary { get; }",
+      "Description": "Construct once in initialization; Apply the current Message in Main. Summary returns fixed count-only metadata, and ShiftDays exposes the common calendar-day offset for this run. Patient policy uses qualified identities and conservative field handling.",
+      "Parameters": "options: supported preset/seed/shift/mapping bounds. cancellation: run token. message: current invocation facade.",
+      "Returns": "Apply returns void; Summary is a count snapshot suitable for one Complete report row. Existing library built-ins provide the complete reviewable presets.",
+      "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); }",
+      "Limitations": "Do not instantiate per Main when cross-message consistency matters. Apply requires editable input without diagnostics. Patient unsupported/narrative/ED leaves are suppressed; narrower presets retain other sensitive values. Qualified identity ambiguity is counted, never guessed. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "DeidentificationWorkflow Apply Summary timestamp shifting consistent identity patient",
+      "TemplateName": null
+    },
+    {
+      "Id": "workflow-options",
+      "Title": "DeidentificationOptions and presets",
+      "Category": "De-identification",
+      "Members": [
+        "DeidentificationOptions..ctor",
+        "DeidentificationOptions.Preset",
+        "DeidentificationOptions.Seed",
+        "DeidentificationOptions.ShiftDays",
+        "DeidentificationOptions.MaximumMappings",
+        "DeidentificationOptions.ImplementationVersion",
+        "DeidentificationOptions.PatientImplementationVersion",
+        "DeidentificationPreset.PatientDeidentifier",
+        "DeidentificationPreset.IdentifierPseudonymizer",
+        "DeidentificationPreset.TimestampShifter"
+      ],
+      "Signature": "new DeidentificationOptions()\nDeidentificationPreset Preset { get; init; } = DeidentificationPreset.PatientDeidentifier;\nuint Seed { get; init; } = 42;\nint? ShiftDays { get; init; }\nint MaximumMappings { get; init; } = 100000;\nconst int ImplementationVersion = 1;\nconst int PatientImplementationVersion = 2;\nenum DeidentificationPreset { PatientDeidentifier, IdentifierPseudonymizer, TimestampShifter }",
+      "Description": "Immutable configuration for existing helpers. Patient Deidentifier replaces supported identity/demographics and suppresses unsupported leaves. Identifier Pseudonymizer changes supported references only; Timestamp Shifter changes supported timestamps only.",
+      "Parameters": "Preset: one of three enum values. Seed: deterministic run seed. ShiftDays: -3660…3660, or null for a derived nonzero -365…365 displacement. MaximumMappings: 1–100,000 per map.",
+      "Returns": "A configuration record validated by the workflow constructor.",
+      "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); }",
+      "Limitations": "Full-day through second precision, up to four fraction digits and explicit offsets are preserved. Missing offsets stay absent. Partial/malformed/overflow/leap-second/unsupported timestamps are cleared in Patient or retained with counts in Timestamp mode. No timezone/locale guessing. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "DeidentificationOptions Preset Seed ShiftDays MaximumMappings timestamp date precision",
+      "TemplateName": null
+    },
+    {
+      "Id": "workflow-summary",
+      "Title": "DeidentificationSummary counters",
+      "Category": "De-identification",
+      "Members": [
+        "DeidentificationSummary..ctor",
+        "DeidentificationSummary.Messages",
+        "DeidentificationSummary.MissingIdentities",
+        "DeidentificationSummary.AmbiguousIdentities",
+        "DeidentificationSummary.ReplacedValues",
+        "DeidentificationSummary.SuppressedValues",
+        "DeidentificationSummary.ShiftedTimestamps",
+        "DeidentificationSummary.UnsupportedTimestamps",
+        "DeidentificationSummary.UnknownSegments",
+        "DeidentificationSummary.HighRiskFields",
+        "DeidentificationSummary.RetainedValues"
+      ],
+      "Signature": "record DeidentificationSummary(long Messages, long MissingIdentities, long AmbiguousIdentities, long ReplacedValues, long SuppressedValues, long ShiftedTimestamps, long UnsupportedTimestamps, long UnknownSegments, long HighRiskFields, long RetainedValues)",
+      "Description": "Messages: processed count. MissingIdentities/AmbiguousIdentities: unresolved correlation counts. ReplacedValues/SuppressedValues: transformed/suppressed leaves. ShiftedTimestamps/UnsupportedTimestamps: supported/unsupported time counts. UnknownSegments/HighRiskFields/RetainedValues: review evidence counts.",
+      "Parameters": "Constructor parameters are the named long counters; workflows populate them. No source values are present.",
+      "Returns": "Count snapshot, not a persisted source-to-profile map or an assertion of anonymity.",
+      "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); }",
+      "Limitations": "Counts cover the supported policy only. Do not manufacture a successful privacy report from a manually constructed summary. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "DeidentificationSummary counts counters missing ambiguous timestamps",
+      "TemplateName": null
+    },
+    {
+      "Id": "workflow-report",
+      "Title": "Summary metadata, categories and CSV projection",
+      "Category": "De-identification",
+      "Members": [
+        "DeidentificationSummary.Preset",
+        "DeidentificationSummary.Version",
+        "DeidentificationSummary.Categories",
+        "DeidentificationSummary.Status",
+        "DeidentificationSummary.Columns",
+        "DeidentificationSummary.Cells",
+        "DeidentificationSummary.ScopeNotice"
+      ],
+      "Signature": "DeidentificationPreset Preset { get; init; }\nint Version { get; init; }\nIReadOnlyList<DeidentificationCategoryCount> Categories { get; init; }\nstring Status { get; }\nstatic string[] Columns { get; }\nstring[] Cells { get; }\nconst string ScopeNotice = \"Review required: container bytes, nested metadata and retained clinical values are not certified de-identified.\";",
+      "Description": "Preset/Version identify policy; Categories counts transformed/suppressed leaves. Status is always Review required. Columns and Cells share a fixed count-only schema. ScopeNotice states the unassessed scope.",
+      "Parameters": "No method parameters. Define Batch.Report with Columns in initialization and call Row(Summary.Cells) once in Complete.",
+      "Returns": "Read-only metadata and fresh arrays. A validated built-in report is associated with its output document’s Transformation Report panel.",
+      "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); }",
+      "Limitations": "The document summary is session-only and tracks captured/stale/closed source; later output edits are not reassessed. Arbitrary CSV remains available only through explicit export. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "Categories Columns Cells Status ScopeNotice Transformation Report export",
+      "TemplateName": null
+    },
+    {
+      "Id": "workflow-categories",
+      "Title": "DeidentificationCategoryCount and categories",
+      "Category": "De-identification",
+      "Members": [
+        "DeidentificationCategoryCount..ctor",
+        "DeidentificationCategoryCount.Category",
+        "DeidentificationCategoryCount.Transformed",
+        "DeidentificationCategoryCount.Suppressed",
+        "DeidentificationCategory.Names",
+        "DeidentificationCategory.Addresses",
+        "DeidentificationCategory.Contacts",
+        "DeidentificationCategory.Demographics",
+        "DeidentificationCategory.Identifiers",
+        "DeidentificationCategory.Providers",
+        "DeidentificationCategory.Narratives",
+        "DeidentificationCategory.Attachments",
+        "DeidentificationCategory.Other"
+      ],
+      "Signature": "record DeidentificationCategoryCount(DeidentificationCategory Category, long Transformed, long Suppressed)\nenum DeidentificationCategory { Names, Addresses, Contacts, Demographics, Identifiers, Providers, Narratives, Attachments, Other }",
+      "Description": "Groups supported leaf operations into names, addresses, contacts, demographics, identifiers, providers, narratives, attachments and other fields.",
+      "Parameters": "Category: fixed category. Transformed: replacement count. Suppressed: cleared-leaf count.",
+      "Returns": "Count record in Summary.Categories; no raw content or mapping keys.",
+      "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); }",
+      "Limitations": "A category count is scope evidence, not proof that all sensitive content in that category was found. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
+      "Keywords": "DeidentificationCategoryCount category transformed suppressed",
+      "TemplateName": null
+    }
+  ]
+}

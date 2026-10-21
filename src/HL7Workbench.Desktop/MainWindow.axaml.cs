@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly InspectionToolViewModel navigator;
     private readonly InspectionToolViewModel fields;
     private readonly ScriptEditorViewModel scripts;
+    private readonly ScriptApiReferenceViewModel scriptReference = new();
     private readonly SearchViewModel search;
     private readonly CancellationTokenSource lifetime = new();
     private bool opening;
@@ -41,6 +42,8 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.FieldInspectorId, "Field Inspector", () => fields));
         // Retain the draft model when the tool closes or Dock reconstructs its view.
         registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
+        registry.Register(new(WorkspaceDockFactory.ScriptApiReferenceId, "Script API Reference", () => scriptReference, Optional: true, RestoreVisibility: true));
+        scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);
@@ -85,6 +88,7 @@ public partial class MainWindow : Window
             browser.Dispose();
             navigator.Dispose(); fields.Dispose();
             scripts.Dispose();
+            scriptReference.CreateScriptAsync = _ => Task.FromResult(false);
             search.Dispose();
             preferences.PropertyChanged -= PreferencesChanged;
             documents.PropertyChanged -= ShellCommandsChanged;
@@ -154,6 +158,11 @@ public partial class MainWindow : Window
     private void ShowNavigator(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.NavigatorId);
     private void ShowFields(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.FieldInspectorId);
     private void ShowScripts(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.ScriptEditorId);
+    private void ShowScriptApiReference(object? sender, RoutedEventArgs e)
+    {
+        factory.ShowTool(WorkspaceDockFactory.ScriptApiReferenceId);
+        Avalonia.Threading.Dispatcher.UIThread.Post(scriptReference.NotifyShown);
+    }
     private void ShowRaw(object? sender, RoutedEventArgs e)
     {
         if (documents.ActiveDocument is not { IsLoading: false } document || document.Source is null && document.MaterializedMessage?.HasDecodedText != true)

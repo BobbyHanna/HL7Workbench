@@ -52,6 +52,8 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public UiCommand CancelCommand { get; }
     public UiCommand ReviewCommand { get; }
     public UiCommand ReportsCommand { get; }
+    public UiCommand ApiReferenceCommand { get; }
+    public event Action? ApiReferenceRequested;
     public event Action? OpenEditorRequested;
     public event Action? EditorShown;
     internal void NotifyEditorShown() => EditorShown?.Invoke();
@@ -102,7 +104,8 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
         CancelCommand = new(() => { Cancel(); return Task.CompletedTask; }, () => IsBusy);
         ReviewCommand = new(() => { Review(); return Task.CompletedTask; }, () => CanReview);
         ReportsCommand = new(() => ManageAsync(ShowReportsAsync), () => CanManage && CanExport);
-        commands = [NewCommand, OpenCommand, SaveCommand, DuplicateCommand, RenameCommand, DeleteCommand, RunCommand, CancelCommand, ReviewCommand, ReportsCommand];
+        ApiReferenceCommand = new(() => { ApiReferenceRequested?.Invoke(); return Task.CompletedTask; }, () => !disposed);
+        commands = [NewCommand, OpenCommand, SaveCommand, DuplicateCommand, RenameCommand, DeleteCommand, RunCommand, CancelCommand, ReviewCommand, ReportsCommand, ApiReferenceCommand];
         this.preferencesPath = preferencesPath;
         if (preferencesPath is not null)
         {
@@ -153,6 +156,16 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     {
         var opened = false;
         await ManageAsync(async () => opened = await Session.OpenAsync(id, PromptUnsavedAsync)); return opened;
+    }
+    public async Task<bool> CreateFromReferenceAsync(string entryId)
+    {
+        var created = false;
+        await ManageAsync(async () =>
+        {
+            created = await Session.CreateFromReferenceAsync(entryId, PromptUnsavedAsync);
+            if (created) OpenEditorRequested?.Invoke();
+        });
+        return created;
     }
     public Task RunAsync()
     {
@@ -234,6 +247,6 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
         ((INotifyCollectionChanged)documents.Documents).CollectionChanged -= DocumentsChanged;
         lifetime.Dispose(); PropertyChanged = null; ReviewRequested = null;
         PromptUnsavedAsync = () => Task.FromResult(UnsavedChangesDecision.Cancel);
-        OpenEditorRequested = EditorShown = null; ConfirmDeleteAsync = _ => Task.FromResult(false); ShowReportsAsync = () => Task.CompletedTask;
+        OpenEditorRequested = EditorShown = ApiReferenceRequested = null; ConfirmDeleteAsync = _ => Task.FromResult(false); ShowReportsAsync = () => Task.CompletedTask;
     }
 }

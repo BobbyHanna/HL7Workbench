@@ -4,7 +4,60 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 9C native acceptance — checkpoint then Stage 10 authorization
+
+On 2026-10-21 the user confirmed Stage 9C native Windows acceptance and authorized
+one exact 28-path local checkpoint after a fresh verification gate, message
+`feat: add Stage 9C scripting API reference and templates`, expected parent
+ea897decdbd79d067d13552e972ab456885a61d6. All accepted hashes match the final manifest;
+index empty and excluded _TEST.hl7/protected material unchanged. Earlier pending
+Stage 9C/no-Stage-10 statements below are historical. If checkpoint fails, stop.
+
+After its clean tracked-tree/empty-index post-commit gate, proceed automatically to
+Stage 10: read-only Field Extraction using existing indexing/scanner/capture, saved
+configuration, docking and CSV/export patterns. Include first/expanded matches,
+bounded results/filter/sort/summary, stable navigation and stale/closed-source state.
+Stage 10 must remain unstaged/uncommitted and stop for native Windows acceptance.
+No push/tag/package/deploy/release/publication or Stage 11 is authorized.
+
+Fresh Stage 9C checkpoint gate passed: locked restore; Release zero warnings/errors;
+1,544 solution tests, 733 complete Workspace stress tests, no failures/skips; both
+ScriptHost lifecycles against the existing Release layout; generated docs sync;
+eight exact fixture blobs, all 13 protected hashes and whitespace. The exact 28-path
+accepted implementation is unchanged; only native-acceptance records were updated.
+Evidence: artifacts/stage9c-checkpoint-20261021.
+
 ## Stage 9 native accepted — checkpoint then Stage 9C authorized
+
+Stage 9 checkpoint completed as ea897decdbd79d067d13552e972ab456885a61d6, exact
+41-path inventory, expected Stage 8D parent, clean tracked tree and empty index.
+The local excluded _TEST.hl7 remains unchanged/untracked. Stage 9C is implemented
+and verified, awaiting native Windows acceptance, and remains unstaged/uncommitted.
+Its acceptance record contains measured results, the exact inventory and native steps.
+
+Stage 9C adds one offline version-1/API-2 reference catalog (50 topics, six complete
+starters) embedded verbatim in Workspace. Generated repository Markdown reuses that
+source. Help and the visible Script Editor API Reference button open one optional
+dock tool with bounded search/history, category navigation, exact clipboard copy,
+theme-aware selectable details and the existing unsaved-draft transition for starter
+creation. My Scripts labels clarify independent user copies; existing library schema,
+built-ins and persistence behavior remain. Existing public synthetic helpers are
+already accessible; no facade, worker protocol/engine changes, dependency or full
+completion system is required. Tests classify the public API, execute examples and
+templates, retain native clipboard/local undo and verify docking/theme/customization.
+See docs/stage9c-script-developer-experience-acceptance.md. No Stage 9C commit, push,
+tag, package, deploy, release, publication or Stage 10. Stop for native acceptance.
+
+Final Stage 9C gate passed: locked restore; Release zero warnings/errors; focused
+123 Scripting, 38 Workspace/library and 50 Desktop; **1,544 full solution tests**
+(2m 53.028s), **733 complete Workspace stress tests** (5m 05.767s), no failures/skips;
+both ScriptHost lifecycles against the existing Release layout; generated-reference
+synchronization; eight exact fixture blobs, all 13 protected hashes, unchanged
+ICO/master and all text whitespace. Evidence is retained in ignored artifacts/stage9c.
+HEAD remains the Stage 9 checkpoint; the index is empty, with 28 Stage 9C paths
+(17 tracked modifications, 11 new) plus the unchanged excluded untracked HL7.
+No new worker facade or completion system. Stop for native acceptance; no Stage 9C
+commit or further milestone work is authorized.
 
 On 2026-10-20 the user accepted Stage 9 de-identification, realistic identities,
 Transformation Report and optimized icon on native Windows. One exact 41-path local

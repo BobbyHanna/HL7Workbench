@@ -117,6 +117,13 @@ basic diagnostics do not provide HL7 version/profile conformance validation.
 
 ## C# scripting (Stages 5A–5B)
 
+**Help → Script API Reference** and the Script Editor's **API Reference** button open
+searchable offline API help, copyable complete examples and six editable starters.
+Browse [the generated reference](docs/script-api-reference.md) or see
+[Stage 9C acceptance](docs/stage9c-script-developer-experience-acceptance.md).
+Built-ins are read-only; Duplicate Script creates an independent My Scripts copy to
+rename, edit, save, reopen and run. Application updates do not replace those copies.
+
 The Script Library includes **Patient Deidentifier**, **Identifier Pseudonymizer** and
 **Timestamp Shifter**. Review a preset, duplicate it to configure seed/day displacement,
 and Run against Current or Whole document. Output opens independently and unsaved with
@@ -147,7 +154,7 @@ and [native Windows acceptance checklist](docs/stage5b-batch-scripting-acceptanc
 Stage 5B, including the unified redesign and final save/dialog corrections, passed
 native Windows acceptance on 2026-10-16.
 
-The permanent menu is File | Settings | View. The collapsible Scripts ribbon and compact
+The permanent menu is File | Settings | View | Help. The collapsible Scripts ribbon and compact
 editor share commands; Home contains Save/Restore/Reset Layout, including window recovery.
 Click the script name to rename; Delete Script protects bundled examples and prompts for
 dirty drafts/confirmation. Reports / Export CSV opens contextual retained results.
