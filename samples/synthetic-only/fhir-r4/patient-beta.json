@@ -1,0 +1,10 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {"fullUrl":"urn:uuid:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","resource":{"resourceType":"Patient","id":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","identifier":[{"system":"https://github.com/synthetichealth/synthea","value":"SYN-BETA"}],"name":[{"family":"EXAMPLE","given":["SYNTHETIC"]}],"gender":"unknown","birthDate":"1990"}},
+    {"fullUrl":"urn:uuid:eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee","resource":{"resourceType":"Encounter","id":"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee","status":"finished","class":{"system":"http://terminology.hl7.org/CodeSystem/v3-ActCode","code":"AMB"},"subject":{"reference":"Patient/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"},"period":{"start":"2030-02-01T09:00:00-05:00","end":"2030-02-01T09:30:00-05:00"}}},
+    {"fullUrl":"urn:uuid:cccccccc-cccc-4ccc-8ccc-cccccccccccc","resource":{"resourceType":"Observation","id":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","status":"final","subject":{"reference":"urn:uuid:11111111-1111-4111-8111-111111111111"},"encounter":{"reference":"urn:uuid:22222222-2222-4222-8222-222222222222"},"code":{"coding":[{"system":"http://loinc.org","code":"8310-5","display":"Temperature"}]},"effectiveDateTime":"2030-01-02T11:00:00Z","valueQuantity":{"value":37,"unit":"Cel","system":"http://unitsofmeasure.org","code":"Cel"}}},
+    {"fullUrl":"https://synthetic.example.invalid/fhir/Organization/syn-hospital","resource":{"resourceType":"Organization","id":"syn-hospital","name":"SYNTHETIC TEST HOSPITAL"}}
+  ]
+}

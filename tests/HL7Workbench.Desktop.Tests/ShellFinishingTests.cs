@@ -40,7 +40,7 @@ public sealed partial class ScriptEditorTests
                 Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menus.Select(i => i.Header));
                 Assert.Equal("Script _API Reference", Assert.Single(menus[3].Items.Cast<MenuItem>()).Header);
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
-                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Field E_xtraction", "_Find Messages", "Full _Source Viewer" },
+                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Field E_xtraction", "Synthetic _Patients", "_Find Messages", "Full _Source Viewer" },
                     menus[2].Items.Cast<MenuItem>().Select(i => i.Header));
                 var file = menus[0].Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(Key.S, file[1].InputGesture!.Key); Assert.Equal(KeyModifiers.Control, file[1].InputGesture!.KeyModifiers);

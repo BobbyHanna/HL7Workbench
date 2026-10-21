@@ -12,6 +12,7 @@
         <MenuItem Header="Save _As…" Click="SaveDocumentAs" InputGesture="Ctrl+Shift+S" />
         <MenuItem x:Name="AddMessageMenu" Header="_Add Message" />
         <MenuItem x:Name="GenerateMessagesMenu" Header="_Generate Messages…" />
+        <MenuItem x:Name="ImportSyntheticPatientsMenu" Header="Import Synthetic Patient _FHIR…" Click="ShowSyntheticPatients" />
       </MenuItem>
       <MenuItem Header="_Settings">
         <MenuItem Header="_Preferences…" Click="ShowPreferences" />
@@ -23,6 +24,7 @@
         <MenuItem Header="_Field Inspector" Click="ShowFields" ToolTip.Tip="Inspect structural values in the selected segment" />
         <MenuItem Header="Script _Editor" Click="ShowScripts" ToolTip.Tip="Create, save and run trusted local C# scripts" />
         <MenuItem x:Name="FieldExtractionMenu" Header="Field E_xtraction" Click="ShowFieldExtraction" ToolTip.Tip="Extract fields into a read-only table and CSV" />
+        <MenuItem x:Name="SyntheticPatientsMenu" Header="Synthetic _Patients" Click="ShowSyntheticPatients" ToolTip.Tip="Import local synthetic FHIR R4 and generate test HL7" />
         <MenuItem x:Name="FindMessagesMenu" Header="_Find Messages" InputGesture="Ctrl+F" ToolTip.Tip="Open Find Messages and focus the search value (Ctrl+F)" AutomationProperties.Name="Find Messages" />
         <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
       </MenuItem>

@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup>
+    <None Include="../../samples/synthetic-only/fhir-r4/*.json" Link="Fixtures/fhir-r4/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../Shared/LargeSyntheticFile.cs" Link="LargeSyntheticFile.cs" />
+    <Compile Include="../Shared/FhirSyntheticHistory.cs" Link="FhirSyntheticHistory.cs" />
     <PackageReference Include="Avalonia.Headless" />
     <ProjectReference Include="../../src/HL7Workbench.Desktop/HL7Workbench.Desktop.csproj" />
     <PackageReference Include="xunit.v3" />

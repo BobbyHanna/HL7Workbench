@@ -6,13 +6,28 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 11 adds optional **Synthetic Patients** from File/View: local, explicitly
+synthetic-only FHIR R4 Bundle import, bounded patient/encounter/timeline browsing,
+conservative seeded ADT A04/A01/A03 and ORU R01 generation into new unsaved HL7
+documents, and document-associated count-only Generation Reports. No server or
+manual event selection is required for the default Selected Patient history scope;
+Entire Import combines all patients, and Selected Events retains targeted testing.
+Output remains one independent combined document with explicit preview limits. No
+Synthea installation is required by Workbench. Mapping is partial; review warnings
+and use synthetic/test input only. See the [import guide](docs/synthea-fhir-import.md),
+[versioned mapping](docs/fhir-to-hl7v2-mapping.md) and
+[acceptance record](docs/stage11-synthea-fhir-acceptance.md). Stage 11, including
+complete histories, passed user native Windows acceptance on 2026-10-21; one local
+checkpoint is authorized before Stage 12.
+
 Stage 9C is checkpointed locally. Stage 10 adds read-only **Field Extraction** from
 View or an HL7 document's **Extract Fields** action: configurable paths, first or
 expanded matches, paged results, literal/state/numeric filters, sorting, saved user
 configurations and complete selected-result CSV export. Captured revisions and
 stale/closed sources remain explicit. See the [extraction guide](docs/field-extraction.md)
 for alignment, value states, privacy and limits. Stage 10 passed user native Windows
-acceptance on 2026-10-21; one local checkpoint is authorized after fresh verification.
+acceptance on 2026-10-21 and is checkpointed as
+`1b04e1849b2ba3c03d135cf324bae28b8af4cba8`. Stage 11 remains uncommitted.
 
 Stage 8D synthetic generation passed user native Windows acceptance on 2026-10-20.
 Earlier pending-acceptance notes below are retained as historical implementation records.

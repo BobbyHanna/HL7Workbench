@@ -38,6 +38,8 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     public SourceSnapshot? Snapshot { get; }
     /// <summary>Session-only review for the producing transformation, independent of the Script Editor's latest run.</summary>
     public TransformationReport? TransformationReport { get; internal set; }
+    /// <summary>Count-only captured FHIR generation provenance; independent of imported-session/tool lifetime.</summary>
+    public FhirGenerationReport? GenerationReport { get; internal set; }
     public MessageFileIndex? Index { get; }
     public Hl7Message Message => message ?? throw new InvalidOperationException("Active content is source-backed or unavailable.");
     public Hl7Message? MaterializedMessage => message;

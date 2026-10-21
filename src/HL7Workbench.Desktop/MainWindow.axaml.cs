@@ -47,6 +47,7 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.ScriptApiReferenceId, "Script API Reference", () => scriptReference, Optional: true, RestoreVisibility: true));
         scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
         registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "Synthetic Patients", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);

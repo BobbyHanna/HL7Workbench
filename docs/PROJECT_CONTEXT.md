@@ -4,6 +4,81 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 11 native acceptance — checkpoint then Stage 12 authorization
+
+On 2026-10-21 the user confirmed native Windows acceptance of all Stage 11 work,
+including complete histories, and authorized one local 44-path checkpoint:
+`Stage 11: Add Synthea FHIR import and HL7 generation`, expected parent
+1b04e1849b2ba3c03d135cf324bae28b8af4cba8. Audit confirmed all 44 accepted hashes,
+14 modified / 30 new paths, empty index, accepted 1,705 solution / 784 Workspace
+stress results, zero-warning Release build and protected fixtures/artwork/excluded
+HL7. No implementation/test byte changed after verification. Earlier pending/native/
+no-commit restrictions below are historical. If checkpoint fails, stop.
+
+After the checkpoint succeeds, proceed to Stage 12: interactive asynchronous bounded
+TCP/MLLP connection management, one-message explicit sends, correlated original/
+enhanced ACKs, loopback-default listener/test ACKs, safe endpoint profiles and local
+session/document inspection. TLS may be explicitly deferred rather than weakened.
+Stage 12 must remain unstaged/uncommitted and stop for native Windows acceptance.
+No push/tag/package/deploy/release/publication or Stage 13 is authorized.
+
+## Stage 11 acceptance improvement — complete histories, native acceptance pending
+
+The user requested complete-history generation during pending Stage 11 acceptance.
+Workspace/UI now default to Selected Patient, with Entire Import and advanced
+Selected Events using the same mapping/candidate authority. Switching scopes retains
+manual selections. Output stays one combined independent unsaved document; separate
+patient documents are deferred because no atomic group-of-tabs rollback exists.
+Stable patient grouping/clinical ordering, global MSH-10 ordinals, bounded count/size
+preflight and count-only exclusion/ineligible/limit reporting are implemented. No new
+clinical mappings, inferred facts, dependency, ScriptHost or publication redesign.
+
+Current evidence: artifacts/stage11-history. Locked restore and the final indexed
+Release build passed with zero warnings/errors; final focused 68 Core, 23 Workspace
+and 32 Desktop tests passed. A source lookup avoids repeated encounter warning scans;
+the 2,000-encounter case verifies complete counts beyond the output ceiling. Both
+ScriptHost lifecycles pass against that final Release build. Full solution passed
+**1,705 cases** (2m 51.607s) and complete Workspace stress passed **784 cases**
+(290.253s), no failures/skips. API-reference sync, protected/fixture/artwork/excluded
+hashes, all 37 final-indexed implementation/test/fixture hashes, exact inventory and
+whitespace passed after stress. Earlier pre-index logs remain for diagnosis. Inventory
+is 44 Stage 11 paths (14 modified tracked, 30 new) plus the unchanged excluded HL7;
+no staging/commit is authorized. The earlier verified baseline below is historical.
+Exact results/limitations and the 12-step complete-history native retest are in
+docs/stage11-synthea-fhir-acceptance.md. Stop for native Windows review; no Stage 12.
+
+## Prior Stage 11 verified baseline — native acceptance remained pending
+
+Stage 10 is checkpointed locally as **1b04e1849b2ba3c03d135cf324bae28b8af4cba8**,
+message `feat: add Stage 10 HL7 field extraction and analysis`, with exact 33-path
+inventory, clean tracked-tree/empty-index post-check and preserved excluded HL7.
+Do not amend or recreate it. Earlier checkpoint/pending instructions below are
+historical. Stage 11 must remain unstaged/uncommitted; no push, tag, package, deploy,
+release, publication or Stage 12 is authorized. Stop for native Windows acceptance.
+
+Stage 11 implements local read-only, explicitly synthetic-confirmed FHIR R4 Bundle
+import, conservative scoped reference resolution, bounded session patient/encounter/
+clinical timeline browsing and seeded ADT A04/A01/A03 plus ORU R01 generation into
+independent unsaved HL7 documents. The optional release-on-close Synthetic Patients
+Dock tool retains placement only; Clear/close/reset cancels captures and releases
+clinical state. Document-owned count-only Generation Reports survive tool closure
+and view reconstruction. No SDK, dependency, patient database, network service or
+ScriptHost permission change. Core/Workspace boundaries and original generator/save
+contracts remain. See ADR 0015, docs/synthea-fhir-import.md and
+docs/fhir-to-hl7v2-mapping.md.
+
+Resume audit verified the actual working tree rather than trusting historical logs.
+Final gate passed 2026-10-21: locked restore; Release 0 warnings/errors; focused
+54 Core, 13 Workspace and 8 Desktop tests; **1,677 solution tests** (3m 09.482s)
+and **774 complete Workspace stress tests** (352.997s), no failures/skips; both
+ScriptHost lifecycles against the existing Release build, API-reference sync, eight
+fixture blobs, all 13 protected hashes, original/derived icon integrity and whitespace.
+All 32 final implementation/test/fixture hashes remain unchanged. Evidence:
+artifacts/stage11; exact 39-path inventory (14 modified, 25 new), limitations and
+native checklist: docs/stage11-synthea-fhir-acceptance.md. HEAD remains the Stage 10
+checkpoint and index empty. All permanent coverage/fixtures remain; never open or
+stage the excluded samples/synthetic-only/stage5b-repeated-patients_TEST.hl7.
+
 ## Stage 10 native acceptance — checkpoint then Stage 11 authorization
 
 On 2026-10-21 the user confirmed Stage 10 native Windows acceptance. One exact

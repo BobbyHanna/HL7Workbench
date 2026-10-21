@@ -1,14 +1,64 @@
 # Architecture
 
-Stage 10 passed user native Windows acceptance on 2026-10-21. One exact 33-path local
-checkpoint is authorized after fresh verification; older pending statements below
-are historical. Stage 11 Synthea/FHIR integration follows only after checkpoint
-success, remains uncommitted and stops for native acceptance. No external Git or
-publication operation is authorized.
+Stage 10 passed user native Windows acceptance and is checkpointed at
+1b04e1849b2ba3c03d135cf324bae28b8af4cba8 (2026-10-21). The user confirmed Stage 11
+native acceptance, including complete histories, and authorized one exact 44-path
+local checkpoint before Stage 12. Stage 12 stays uncommitted pending separate native
+acceptance. Earlier pending statements below are historical. No external Git,
+packaging or publication operation is authorized.
+
+## Stage 11 local synthetic FHIR workflow
+
+Core's narrow System.Text.Json R4 importer validates bounded collection/transaction
+Bundles and retains immutable projections, digests and explicit input/container
+provenance. Raw JSON is transient per file; no SDK, new dependency, database or
+server participates. Patient/encounter membership follows only explicit resolved
+references. Fixed passes reject ambiguity/conflict and never infer from names,
+containment or graph traversal. Only identical shared provider metadata can
+deduplicate; clinical records retain their source scope. Timeline precision and
+missing/invalid dates remain explicit. See [ADR 0015](decisions/0015-local-synthetic-fhir-integration.md).
+
+Workspace's FhirPatientImport enforces local read-only paths and executes bounded
+import off-context. SyntheticPatientsSession owns cancellable replacement, indexes,
+100-row pages, search and bounded patient/event selections; Clear/close/reset
+invalidates captures and releases data. Desktop supplies native pickers with
+synthetic-only attestation and an optional release-on-close Synthetic Patients
+Dock tool. Placement persists; imported projections, identifiers, searches and
+selections do not. Detached view objects cannot retarget a replacement session.
+
+Core's immutable version-1 generation plan previews eligibility and maps actual
+source data separately from explicit generated transport metadata. Source-qualified
+patient/visit identities remain stable across ADT/ORU; message control IDs combine
+seed, captured selection and ordinal. Coding/units/status/value/date restrictions
+are explicit and counted. Core returns a closed parser-validated batch under the
+existing Stage 8D ceilings. FhirGenerationPublisher adds one narrow batch overload
+to the existing prepared insertion/prospective-save/index/exact-byte proof pipeline,
+builds a private empty document and opens it only on complete/current success.
+Existing documents, original generator contracts and save semantics are unchanged.
+
+An immutable count-only Generation Report is attached before public document open.
+The normal FileDocumentView reconstructs its report panel from the document, so
+attribution survives tool closure and view replacement. No clinical data, paths or
+exception text enter reports/log diagnostics. Reports do not reassess later edits
+and are not automatically saved alongside HL7. Core/Workspace remain UI/Dock free;
+ScriptHost permissions, isolation, packages and Dock layout schema do not change.
+The Stage 11 acceptance improvement expands the same candidate selector to Selected
+Patient (UI default), Entire Import and advanced Selected Events. Source-bounded
+patient lookups avoid per-patient whole-import rescans; exact eligibility counters
+continue beyond the output cap while retained candidates never exceed 1,000.
+Preview renders/discards one message at a time for size preflight; the existing
+closed batch/publication proof remains authoritative. Patient-grouped stable ordering
+and one global ordinal retain ID consistency/uniqueness. Scope changes preserve manual
+selections. Separate patient documents are deferred until a safe multi-document
+transaction exists; no publication or Dock redesign participates here.
+See the [mapping](fhir-to-hl7v2-mapping.md), [user guide](synthea-fhir-import.md) and
+[acceptance record](stage11-synthea-fhir-acceptance.md).
+
+## Earlier architecture records
 
 Stage 9C passed native Windows acceptance and is checkpointed locally as
 867016c3d1eab969c4a1853994eedb95621ad4f0. Stage 10 implements read-only extraction;
-its changes remain unstaged/uncommitted pending native acceptance. Older milestone
+its accepted changes are included in that Stage 10 checkpoint. Older milestone
 authorization/pending statements below are historical.
 
 Field Extraction reuses immutable MessageDocument search captures/read leases,

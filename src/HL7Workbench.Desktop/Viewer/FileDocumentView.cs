@@ -29,6 +29,7 @@ public sealed class FileDocumentView : ContentControl
     public IReadOnlyDictionary<MessageInsertionPosition, UiCommand> InsertionCommands { get; }
     public MessageDocument Document => document;
     public TransformationReportView? TransformationReportPanel { get; }
+    public GenerationReportView? GenerationReportPanel { get; }
     public string? NavigationStatus => status.Text;
     private readonly ComboBox regions = new() { Width = 190 };
     private readonly Expander regionInspector = new() { Header = "Inspect source bytes" };
@@ -89,6 +90,8 @@ public sealed class FileDocumentView : ContentControl
         navigation.Children.Add(status); navigation.Children.Add(regionInspector); navigation.Children.Add(toolbar);
         if (document.TransformationReport is { } report)
         { TransformationReportPanel = new(report); navigation.Children.Add(TransformationReportPanel); }
+        if (document.GenerationReport is { } generationReport)
+        { GenerationReportPanel = new(generationReport); navigation.Children.Add(GenerationReportPanel); }
         Refresh();
     }
     public async Task JumpAsync()

@@ -5,10 +5,12 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Shared/FhirSyntheticHistory.cs" Link="FhirSyntheticHistory.cs" />
     <ProjectReference Include="../../src/HL7Workbench.Core/HL7Workbench.Core.csproj" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../samples/synthetic-only/*.hl7" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/synthetic-only/fhir-r4/*.json" Link="Fixtures/fhir-r4/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

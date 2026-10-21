@@ -6,11 +6,21 @@ public sealed partial class MessageDocument
 {
     /// <summary>Transient mutation lock while a prospective generated batch is streamed and validated; no history/selection is published yet.</summary>
     public bool IsPreparingInsertion { get; private set; }
-    internal async Task<IReadOnlyList<MessageId>> InsertGeneratedMessagesAsync(SyntheticMessageBatch batch,
+    internal Task<IReadOnlyList<MessageId>> InsertGeneratedMessagesAsync(SyntheticMessageBatch batch,
+        MessageInsertionPosition position, IProgress<DocumentSaveProgress>? progress, CancellationToken token) =>
+        InsertValidatedGeneratedMessagesAsync(batch.Messages, position, progress, token);
+
+    internal Task<IReadOnlyList<MessageId>> InsertMappedFhirMessagesAsync(FhirMappedBatch batch,
+        IProgress<DocumentSaveProgress>? progress, CancellationToken token) =>
+        InsertValidatedGeneratedMessagesAsync(batch.Messages, MessageInsertionPosition.End, progress, token);
+
+    // Both closed Core batch types enforce the same injection/size bounds. Keep one
+    // prospective save/index/byte-proof and publication authority for generated output.
+    private async Task<IReadOnlyList<MessageId>> InsertValidatedGeneratedMessagesAsync(IReadOnlyList<string> messages,
         MessageInsertionPosition position, IProgress<DocumentSaveProgress>? progress, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var insertion = PrepareInsertion(position, batch.Messages, token, generatedContent: true);
+        var insertion = PrepareInsertion(position, messages, token, generatedContent: true);
         IsPreparingInsertion = true; PropertyChanged?.Invoke(this, new(nameof(IsPreparingInsertion)));
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, lifetime.Token);
         try
