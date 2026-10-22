@@ -40,14 +40,7 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
         var name = "hl7-script-" + Guid.NewGuid().ToString("N");
         var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte,
             PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
-        var process = new Process { StartInfo = new ProcessStartInfo
-        {
-            FileName = executable.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ?
-                Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet" : executable,
-            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true
-        } };
-        if (executable.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) process.StartInfo.ArgumentList.Add(executable);
-        process.StartInfo.ArgumentList.Add(name);
+        var process = new Process { StartInfo = CreateStartInfo(executable, name) };
         // Neither command line nor environment contains scripts, paths to source documents, or message values.
         process.StartInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
         ScriptWorkerSession? session = null;
@@ -78,6 +71,26 @@ public sealed class ScriptWorkerSession : IAsyncDisposable
             if (session is not null) await session.DisposeAsync(); else { pipe.Dispose(); process.Dispose(); }
             throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Worker, e is OperationCanceledException ? "Timeout" : "WorkerUnavailable"));
         }
+    }
+    internal static ProcessStartInfo CreateStartInfo(string executable, string pipeName)
+    {
+        executable = Path.GetFullPath(executable);
+        // A self-contained worker must enter through its own apphost, not an
+        // installed dotnet host. Resolve only the adjacent file, never PATH.
+        if (executable.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+        {
+            var apphost = Path.Combine(Path.GetDirectoryName(executable)!, Path.GetFileNameWithoutExtension(executable) + (OperatingSystem.IsWindows() ? ".exe" : ""));
+            if (File.Exists(apphost)) executable = apphost;
+        }
+        var dll = executable.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
+        var start = new ProcessStartInfo
+        {
+            FileName = dll ? Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet" : executable,
+            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true
+        };
+        if (dll) start.ArgumentList.Add(executable);
+        start.ArgumentList.Add(pipeName);
+        return start;
     }
     public async Task<ScriptMessageResult> ProcessAsync(byte[] bytes, int codePage, int messageNumber, CancellationToken token = default)
     {

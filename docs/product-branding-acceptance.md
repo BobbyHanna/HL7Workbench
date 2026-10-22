@@ -30,7 +30,7 @@ uses the public name while preserving technical paths; no packaging was performe
 The solution/projects/assemblies/namespaces/repository, executable filename and
 resource URIs remain HL7Workbench. Configuration directories, preferences keys,
 endpoint profiles, script libraries and placement schemas are unchanged. Original
-vocabulary authoring attribution is preserved. The approved MW/Scopreon source PNG,
+vocabulary authoring attribution is preserved. The approved MW source PNG,
 master PNG and ICO remain byte-identical. No Core, Workspace, Scripting, ScriptHost,
 Transport implementation, dependency/lockfile, clinical fixture or protocol changed.
 

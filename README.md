@@ -11,6 +11,18 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 14 prepares a **Windows x64 portable self-contained v0.1.0-beta candidate**:
+startup/layout stability corrections, adjacent apphost worker launch, stable beta
+metadata, deterministic local candidate assembly, checksums/provenance, and reviewed
+dependency notices. One local Stage 14 checkpoint and a fresh clean-source ZIP are
+authorized; coworker distribution remains unapproved.
+See [portable build instructions](docs/portable-release.md), [candidate user guide](docs/beta-user-guide.md)
+and [Stage 14 acceptance](docs/stage14-release-readiness-acceptance.md). The short
+[recipient README](docs/beta-readme.md), [distribution review](docs/beta-distribution-review.md)
+and [proposed beta terms](docs/beta-usage-terms-proposed.md) support final human review.
+Branding passed native acceptance and is checkpointed as
+`84fdc22925173250fad132d0d4b4c6768d3c68e0`.
+
 Stage 13B adds **Controlled Load Testing**: explicitly authorized synthetic test
 traffic with bounded concurrency/global rate, duration/attempt/safety stops, separate
 write/ACK/application metrics and privacy-safe local reports. No automatic retry,

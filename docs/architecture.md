@@ -1,5 +1,19 @@
 # Architecture
 
+## Stage 14 portable beta readiness
+
+See [ADR 0019](decisions/0019-portable-beta-readiness.md). A local candidate assembles
+two directory-based self-contained win-x64 processes with separate runtimes. The
+renamed native apphost retains HL7Workbench.Desktop.dll binding; no technical or
+persistence rename. ScriptWorkerSession prefers an adjacent apphost without changing
+protocol/containment. Existing build copying owns the worker boundary; the project
+reference is nonprivate to avoid root apphost/runtimeconfig leakage. Core/Workspace/
+Transport behavior and saved-data schemas remain unchanged. Unique layout temporary
+metadata/recovery and fixed save status address concrete stability/privacy problems.
+Version/portable content/license/provenance verification supplements existing suites.
+All artifacts remain local candidates pending native/human review and separate release
+authorization. No automatic recovery of clinical contents, network access or updater.
+
 ## Stage 13B controlled load testing
 
 Stage 13A is checkpointed as 45e7cdbad9a32cdaebb7834ae0026b10914622aa after all eight

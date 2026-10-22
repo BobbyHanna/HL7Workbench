@@ -1,7 +1,21 @@
-param([string]$PublishDirectory = 'artifacts/stage5b-publish')
+param([string]$PublishDirectory = 'artifacts/stage5b-publish', [switch]$SelfContained)
 $ErrorActionPreference = 'Stop'
 $published = (Resolve-Path -LiteralPath $PublishDirectory).Path
 $hostFile = Join-Path $published 'ScriptHost/HL7Workbench.ScriptHost.dll'
+if ($SelfContained) {
+    foreach ($directory in @($published, (Join-Path $published 'ScriptHost'))) {
+        foreach ($native in @('coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $directory $native))) { throw 'Missing self-contained runtime file' }
+        }
+        $configuration = Get-ChildItem -LiteralPath $directory -Filter '*.runtimeconfig.json' -File
+        if (@($configuration).Count -ne 1) { throw 'Unexpected process configuration inventory' }
+        $runtime = (Get-Content -LiteralPath $configuration.FullName -Raw | ConvertFrom-Json).runtimeOptions
+        if ($runtime.framework -or $runtime.frameworks -or @($runtime.includedFrameworks).Count -ne 1 -or
+            $runtime.includedFrameworks[0].name -ne 'Microsoft.NETCore.App' -or $runtime.includedFrameworks[0].version -ne '10.0.12') {
+            throw 'Not the pinned self-contained runtime'
+        }
+    }
+}
 
 # Compiler-only Roslyn is expected in Desktop; execution dependencies must stay in ScriptHost.
 foreach ($name in @('Microsoft.CodeAnalysis.Scripting.dll', 'Microsoft.CodeAnalysis.CSharp.Scripting.dll', 'HL7Workbench.ScriptHost.dll')) {
@@ -15,11 +29,14 @@ $desktopDependencies = Get-Content -LiteralPath (Join-Path $published 'HL7Workbe
 if ($desktopDependencies.Contains('Microsoft.CodeAnalysis.CSharp.Scripting/') -or $desktopDependencies.Contains('Microsoft.CodeAnalysis.Scripting/')) {
     throw 'Desktop dependency graph includes scripting runtime'
 }
-$workerBuild = (Resolve-Path 'src/HL7Workbench.ScriptHost/bin/Release/net10.0').Path
+$workerBuild = if ($SelfContained) { $null } else { (Resolve-Path 'src/HL7Workbench.ScriptHost/bin/Release/net10.0').Path }
 # Include the directory separator so a sibling with the same prefix cannot match.
 # GetRelativePath is unavailable in Windows PowerShell 5.1's .NET Framework.
-$workerPrefix = $workerBuild.TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar
-foreach ($file in Get-ChildItem -LiteralPath $workerBuild -Recurse -File) {
+$workerPrefix = if ($workerBuild) { $workerBuild.TrimEnd([char[]]'\/') + [IO.Path]::DirectorySeparatorChar } else { '' }
+foreach ($file in $(if ($workerBuild) {
+    Get-ChildItem -LiteralPath $workerBuild -File
+    Get-ChildItem -LiteralPath $workerBuild -Directory | ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Filter '*.resources.dll' -File }
+})) {
     if (-not $file.FullName.StartsWith($workerPrefix, [StringComparison]::OrdinalIgnoreCase)) {
         throw 'Worker build file is outside its root'
     }
@@ -64,10 +81,18 @@ function Test-PublishedWorker([int]$messageCount) {
     }
     try {
         $start = [Diagnostics.ProcessStartInfo]::new()
-        $start.FileName = 'dotnet'; $start.UseShellExecute = $false; $start.CreateNoWindow = $true
+        $start.FileName = if ($SelfContained) { Join-Path $published 'ScriptHost/HL7Workbench.ScriptHost.exe' } else { 'dotnet' }
+        $start.UseShellExecute = $false; $start.CreateNoWindow = $true
         # The absolute DLL path ends in .dll (no trailing slash); Windows file paths
         # cannot contain quotes. The generated pipe name contains only safe letters/hex.
-        $start.Arguments = '"' + $hostFile + '" ' + $pipeName
+        $start.Arguments = if ($SelfContained) { $pipeName } else { '"' + $hostFile + '" ' + $pipeName }
+        if ($SelfContained) {
+            # A successful lifecycle must not borrow an installed dotnet host/runtime.
+            $start.EnvironmentVariables['PATH'] = "$env:SystemRoot\System32"
+            $start.EnvironmentVariables['DOTNET_ROOT'] = Join-Path $published 'unavailable-dotnet'
+            $start.EnvironmentVariables['DOTNET_ROOT_X64'] = Join-Path $published 'unavailable-dotnet'
+            $start.EnvironmentVariables['DOTNET_MULTILEVEL_LOOKUP'] = '0'
+        }
         $worker = [Diagnostics.Process]::Start($start)
         [void]$pipe.WaitForConnectionAsync($deadline.Token).GetAwaiter().GetResult()
         $source = 'var n = 0; ScriptDeferredMessage held = null!; var r = Batch.Report("summary", "Count"); Batch.SetOutputFileName("Initial"); void Main() { n++; Message.SetText("PID-5.2", n.ToString()); if(n == 1) held = Batch.Hold(Message); } void Complete() { r.Row(n.ToString()); Batch.Emit(held); Batch.SetOutputFileName("Synthetic smoke.HL7"); Batch.SetOutputFileName("../unsafe"); }'
@@ -115,4 +140,4 @@ function Test-PublishedWorker([int]$messageCount) {
 }
 Test-PublishedWorker 1
 Test-PublishedWorker 2
-Write-Output 'Published unified Main current/whole lifecycles, shared state, CSV, completion, deferred output, clean exit, hashes and dependency isolation passed.'
+Write-Output "Verified unified Main current/whole lifecycles, shared state, CSV, completion, deferred output, clean exit and dependency isolation (self-contained: $SelfContained)."

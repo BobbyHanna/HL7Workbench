@@ -4,7 +4,77 @@ Message Workbench is the official, final public product name: an independent,
 local-first healthcare interoperability development tool for HL7 v2, scripting,
 synthetic generation, FHIR R4 conversion and TCP/MLLP testing. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
-All committed examples and tests must be synthetic.
+All committed examples and tests must be synthetic. The existing MW logo is the
+approved artwork; its former informal nickname was an inside joke with no brand,
+publisher, company or product status.
+
+## Stage 14 — usability, stability and portable beta readiness
+
+Current authorization (2026-10-22): the user reports the portable application and
+self-contained scripting worker worked in a separate work VM, and authorizes exactly
+one local commit, `Stage 14: Prepare portable beta release`, followed by a fresh
+clean-source Windows x64 ZIP and verification. No amendment, push/tag, distribution,
+upload/publication or next milestone. The new ZIP's source hash/checksum/results are
+recorded in ignored artifacts/stage14-release-preparation/ after that checkpoint;
+the commit inventory and integrity reconciliation are in artifacts/stage14-checkpoint/.
+The earlier full gate still applies to unchanged application code. Only packaging
+and recipient/review documentation are extended: required packaged README with input
+hash, missing-document regression assertions, concise notes, proposed terms and a
+resolved/unresolved notice/trust review. See docs/beta-distribution-review.md.
+Human notice applicability, owner terms, employer trust and separate recipient/artifact
+approval remain distribution blockers. The reported VM test does not establish every
+unreported Windows 10/11/read-only/DPI/accessibility matrix item. Earlier authorization
+and inventory statements below are historical records of the pre-checkpoint gate.
+
+Branding passed native Windows acceptance and was checkpointed once as
+**84fdc22925173250fad132d0d4b4c6768d3c68e0**, `Branding: Rename product to Message Workbench`,
+parent 738e3d7697fb7b2d2d8e668fe7b02edbddea28f2. All 16 accepted hashes matched
+the completed 1,953 solution / 935 stress gate before acceptance-only Markdown
+updates; all staged blobs were reviewed and immediate post-commit tree/index clean.
+Evidence: artifacts/branding-checkpoint. No amendment/history rewriting/publication.
+
+Stage 14 is authorized for implementation and verification only. Target is
+v0.1.0-beta, Windows 10/11 x64, portable self-contained ZIP. Only clearly marked local
+candidates may be generated for tests; no Stage 14 staging/commit, release/distribution,
+push/tag/upload or further milestone is authorized. User confirmed artwork ownership
+or redistribution permission; the source PNG and approved derivatives remain exact.
+
+Implemented: startup recovery catches semantic/oversized InvalidDataException layouts;
+layout saves use unique owned temporary metadata and cleanup; save-conflict status
+is fixed text; public beta/file metadata changes while binding AssemblyVersion remains
+1.0.0.0. Worker DLL paths prefer only adjacent apphosts, preserving private pipe/job/
+deadline/process-tree isolation and DLL-only development fallback. Nonprivate worker
+references prevent SDK apphost/metadata leaks; candidate publishes processes separately.
+Core/Workspace/Transport logic, lossless/save/network policy and per-user paths stay intact.
+
+Portable builds use pinned runtime 10.0.12 and six separate RID lockfiles. The local
+builder checks contents/runtime/identity/notices, writes exact input provenance and
+SHA-256 manifests, then creates a fixed-order/timestamp ZIP. Only its apphost copy is
+named MessageWorkbench.exe; embedded DLL/assembly/resource/config identities stay
+HL7Workbench. No single-file extraction, trimming, updater, installer or application
+write permission in the extraction folder is introduced. License inventory covers
+35 actual runtime entries, full bundled/pinned upstream notices; no legal clearance.
+Native clean-machine/read-only-folder acceptance and human licensing/beta terms review
+remain. See ADR 0019, docs/portable-release.md, docs/portable-dependencies.md and
+docs/stage14-release-readiness-acceptance.md for issue inventory/results/privacy risks.
+Earlier authorization/status statements below are historical.
+
+Final Stage 14 gate (2026-10-22) passed on **33 frozen code/build/notice/lock/curated-doc
+paths**: locked solution/RID restore; Release build **0 warnings/errors** (8.48s);
+focused **109 Core / 203 Workspace / 74 Scripting / 102 Desktop / 3 shell**; **1,961
+solution cases** (3m 34.276s); **935 complete unfiltered Workspace stress cases**
+(334.985s), zero focused/stress errors/failures/skips/unrun; **10 packaging tests**.
+Both normal Release and native self-contained current/whole ScriptHost lifecycles,
+deployed hashes/isolation and API sync passed. Final marked candidate has 580 files,
+35 runtime/package entries and byte-identical deterministic ZIP repeat/CRC/SHA-256
+roundtrip. ZIP is 95,841,780 bytes; SHA-256
+41925FE5C47D524F0F39CFE3965A56D060AF8438C162D0394B6C45E7418F3634.
+All protected/fixture/artwork/TEST hashes, notice text and candidate inputs match.
+Only documentation changed after the gate. Current **43 paths (14 modified tracked /
+29 new)** remain unstaged/uncommitted; index empty and branding HEAD unchanged.
+Evidence and clearly local initial/final candidates: artifacts/stage14. Full native
+18-step checklist, licensing/terms/temporary-storage risks and exact inventory are
+in the acceptance record. No distribution, Stage 14 commit or further milestone.
 
 ## Branding native acceptance complete — local checkpoint authorized
 
@@ -29,7 +99,7 @@ The subsequent branding/reference audit is authorized for implementation/testing
 and must remain unstaged/uncommitted for native acceptance. **Message Workbench**
 is public presentation; **HL7Workbench** remains the technical namespace/project/
 assembly/repository/configuration identifier. No directory, setting key, saved
-script, profile or layout migration is intended. The approved MW/Scopreon source,
+script, profile or layout migration is intended. The approved MW source,
 PNG and ICO stay byte-identical. See docs/branding.md, docs/product-reference-audit.md
 and docs/product-branding-acceptance.md for current findings/results/acceptance.
 Earlier milestone authorization and pending statements below are historical.

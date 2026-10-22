@@ -4,7 +4,8 @@
 About, restored floating-window titles and Desktop Product/AssemblyTitle/Description metadata
 use that name. Help → About Message Workbench describes the existing healthcare
 interoperability workflows. There is no separate splash screen. The existing
-MW/Scopreon artwork and every retained icon byte are preserved.
+approved MW artwork and every retained icon byte are preserved. The former informal
+artwork nickname was an inside joke, not a brand, publisher, company or product name.
 
 `HL7Workbench` remains the solution/project/assembly/namespace/repository identifier.
 The executable remains `HL7Workbench.Desktop.exe`; resource URIs, configuration roots,

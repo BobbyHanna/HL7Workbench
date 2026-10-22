@@ -201,17 +201,24 @@ public partial class MainWindow : Window
     }
     private void SaveLayout(object? sender, RoutedEventArgs e)
     {
+        var temporary = layoutPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
             var json = LayoutCodec.Encode(factory.Capture());
             Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
-            var temporary = layoutPath + ".tmp";
             File.WriteAllText(temporary, json);
             File.Move(temporary, layoutPath, true);
             Status.Text = "Workspace layout saved.";
         }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException)
         { Status.Text = "Unable to save workspace layout; current workspace remains available."; documents.Activity.Record(ActivityKind.LayoutFailed, failure: ActivityLog.Classify(error)); }
+        finally
+        {
+            // Delete only this attempt's unpublished metadata, never a shared
+            // fixed .tmp file that another application instance might own.
+            try { if (File.Exists(temporary)) File.Delete(temporary); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
+        }
     }
     private void RestoreLayout(object? sender, RoutedEventArgs e)
     {
@@ -225,7 +232,7 @@ public partial class MainWindow : Window
             WorkspaceDock.Layout = factory.Restore(saved, screens);
             Status.Text = "Workspace layout restored; unreachable windows moved to an available screen.";
         }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
         {
             CloseFloatingWindows();
             WorkspaceDock.Layout = factory.CreateLayout();

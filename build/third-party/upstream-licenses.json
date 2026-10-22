@@ -1,0 +1,147 @@
+[
+  {
+    "file": "AvaloniaUI-angle-LICENSE",
+    "source": "https://raw.githubusercontent.com/AvaloniaUI/angle/1c89805903c1482166356d3b950d474973180e61/LICENSE",
+    "sha256": "bf4da21bd20bcfb5b60b7ecc67fa864a79be049e21d6178076887f178dd6c71a",
+    "packages": [
+      "Avalonia.Angle.Windows.Natives/2.1.27548.20260419"
+    ],
+    "sourceSha256": "bf4da21bd20bcfb5b60b7ecc67fa864a79be049e21d6178076887f178dd6c71a",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "AvaloniaUI-Avalonia-NOTICE.md",
+    "source": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/2d79ba55fae1b1e71c69f93a668080c9029e6a31/NOTICE.md",
+    "sha256": "f75c841fda7e00671cc0e305cbcb727e526c131e19ea4b5990cbfaa76884f858",
+    "packages": [
+      "Avalonia.Desktop/12.1.4",
+      "Avalonia.FreeDesktop.AtSpi/12.1.4",
+      "Avalonia.FreeDesktop/12.1.4",
+      "Avalonia.HarfBuzz/12.1.4",
+      "Avalonia.Native/12.1.4",
+      "Avalonia.Remote.Protocol/12.1.4",
+      "Avalonia.Skia/12.1.4",
+      "Avalonia.Themes.Fluent/12.1.4",
+      "Avalonia.Win32/12.1.4",
+      "Avalonia.X11/12.1.4",
+      "Avalonia/12.1.4"
+    ],
+    "sourceSha256": "dd6f80852d16320c865a2e403ffd1a8b07a0e34c5b37122c0bc2343639ff68e6",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "AvaloniaUI-Avalonia-licence.md",
+    "source": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/2d79ba55fae1b1e71c69f93a668080c9029e6a31/licence.md",
+    "sha256": "213814d306090074d234d760239ff0f67eb9b8d20eefb4d5631bb39dbe0b769b",
+    "packages": [
+      "Avalonia.Desktop/12.1.4",
+      "Avalonia.FreeDesktop.AtSpi/12.1.4",
+      "Avalonia.FreeDesktop/12.1.4",
+      "Avalonia.HarfBuzz/12.1.4",
+      "Avalonia.Native/12.1.4",
+      "Avalonia.Remote.Protocol/12.1.4",
+      "Avalonia.Skia/12.1.4",
+      "Avalonia.Themes.Fluent/12.1.4",
+      "Avalonia.Win32/12.1.4",
+      "Avalonia.X11/12.1.4",
+      "Avalonia/12.1.4"
+    ],
+    "sourceSha256": "213814d306090074d234d760239ff0f67eb9b8d20eefb4d5631bb39dbe0b769b",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "AvaloniaUI-AvaloniaEdit-LICENSE",
+    "source": "https://raw.githubusercontent.com/AvaloniaUI/AvaloniaEdit/86fdebec4cff7affb0e14c7885df71d28edce777/LICENSE",
+    "sha256": "8a13531b616df7e9cd5d58bd8588da2288e14fab9e6785d1aead5c87e0a507d0",
+    "packages": [
+      "Avalonia.AvaloniaEdit/12.0.0"
+    ],
+    "sourceSha256": "8a13531b616df7e9cd5d58bd8588da2288e14fab9e6785d1aead5c87e0a507d0",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "CommunityToolkit-dotnet-License.md",
+    "source": "https://raw.githubusercontent.com/CommunityToolkit/dotnet/638b41dad30dffabb123a39aa38eabc7e3721371/License.md",
+    "sha256": "1e1101b893f295b4526da2c167e4234610f1078e2fe43a0e814c1a883656877b",
+    "packages": [
+      "CommunityToolkit.Mvvm/8.4.0"
+    ],
+    "sourceSha256": "1e1101b893f295b4526da2c167e4234610f1078e2fe43a0e814c1a883656877b",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "CommunityToolkit-dotnet-ThirdPartyNotices.txt",
+    "source": "https://raw.githubusercontent.com/CommunityToolkit/dotnet/638b41dad30dffabb123a39aa38eabc7e3721371/ThirdPartyNotices.txt",
+    "sha256": "1d7f5694814d662434fe52226d7cb0135f1d50428b4be6fee7a98b76d36d6331",
+    "packages": [
+      "CommunityToolkit.Mvvm/8.4.0"
+    ],
+    "sourceSha256": "79498b27081bbec29c504798c727761e0898963259fb7421ea587a758e803ed3",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "dotnet-roslyn-License.txt",
+    "source": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt",
+    "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310",
+    "packages": [
+      "Microsoft.CodeAnalysis.Common/5.9.0",
+      "Microsoft.CodeAnalysis.CSharp.Scripting/5.9.0",
+      "Microsoft.CodeAnalysis.CSharp/5.9.0",
+      "Microsoft.CodeAnalysis.Scripting.Common/5.9.0"
+    ],
+    "sourceSha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "dotnet-roslyn-THIRD-PARTY-NOTICES.txt",
+    "source": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/THIRD-PARTY-NOTICES.txt",
+    "sha256": "22dd8f703aab120df91431558419854843282c1933b4217cb2df2cea0b1cea49",
+    "packages": [
+      "Microsoft.CodeAnalysis.Common/5.9.0",
+      "Microsoft.CodeAnalysis.CSharp.Scripting/5.9.0",
+      "Microsoft.CodeAnalysis.CSharp/5.9.0",
+      "Microsoft.CodeAnalysis.Scripting.Common/5.9.0"
+    ],
+    "sourceSha256": "9879407362c623ca2af5d0460a556d25a2fa1afbaa6530707963fc7166102d4d",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "kekekeks-MicroCom-LICENSE",
+    "source": "https://raw.githubusercontent.com/kekekeks/MicroCom/76785efcafd91b5902fd19dd11145f6dd655b7b4/LICENSE",
+    "sha256": "6ee769c9ac4dac9abb16b98b1341e9528ff9f4ab685481410d3376d14148f3a9",
+    "packages": [
+      "MicroCom.Runtime/0.11.6"
+    ],
+    "sourceSha256": "6ee769c9ac4dac9abb16b98b1341e9528ff9f4ab685481410d3376d14148f3a9",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "tmds-Tmds.DBus-COPYING",
+    "source": "https://raw.githubusercontent.com/tmds/Tmds.DBus/b4a7fed0b878f74cb54f7cca84d2889af4e596ba/COPYING",
+    "sha256": "2a86afd8f0173998b01c9af8bdfd7c703cae1db6cc5e57e7043a2b67fa0b2116",
+    "packages": [
+      "Tmds.DBus.Protocol/0.94.1"
+    ],
+    "sourceSha256": "aca3b49277abcc7886ccb2f115603a9f5b15fc3f96019a10c00f2974098b210c",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "wieslawsoltes-Dock-LICENSE.TXT",
+    "source": "https://raw.githubusercontent.com/wieslawsoltes/Dock/84b92a66ba7ab213acec27aa37e1dfda855a96de/LICENSE.TXT",
+    "sha256": "2b3a10daf2350f7b900bd7b989cdff149b6b4bd07358db9e5c112bd9560b6b46",
+    "packages": [
+      "Dock.Avalonia.Themes.Fluent/12.1.0.7",
+      "Dock.Avalonia/12.1.0.7",
+      "Dock.Controls.DeferredContentControl/12.1.0.7",
+      "Dock.Controls.ProportionalStackPanel/12.1.0.7",
+      "Dock.Controls.Recycling.Model/12.1.0.7",
+      "Dock.Controls.Recycling/12.1.0.7",
+      "Dock.MarkupExtension/12.1.0.7",
+      "Dock.Model.Mvvm/12.1.0.7",
+      "Dock.Model/12.1.0.7",
+      "Dock.Settings/12.1.0.7"
+    ],
+    "sourceSha256": "2b3a10daf2350f7b900bd7b989cdff149b6b4bd07358db9e5c112bd9560b6b46",
+    "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  }
+]

@@ -35,7 +35,7 @@ public partial class MainWindow
             Status.Text = "Document saved."; return true;
         }
         catch (OperationCanceledException) { Status.Text = "Save canceled; working text retained."; return false; }
-        catch (InvalidOperationException error) { Status.Text = error.Message; return false; }
+        catch (InvalidOperationException) { Status.Text = "Document or destination changed. Working text is retained; review it and retry Save As."; return false; }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or Hl7LimitException or System.Text.EncoderFallbackException or ArgumentException or NotSupportedException)
         { Status.Text = "Save failed; working text and history are retained. Use Save As if the destination changed externally, or check access, encoding and edit limits."; return false; }
     }

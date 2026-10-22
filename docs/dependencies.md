@@ -1,5 +1,13 @@
 # Dependency inventory
 
+Stage 14's actual self-contained win-x64 candidate has a separate
+[35-entry runtime/license review](portable-dependencies.md), including .NET runtime
+10.0.12, complete bundled/pinned upstream notices and outstanding human scope review.
+Six packages.win-x64.lock.json files supplement the unchanged normal solution locks.
+No library dependency is added beyond the runtime required for self-contained use.
+Top-level SPDX declarations do not replace component-specific native/runtime notices.
+No legal clearance or distribution authorization is implied by this inventory.
+
 Direct package choices were checked against official NuGet package metadata.
 Restore and compilation are the compatibility checks for the complete graph.
 All packages below are open source and permissively licensed; no paid components

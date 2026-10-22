@@ -1,0 +1,49 @@
+# Message Workbench v0.1.0-beta
+
+Local review candidate. Coworker distribution requires separate owner and employer
+approval; this README does not grant it. Message Workbench is a desktop tool for
+HL7 v2 inspection/editing, search/extraction, trusted C# scripting, de-identification
+aids, synthetic generation, FHIR R4 conversion and controlled TCP/MLLP testing.
+
+## Start
+
+Use Windows 10 or 11 **x64**. Verify the ZIP against its supplied SHA-256, extract
+the entire archive, then launch **MessageWorkbench.exe** from the extracted folder.
+Keep ScriptHost and all runtime/notice files together. No installer, administrator
+rights, SDK or separately installed .NET runtime is required. This beta is unsigned
+and may trigger Windows trust warnings. Follow employer IT policy; do not disable
+security controls or bypass a block. Ask the owner/IT contact for assistance.
+
+Settings, layout, endpoint profiles and saved definitions use
+`%LOCALAPPDATA%\HL7Workbench`. Documents/exports go where you explicitly save them;
+temporary snapshots/reports use per-user temporary storage and can survive a crash.
+Back up originals and valuable scripts/settings. Do not store data beside the app.
+
+## Use safely
+
+- Use **synthetic/test data**. This beta is not approved for production clinical use,
+  HIPAA-certified or independently security-audited. De-identification does not
+  guarantee PHI-free output. Do not use identifiable patient data without a separate
+  organizational privacy/security approval.
+- Temporary content is not encrypted by the app. Review exports and clipboard use;
+  OS clipboard history, backups and crash dumps can expose sensitive information.
+- Run only trusted scripts. The isolated worker has resource limits but is not a
+  security sandbox; scripts can use your file/network permissions.
+- MLLP uses plaintext TCP; TLS is unavailable. Send only to explicitly authorized
+  test endpoints. Write completion is not receiver acceptance; inspect correlated
+  ACKs and uncertain outcomes. Do not automatically resend uncertain messages.
+- Load testing requires synthetic data, destination-owner authorization and agreed
+  rate/concurrency limits. It can overload a receiver; monitor it and stop on trouble.
+
+Known limitations: beta defects, Windows x64 only, unsigned, no installer/updater,
+plaintext temporary storage/MLLP, and no guarantee of clinical correctness. Read
+USER-GUIDE.md and RELEASE-NOTES.md. Keep every third-party notice with this folder.
+
+## Feedback
+
+Find the version under **Help → About Message Workbench**. Report bugs privately to
+the person who supplied the approved ZIP, using your organization's approved channel.
+Include version, Windows version, steps, expected/actual behavior, display scaling,
+and a minimal **synthetic** example. Do not send PHI, private documents, raw exports,
+credentials or crash dumps. Include the supplied ZIP checksum/source revision when
+available; do not upload the package or repository publicly.

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -20,6 +21,7 @@ internal sealed class AboutWindow : Window
             Children =
             {
                 new TextBlock { Text = ProductBranding.Name, FontSize = 24, FontWeight = FontWeight.SemiBold },
+                new TextBlock { Text = "Version " + typeof(AboutWindow).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0] },
                 new TextBlock { Text = ProductBranding.Description, TextWrapping = TextWrapping.Wrap },
                 new TextBlock { Text = "HL7 v2 viewing and editing, search and extraction, scripting, de-identification, synthetic generation, FHIR R4 import and conversion, and TCP/MLLP testing.", TextWrapping = TextWrapping.Wrap },
                 close
