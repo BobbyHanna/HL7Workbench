@@ -1,8 +1,8 @@
-# Codex starter prompt — HL7 Developer Workbench
+# Codex starter prompt — Message Workbench
 
-You are implementing the HL7 Developer Workbench described in `HL7_Workbench_Specification.md` in this repository.
+You are implementing Message Workbench described in `HL7_Workbench_Specification.md` in this repository. The filename and `HL7Workbench` technical identifiers are retained for compatibility.
 
-Read the full specification first. This is an independent, local-first C#/.NET desktop application for HL7 v2 inspection, editing, scripting, synthetic test-message generation, MLLP testing, and later Synthea import. Do not inspect or reuse proprietary HL7Spy binaries, code, assets, or resources. Use only synthetic test fixtures.
+Read the full specification first. This is an independent, local-first C#/.NET desktop application for HL7 v2 inspection, editing, scripting, synthetic test-message generation, MLLP testing, and Synthea/FHIR import. Do not inspect or reuse proprietary third-party binaries, code, assets, or resources. Use only synthetic test fixtures.
 
 **Your assignment right now is Milestone 0 only.**
 

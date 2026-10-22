@@ -1,7 +1,12 @@
-# HL7 Workbench
+# Message Workbench
 
-HL7 Workbench is an independent, local-first HL7 v2 desktop viewer and editor
-built with C#/.NET 10 and Avalonia. Windows is the initial desktop platform.
+Message Workbench is an independent, local-first healthcare interoperability
+development tool built with C#/.NET 10 and Avalonia. It supports HL7 v2 viewing,
+editing, analysis and scripting, synthetic generation, FHIR R4 conversion and
+TCP/MLLP testing. Windows is the initial desktop platform. `HL7Workbench` remains
+the internal namespace, assembly, repository and settings identifier; existing user
+data paths are unchanged. See [product branding](docs/branding.md) and the
+[reference/provenance audit](docs/product-reference-audit.md).
 Viewer/editor Stages 1–4 are complete and have passed native Windows acceptance.
 
 ## Implemented capabilities
@@ -10,7 +15,8 @@ Stage 13B adds **Controlled Load Testing**: explicitly authorized synthetic test
 traffic with bounded concurrency/global rate, duration/attempt/safety stops, separate
 write/ACK/application metrics and privacy-safe local reports. No automatic retry,
 startup activity or identity rewriting. Stage 13B passed all 16 user-reported
-native Windows acceptance checks. See the [load guide](docs/load-testing.md) and
+native Windows acceptance checks and is checkpointed locally as
+`738e3d7697fb7b2d2d8e668fe7b02edbddea28f2`. See the [load guide](docs/load-testing.md) and
 [acceptance record](docs/stage13b-load-testing-acceptance.md).
 
 Stage 13A adds **Batch Transmission** for explicitly reviewed, paced, sequential

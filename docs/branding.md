@@ -1,4 +1,24 @@
-# Approved application icon
+# Message Workbench branding and approved application icon
+
+**Message Workbench** is the official public product name. Main/startup presentation,
+About, restored floating-window titles and Desktop Product/AssemblyTitle/Description metadata
+use that name. Help → About Message Workbench describes the existing healthcare
+interoperability workflows. There is no separate splash screen. The existing
+MW/Scopreon artwork and every retained icon byte are preserved.
+
+`HL7Workbench` remains the solution/project/assembly/namespace/repository identifier.
+The executable remains `HL7Workbench.Desktop.exe`; resource URIs, configuration roots,
+settings keys, endpoint profiles, scripts and placement schemas are unchanged. Public
+Product/AssemblyTitle/Description metadata does not change assembly identity or storage paths.
+Future release/packaging descriptions should use Message Workbench while retaining
+these technical paths unless a separately reviewed compatibility migration is approved.
+No packaging or publication is part of this change. Original vocabulary attribution
+still records its historical authoring name; it is provenance, not application UI.
+
+The [reference audit](product-reference-audit.md) records current and historical
+findings and limits. The [branding acceptance record](product-branding-acceptance.md)
+contains the current automated results and native retest checklist. Earlier icon-only
+milestone status below is historical and does not override the current checkpoint.
 
 Native Windows acceptance of the optimized icon passed per the user on 2026-10-20,
 including the Stage 9 correction pass. It is part of the authorized local Stage 9

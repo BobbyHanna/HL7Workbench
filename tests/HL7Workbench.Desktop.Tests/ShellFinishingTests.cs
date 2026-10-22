@@ -38,7 +38,7 @@ public sealed partial class ScriptEditorTests
                 var menu = window.FindControl<Menu>("MainMenu")!;
                 var menus = menu.Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menus.Select(i => i.Header));
-                Assert.Equal("Script _API Reference", Assert.Single(menus[3].Items.Cast<MenuItem>()).Header);
+                Assert.Equal(new[] { "Script _API Reference", "_About Message Workbench…" }, menus[3].Items.Cast<MenuItem>().Select(i => i.Header));
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
                 Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Field E_xtraction", "Synthetic _Patients", "_Generation Report", "_Connection Manager", "_MLLP Listener", "Batch _Transmission", "Controlled _Load Testing", "_Find Messages", "Full _Source Viewer" },
                     menus[2].Items.Cast<MenuItem>().Select(i => i.Header));

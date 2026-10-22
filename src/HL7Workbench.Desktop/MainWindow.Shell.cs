@@ -19,6 +19,7 @@ public partial class MainWindow
 {
     private readonly ApplicationPreferences preferences;
     private PreferencesWindow? preferencesWindow;
+    private AboutWindow? aboutWindow;
     private UiCommand[] shellCommands = [];
     private void InitializeShell()
     {
@@ -92,6 +93,13 @@ public partial class MainWindow
         Status.Text = preferences.Status;
     }
     private Window DialogOwner() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Windows.FirstOrDefault(w => w.IsActive) ?? this;
+    private async void ShowAbout(object? sender, RoutedEventArgs e)
+    {
+        if (aboutWindow is not null) { aboutWindow.Activate(); return; }
+        aboutWindow = new AboutWindow();
+        try { await aboutWindow.ShowDialog(DialogOwner()); }
+        finally { aboutWindow = null; }
+    }
     private async void ShowPreferences(object? sender, RoutedEventArgs e)
     {
         if (preferencesWindow is not null) { preferencesWindow.Activate(); return; }

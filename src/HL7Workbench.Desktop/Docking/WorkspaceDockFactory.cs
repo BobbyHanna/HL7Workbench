@@ -472,7 +472,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
             if (!HasTools(floatingRoot)) continue;
             var position = WindowRecovery.Recover(saved.X, saved.Y, screens);
             Root.Windows.Add(new DockWindow { Layout = floatingRoot, X = position.X, Y = position.Y,
-                Width = saved.Width, Height = saved.Height, Title = "HL7 Workbench" });
+                Width = saved.Width, Height = saved.Height, Title = ProductBranding.Name });
         }
         foreach (var id in layout.HiddenTools)
             if (items.TryGetValue(id, out var tool) && tool is ITool && used.Add(id)) Root.HiddenDockables.Add(tool);

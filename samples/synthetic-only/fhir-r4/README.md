@@ -1,6 +1,6 @@
 # Authored synthetic R4 fixtures
 
-These examples were authored for HL7 Workbench. They use Synthea-style transaction/
+These examples were authored for Message Workbench. They use Synthea-style transaction/
 collection packaging, not a claim that the Synthea engine produced them. Every name,
 identifier, address and clinical example is fictional test data. The Synthea-system
 identifier deliberately demonstrates a provenance hint that anyone can copy; it is

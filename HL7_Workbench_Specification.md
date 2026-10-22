@@ -1,7 +1,8 @@
-# HL7 Developer Workbench — Product & Engineering Specification
+# Message Workbench — Product & Engineering Specification
 
 **Status:** Initial specification / implementation-ready v0.1  
-**Purpose:** Personal, local-first HL7 v2 developer workbench for healthcare interface development and testing.  
+**Purpose:** Personal, local-first healthcare interoperability development and testing.
+**Product identity:** Message Workbench is the official public name. Existing `HL7Workbench` technical identifiers and this specification filename are retained.
 **Primary platform:** Windows desktop; cross-platform architecture where practical.  
 **Implementation:** C# / .NET (current supported LTS), Avalonia UI, xUnit or equivalent.  
 **Audience:** Developer using Codex in VS Code.  
@@ -9,7 +10,7 @@
 
 ## 1. Vision and boundaries
 
-Create an independent HL7 v2 message viewer, editor, analysis, scripting, synthetic test-data generator, and MLLP testing tool. The application should be especially useful for InterSystems IRIS / HealthShare interface development. It is not initially intended as a commercial HL7Spy competitor. Use documented HL7 conventions and independently written code. Do not copy or depend on proprietary HL7Spy code, resources, or license-protected functionality.
+Create an independent healthcare interoperability tool for HL7 v2 viewing, editing, analysis, scripting, synthetic test-data generation, FHIR conversion and MLLP testing. The application should support interface development, including InterSystems IRIS / HealthShare workflows, without implying vendor affiliation or endorsement. Use documented HL7 conventions and independently written code. Do not copy or depend on proprietary third-party code, resources, or license-protected functionality.
 
 ### Design principles
 - **Local-first and offline:** Core features function without an account, cloud service, or internet access.
@@ -182,7 +183,7 @@ Use interfaces and dependency injection only where they improve testability. Pre
 1. **Do not build the entire application in one pass.** Begin with Milestone 0 and propose a concise design for Milestone 1.
 2. Before adding any dependency, state why it is needed and whether it is open source and permissively licensed.
 3. Favor small PR-sized changes with tests, runnable sample commands, and concise change summaries.
-4. Keep tests entirely synthetic. Do not use real patient messages, secrets, or the HL7Spy executable as implementation inputs.
+4. Keep tests entirely synthetic. Do not use real patient messages, secrets, or proprietary third-party executables as implementation inputs.
 5. Ask before making major architectural changes, adding cloud dependencies, or enabling automatic network access.
 6. For every milestone, report what works, what is incomplete, how to run it, and the next recommended step.
 7. If ambiguity arises in HL7 behavior, write a failing test and document the chosen interpretation rather than guessing silently.
@@ -193,7 +194,7 @@ Use interfaces and dependency injection only where they improve testability. Pre
 - Guaranteed automatic PHI de-identification or HIPAA compliance claims.
 - Direct manipulation of live HealthShare production message stores.
 - Commercial licensing, payment processing, or plugin marketplace.
-- Reproduction of HL7Spy's proprietary source code, assets, or internals.
+- Reproduction of proprietary third-party source code, assets, or internals.
 
 ## 9. Decisions to revisit
 - Exact .NET LTS and Avalonia versions at project bootstrap.

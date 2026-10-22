@@ -1,8 +1,55 @@
 # Project context
 
-HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
+Message Workbench is the official, final public product name: an independent,
+local-first healthcare interoperability development tool for HL7 v2, scripting,
+synthetic generation, FHIR R4 conversion and TCP/MLLP testing. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
+
+## Branding native acceptance complete — local checkpoint authorized
+
+The user confirmed native branding acceptance and authorized one local commit,
+`Branding: Rename product to Message Workbench`. All 16 accepted hashes, eight frozen
+implementation/test paths, protected fixtures/artwork and persistence identities
+matched the completed gate before acceptance-only Markdown updates. Stage 14 is
+authorized after that checkpoint for usability/stability and local portable candidate
+readiness, but must remain unstaged/uncommitted. No distribution is authorized.
+Earlier pending/stop statements below are historical.
+
+## Official product name and accepted Stage 13B checkpoint
+
+Stage 13B passed all 16 user-reported native checks and was checkpointed once as
+**738e3d7697fb7b2d2d8e668fe7b02edbddea28f2**, `Stage 13B: Add controlled MLLP load testing`,
+parent **45e7cdbad9a32cdaebb7834ae0026b10914622aa**. All 29 staged blobs matched the
+audited files; the 20 source/test hashes matched the completed 1,949 solution / 935
+stress gate, with acceptance-only Markdown updates. Protected hashes matched and
+the immediate post-commit index/tree were clean. Evidence: artifacts/stage13b-checkpoint.
+
+The subsequent branding/reference audit is authorized for implementation/testing,
+and must remain unstaged/uncommitted for native acceptance. **Message Workbench**
+is public presentation; **HL7Workbench** remains the technical namespace/project/
+assembly/repository/configuration identifier. No directory, setting key, saved
+script, profile or layout migration is intended. The approved MW/Scopreon source,
+PNG and ICO stay byte-identical. See docs/branding.md, docs/product-reference-audit.md
+and docs/product-branding-acceptance.md for current findings/results/acceptance.
+Earlier milestone authorization and pending statements below are historical.
+
+Final branding gate (2026-10-22) passed on eight frozen implementation/test paths:
+locked restore; Release warnings-as-errors build, **0 warnings/errors** (2.95s);
+focused **109 Core / 192 Workspace-Transport-preferences / 71 Desktop / 3 shell**;
+**1,953 solution cases** (3m 21.144s); **935 complete unfiltered Workspace stress
+cases** (310.593s), no errors/failures/skips/unrun in focused/stress runs. Both existing
+Release ScriptHost lifecycles/isolation and API sync passed with no publish command.
+Final integrity matches 13 protected hashes, two icon derivative hashes, all 16
+fixture/artwork blobs and the eight frozen paths; TEST hash only, never opened.
+Current audit covers 462 files excluding TEST content; only the audit record retains
+the searched third-party name. Historical findings cover 24 commits and three extra
+trees (865 blobs read; one TEST blob excluded), with no matching messages/paths/refs
+or obvious suspicious provenance evidence. See the audit for exact hashes/limits.
+Current state: **16 unstaged paths (11 modified tracked / 5 new)**, empty index,
+unchanged accepted Stage 13B HEAD. Logs/XML/hash/audit evidence remains under
+artifacts/product-branding. Native branding acceptance is pending; no further Git
+mutation, packaging/publication or feature milestone is authorized.
 
 ## Stage 13B native acceptance complete — checkpoint authorized
 

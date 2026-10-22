@@ -2,6 +2,9 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ApplicationIcon>Assets/workbench.ico</ApplicationIcon>
+    <Product>Message Workbench</Product>
+    <AssemblyTitle>Message Workbench</AssemblyTitle>
+    <Description>A local-first healthcare interoperability development tool.</Description>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup><AvaloniaResource Include="Assets/**" /></ItemGroup>
