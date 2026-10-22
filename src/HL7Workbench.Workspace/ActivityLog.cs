@@ -10,7 +10,7 @@ public enum ActivityKind
     SaveStarted, SaveCompleted, SaveFailed, SaveCanceled,
     ScriptStarted, ScriptCompleted, ScriptFailed, ScriptCanceled,
     TransportExchange, TransportReceived, TransportFailed, TransportListenerStarted, TransportListenerStopped,
-    BatchTransmissionStarted, BatchTransmissionEnded
+    BatchTransmissionStarted, BatchTransmissionEnded, LoadTestingStarted, LoadTestingEnded
 }
 public enum ActivityFailure { None, Unavailable, AccessDenied, ResourceLimit, Encoding, Unsupported, Unexpected }
 public enum ActivityCategory { Application, File, Boundary, Structure, Inspection, Export }
@@ -74,6 +74,8 @@ public sealed record ActivityEntry
         ActivityKind.TransportListenerStopped => "Test MLLP listener stopped",
         ActivityKind.BatchTransmissionStarted => $"Explicit batch transmission started — {Count:N0} captured message(s)",
         ActivityKind.BatchTransmissionEnded => $"Batch transmission ended — {Count:N0} attempt(s); inspect local acceptance results",
+        ActivityKind.LoadTestingStarted => $"Explicit controlled load test started — limit {Count:N0} attempts",
+        ActivityKind.LoadTestingEnded => $"Controlled load test ended — {Count:N0} attempts; inspect acknowledgment and uncertainty metrics",
         ActivityKind.DiagnosticLimit => "Additional diagnostic activity omitted; document diagnostics remain available",
         _ => Diagnostic switch
         {

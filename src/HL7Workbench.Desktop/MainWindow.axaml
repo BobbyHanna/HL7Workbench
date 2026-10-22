@@ -29,6 +29,7 @@
         <MenuItem Header="_Connection Manager" Click="ShowConnections" />
         <MenuItem Header="_MLLP Listener" Click="ShowListener" />
         <MenuItem Header="Batch _Transmission" Click="ShowBatchTransmission" />
+        <MenuItem Header="Controlled _Load Testing" Click="ShowLoadTesting" />
         <MenuItem x:Name="FindMessagesMenu" Header="_Find Messages" InputGesture="Ctrl+F" ToolTip.Tip="Open Find Messages and focus the search value (Ctrl+F)" AutomationProperties.Name="Find Messages" />
         <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
       </MenuItem>

@@ -48,12 +48,13 @@ public partial class MainWindow
     }
     private async void ConfirmWindowClose(object? sender, WindowClosingEventArgs e)
     {
-        if (batchModels.Any(m => m.IsBusy || m.Session.IsActive || !m.Disposal.IsCompleted))
+        if (batchModels.Any(m => m.IsBusy || m.Session.IsActive || !m.Disposal.IsCompleted) ||
+            loadModels.Any(m => m.IsBusy || m.Session.IsActive || !m.Disposal.IsCompleted))
         {
             e.Cancel = true;
             if (batchShutdownDraining) return;
             batchShutdownDraining = true;
-            try { await DrainBatchToolsAsync(); Close(); }
+            try { await Task.WhenAll(DrainBatchToolsAsync(), DrainLoadToolsAsync()); Close(); }
             finally { batchShutdownDraining = false; }
             return;
         }

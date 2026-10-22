@@ -1,5 +1,13 @@
 # Stage 13A: controlled batch MLLP transmission acceptance
 
+Checkpoint completed after explicit user native acceptance (all eight checks):
+**45e7cdbad9a32cdaebb7834ae0026b10914622aa**, `Stage 13A: Add controlled batch MLLP transmission`,
+parent e575ebe47921f33b3431d32bf26a5fc87aee4a0a. The exact accepted 37 paths, source/test
+hashes and staged blobs were verified, one local commit created, and clean post-commit
+tree/index confirmed. No repeated completed gate, amendment, push or publication.
+Stage 13B is now separately authorized and remains uncommitted pending native review.
+Earlier pre-checkpoint status/inventory/stop statements below are historical evidence.
+
 Status: complete automated gate passed; the user explicitly confirmed **all eight
 native Windows acceptance checks passed**, including Generation Report UI polish.
 Exactly one local checkpoint is authorized with message

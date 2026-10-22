@@ -1,5 +1,10 @@
 # Controlled Batch Transmission
 
+Stage 13A is checkpointed at 45e7cdbad9a32cdaebb7834ae0026b10914622aa after all eight
+native acceptance checks. Stage 13B adds a separate [Controlled Load Testing tool](load-testing.md),
+with its own authorization and hard bounds. Sequential batch behavior below remains
+unchanged; its no-concurrency statement applies to this tool.
+
 Stage 13A adds **View → Batch Transmission**, also available on the TCP/MLLP ribbon.
 Use only synthetic messages and explicitly authorized test destinations. This is
 an interactive sequential tool. It has no scheduled/startup sending, automatic

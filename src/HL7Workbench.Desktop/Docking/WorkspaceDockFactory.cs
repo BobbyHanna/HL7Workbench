@@ -25,6 +25,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string ConnectionManagerId = "tool.connection-manager";
     public const string MllpListenerId = "tool.mllp-listener";
     public const string BatchTransmissionId = "tool.batch-transmission";
+    public const string LoadTestingId = "tool.load-testing";
     // Keep the original Search Results identity so saved layouts restore Find Messages.
     public const string SearchResultsId = "tool.search-results";
     public const string ComparisonId = "tool.message-comparison";

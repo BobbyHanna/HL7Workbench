@@ -53,6 +53,7 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.ConnectionManagerId, "Connection Manager", () => CreateTransport(false), Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.MllpListenerId, "MLLP Listener", () => CreateTransport(true), Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.BatchTransmissionId, "Batch Transmission", CreateBatchTransmission, Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.LoadTestingId, "Load Testing", CreateLoadTesting, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);
@@ -100,6 +101,7 @@ public partial class MainWindow : Window
             lifetime.Cancel();
             foreach (var model in transportModels.ToArray()) model.Dispose();
             foreach (var model in batchModels.ToArray()) model.Dispose();
+            foreach (var model in loadModels.ToArray()) model.Dispose();
             lifetime.Dispose();
             factory.Dispose();
             browser.Dispose();

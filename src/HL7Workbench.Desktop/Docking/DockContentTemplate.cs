@@ -35,6 +35,7 @@ public sealed class DockContentTemplate : IDataTemplate
         if (context is GenerationReportViewModel report) return new Viewer.GenerationReportView(report);
         if (context is TransportToolViewModel transport) return new Viewer.TransportToolView(transport);
         if (context is BatchTransmissionViewModel batch) return new Viewer.BatchTransmissionView(batch);
+        if (context is LoadTestingViewModel load) return new Viewer.LoadTestingView(load);
         if (context is SearchViewModel search) return new Viewer.SearchResultsView(search);
         if (context is ComparisonViewModel comparison) return new Viewer.ComparisonView(comparison);
         if (context is InspectionToolViewModel inspection) return new Viewer.InspectionToolHost(inspection);

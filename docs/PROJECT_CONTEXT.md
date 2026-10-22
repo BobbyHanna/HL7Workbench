@@ -4,6 +4,56 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 13B native acceptance complete — checkpoint authorized
+
+The user confirmed all 16 native Windows checks passed and authorized exactly one
+local commit, `Stage 13B: Add controlled MLLP load testing`. The complete 29-path final
+manifest and all protected/frozen hashes match the gate below before acceptance-only
+Markdown updates. No implementation or test changed. Branding/reference audit is
+authorized after that checkpoint and must remain uncommitted. Earlier pending/stop
+statements below are historical records.
+
+## Stage 13B controlled load testing — completed automated gate
+
+Stage 13A passed all eight native Windows checks and was checkpointed exactly once
+as **45e7cdbad9a32cdaebb7834ae0026b10914622aa**, `Stage 13A: Add controlled batch
+MLLP transmission`, parent e575ebe47921f33b3431d32bf26a5fc87aee4a0a. Exact 37-path
+hash/inventory and staged-blob checks matched the accepted gate (1,884 solution /
+890 stress) before acceptance-only docs and commit; post-commit tree/index clean.
+Evidence remains in artifacts/stage13a-checkpoint. No amendment/push/publication.
+
+Stage 13B now reuses batch captures and production MLLP connections for explicitly
+reviewed controlled load tests. Workspace owns one global monotonic admission gate,
+1–8 active slots, target 0.1–20/s, 1–300 seconds and 1–5,000 attempts; source exhaustion,
+duration/attempt limits, runtime failure/rejection/timeout stops, cancel/drain and
+explicit unchanged replay. All counts and bounded phase samples remain exact;
+only first 1,000 completion rows persist in session, with omissions disclosed.
+Optional transport timing fields preserve wire/ACK semantics. Desktop owns a lazy
+themed Dock tool, synthetic attestation, scrollable exact-target confirmations,
+fixed top Stop, four-Hz live metrics and explicit atomic privacy-safe CSV/text exports.
+TLS remains fail-closed. No new package/persistence schema/Core/ScriptHost changes.
+All Stage 12/13A and permanent generation/history coverage remains. See ADR 0018,
+docs/load-testing.md and docs/stage13b-load-testing-acceptance.md for definitions,
+limits, schema, final verification and native checklist; evidence artifacts/stage13b.
+
+Final 2026-10-22 gate passed: locked restore; Release warnings-as-errors build with
+zero warnings/errors (3.31s); focused 109 Core / 174 Workspace-Transport / 64 Desktop /
+3 shell cases; **1,949 solution tests** (3m 20.356s); **935 complete unfiltered
+Workspace stress cases** (329.422s), no failures/skips or focused/stress errors/unrun.
+Both existing Release-layout ScriptHost lifecycles/isolation and API sync passed,
+without a publish command. Post-stress integrity matches 20 frozen source/test and
+13 protected hashes, eight original HL7 blobs, artwork/derivatives/formerly excluded
+HL7 and tracked/all-13-new-file whitespace. Current **29 paths (16 modified tracked,
+13 new)** are wholly unstaged/uncommitted; empty index, unchanged Stage 13A HEAD.
+No code/test changed after the final build/gate; exact inventory, limitations and
+18-step native checklist are in the Stage 13B acceptance record. All permanent tests
+and useful ignored diagnostics/hash evidence remain. Only the authorized Stage 13A
+checkpoint was created; no subsequent Git mutation or later milestone.
+
+Stage 13B must remain unstaged/uncommitted for native Windows acceptance. No further
+Git mutation, amendment, push/tag/package/deploy/publish/release or later milestone.
+Earlier pending/no-Stage-13B statements below are historical authorization records.
+
 ## Stage 13A checkpoint authorization — native acceptance complete
 
 The user explicitly confirmed all eight Stage 13A native Windows acceptance checks

@@ -1,5 +1,21 @@
 # Architecture
 
+## Stage 13B controlled load testing
+
+Stage 13A is checkpointed as 45e7cdbad9a32cdaebb7834ae0026b10914622aa after all eight
+native acceptance checks. Stage 13B remains uncommitted for separate native review.
+LoadTestingSession reuses batch preparation and production transport, with one
+global monotonic dispatcher and at most eight active exchanges, bounded unchanged
+replay, duration/attempt limits and runtime stop thresholds. It retains exact
+aggregates and bounded timing samples separately from first-1,000 completion rows.
+Transport only adds phase timing metadata. Desktop supplies Dock/review/pickers,
+throttled presentation and cancel/drain ownership; no second protocol stack, Core
+UI dependency, ScriptHost privilege, package or new persistence participates.
+Reports use whitelist metadata and existing Core CSV/atomic save mechanisms.
+See [ADR 0018](decisions/0018-controlled-load-testing.md), [guide](load-testing.md)
+and [acceptance](stage13b-load-testing-acceptance.md). Earlier milestone states below
+are historical; sequential batch and single-send contracts remain intact.
+
 ## Stage 13A controlled batch transmission
 
 Stage 12 passed native acceptance and was committed by the user at

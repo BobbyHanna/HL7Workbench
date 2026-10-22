@@ -1,5 +1,10 @@
 # Interactive TCP/MLLP testing
 
+Stage 13A is checkpointed at 45e7cdbad9a32cdaebb7834ae0026b10914622aa. A separate
+[Controlled Load Testing tool](load-testing.md) now implements Stage 13B bounds,
+authorization and measurements; it remains uncommitted for native acceptance.
+The single-send contract below is unchanged; earlier load deferrals are historical.
+
 Stage 12 passed native Windows acceptance and is checkpointed at
 `e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. Stage 13A adds a separate explicitly
 reviewed [Batch Transmission tool](batch-transmission.md); the one-message workflow

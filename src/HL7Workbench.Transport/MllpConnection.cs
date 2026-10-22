@@ -8,9 +8,11 @@ public enum ExchangeOutcome { ApplicationAccepted, ApplicationError, Application
     SentWithoutAck, ConditionalAckUnobserved, TimedOut, MissingAck, MissingAckFields, InvalidAck, MismatchedAck, Disconnected, Canceled, FramingError, UnexpectedAck,
     ConnectionFailed, WriteFailed }
 public enum ExchangeFailureStage { None, Connection, Write, Response }
+/// <param name="WriteDuration">Monotonic duration of a complete local frame write; absent for incomplete writes.</param>
+/// <param name="AckRoundTrip">Time from completed write to the last received complete ACK frame, including invalid/mismatched frames; absent when no complete frame arrives.</param>
 public sealed record ExchangeResult(ExchangeOutcome Outcome, bool WriteStarted, IReadOnlyList<byte[]> Acknowledgments,
     IReadOnlyList<string> Codes, TimeSpan Duration, bool WriteCompleted = false, ExchangeFailureStage FailureStage = ExchangeFailureStage.None,
-    SocketError? SocketError = null)
+    SocketError? SocketError = null, TimeSpan? WriteDuration = null, TimeSpan? AckRoundTrip = null)
 {
     public bool ApplicationAccepted => WriteCompleted && Outcome == ExchangeOutcome.ApplicationAccepted && Codes.Contains("AA");
     public string WriteSummary => !WriteStarted ? "MLLP write not attempted" : WriteCompleted ? "MLLP write completed (local TCP)" : "MLLP write incomplete; delivery uncertain";
@@ -51,8 +53,11 @@ public sealed class MllpConnection : IDisposable
         if (Interlocked.CompareExchange(ref exchanging, 1, 0) != 0) throw new InvalidOperationException("An exchange is already active.");
         var clock = Stopwatch.StartNew(); var frames = new List<byte[]>(); var codes = new List<string>(); var wrote = false; var completed = false;
         Hl7TransportHeader? requestHeader = null;
+        long writeStart = 0, writeEnd = 0, lastAck = 0;
         ExchangeResult Result(ExchangeOutcome outcome, ExchangeFailureStage failure = ExchangeFailureStage.None, SocketError? socketError = null) =>
-            new(outcome, wrote, frames.AsReadOnly(), codes.AsReadOnly(), clock.Elapsed, completed, failure, socketError);
+            new(outcome, wrote, frames.AsReadOnly(), codes.AsReadOnly(), clock.Elapsed, completed, failure, socketError,
+                completed ? Stopwatch.GetElapsedTime(writeStart, writeEnd) : null,
+                lastAck != 0 ? Stopwatch.GetElapsedTime(writeEnd, lastAck) : null);
         ExchangeFailureStage FailureStage() => completed ? ExchangeFailureStage.Response : wrote ? ExchangeFailureStage.Write : ExchangeFailureStage.None;
         try
         {
@@ -65,7 +70,9 @@ public sealed class MllpConnection : IDisposable
             var framed = MllpFrame.Encode(payload.Span);
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token); timeout.CancelAfter(TimeSpan.FromSeconds(destination.Profile.AckTimeoutSeconds));
             timeout.Token.ThrowIfCancellationRequested(); wrote = true;
+            writeStart = Stopwatch.GetTimestamp();
             await socket.GetStream().WriteAsync(framed, timeout.Token).ConfigureAwait(false);
+            writeEnd = Stopwatch.GetTimestamp();
             // NetworkStream is unbuffered: successful completion covers the entire
             // supplied frame locally. Flush is a no-op and cannot prove peer receipt.
             completed = true;
@@ -76,6 +83,7 @@ public sealed class MllpConnection : IDisposable
                 var frame = await responseReader.ReadAsync(timeout.Token).ConfigureAwait(false);
                 if (frame is null) { Disconnect(); return Result(ExchangeOutcome.MissingAck); }
                 frames.Add(frame);
+                lastAck = Stopwatch.GetTimestamp();
                 string code;
                 try { code = header.ReadAck(frame, destination.Profile.GetEncoding()); }
                 catch (Hl7AckException error)

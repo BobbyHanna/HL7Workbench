@@ -6,11 +6,19 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 13B adds **Controlled Load Testing**: explicitly authorized synthetic test
+traffic with bounded concurrency/global rate, duration/attempt/safety stops, separate
+write/ACK/application metrics and privacy-safe local reports. No automatic retry,
+startup activity or identity rewriting. Stage 13B passed all 16 user-reported
+native Windows acceptance checks. See the [load guide](docs/load-testing.md) and
+[acceptance record](docs/stage13b-load-testing-acceptance.md).
+
 Stage 13A adds **Batch Transmission** for explicitly reviewed, paced, sequential
 test sends from an immutable document selection. Pause/resume/cancel, per-message
 ACK outcomes and privacy-safe CSV reuse the Stage 12 transport. No automatic retries,
 concurrent loads or scheduling. Stage 13A passed native Windows acceptance,
-including report polish; its single local checkpoint is authorized. See the [batch guide](docs/batch-transmission.md) and
+including report polish; it is checkpointed as
+`45e7cdbad9a32cdaebb7834ae0026b10914622aa`. See the [batch guide](docs/batch-transmission.md) and
 [acceptance record](docs/stage13a-batch-transmission-acceptance.md).
 
 Stage 12 adds optional **Connection Manager** and **MLLP Listener** tools for explicit
