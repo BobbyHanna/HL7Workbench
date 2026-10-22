@@ -3,6 +3,7 @@
     <EmbeddedResource Include="../../docs/script-api-reference.json" LogicalName="HL7Workbench.ScriptApiReference.json" />
     <InternalsVisibleTo Include="HL7Workbench.Workspace.Tests" />
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
+    <ProjectReference Include="../HL7Workbench.Transport/HL7Workbench.Transport.csproj" />
     <ProjectReference Include="../HL7Workbench.Scripting/HL7Workbench.Scripting.csproj" />
   </ItemGroup>
 </Project>

@@ -166,11 +166,7 @@ public sealed class UtilityRibbon : Grid
         }
         else
         {
-            var sender = CommandButton("Sender", null, "Send", large: true); sender.IsEnabled = false;
-            var listener = CommandButton("Listener", null, "Listen", large: true); listener.IsEnabled = false;
-            AutomationProperties.SetName(sender, "TCP/MLLP Sender — Planned"); AutomationProperties.SetName(listener, "TCP/MLLP Listener — Planned");
-            ToolTip.SetTip(sender, "Planned. Network sending is not implemented."); ToolTip.SetTip(listener, "Planned. Network listening is not implemented.");
-            Add("TCP/MLLP — Planned", Row(sender, listener));
+            Add("Interactive TCP/MLLP", Row(Existing("Connection Manager", "Send", large: true), Existing("MLLP Listener", "Listen", large: true)));
         }
         var scroll = new ScrollViewer { Content = groups, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
         var border = new Border { BorderThickness = new Thickness(0, 1, 0, 1), Child = scroll };

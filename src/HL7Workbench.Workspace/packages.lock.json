@@ -10,6 +10,12 @@
         "dependencies": {
           "HL7Workbench.Core": "[1.0.0, )"
         }
+      },
+      "hl7workbench.transport": {
+        "type": "Project",
+        "dependencies": {
+          "HL7Workbench.Core": "[1.0.0, )"
+        }
       }
     }
   }

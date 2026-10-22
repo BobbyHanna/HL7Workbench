@@ -32,6 +32,7 @@ public sealed class DockContentTemplate : IDataTemplate
         if (context is ScriptApiReferenceViewModel reference) return new Viewer.ScriptApiReferenceView(reference);
         if (context is FieldExtractionViewModel extraction) return new Viewer.FieldExtractionView(extraction);
         if (context is SyntheticPatientsViewModel patients) return new Viewer.SyntheticPatientsView(patients);
+        if (context is TransportToolViewModel transport) return new Viewer.TransportToolView(transport);
         if (context is SearchViewModel search) return new Viewer.SearchResultsView(search);
         if (context is ComparisonViewModel comparison) return new Viewer.ComparisonView(comparison);
         if (context is InspectionToolViewModel inspection) return new Viewer.InspectionToolHost(inspection);

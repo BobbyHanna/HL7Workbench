@@ -21,7 +21,7 @@ namespace HL7Workbench.Desktop.Tests;
 public sealed partial class ScriptEditorTests
 {
     private static Dictionary<string, ICommand> RibbonActions() => new[] { "Open File…", "Save HL7", "Save HL7 As…", "Save Layout", "Restore Layout", "Reset Layout / Recover Windows", "Preferences…", "Generate Messages",
-        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator", "Message Comparison", "Compare With Original" }
+        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator", "Message Comparison", "Compare With Original", "Connection Manager", "MLLP Listener" }
         .Concat(MessageInsertionWorkflow.Choices.Select(c => MessageInsertionWorkflow.CommandName(c.Position)))
         .ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
     private static void SendShellKey(Control control, Avalonia.Input.Key key) => control.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
@@ -40,7 +40,7 @@ public sealed partial class ScriptEditorTests
                 Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menus.Select(i => i.Header));
                 Assert.Equal("Script _API Reference", Assert.Single(menus[3].Items.Cast<MenuItem>()).Header);
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
-                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Field E_xtraction", "Synthetic _Patients", "_Find Messages", "Full _Source Viewer" },
+                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Field E_xtraction", "Synthetic _Patients", "_Connection Manager", "_MLLP Listener", "_Find Messages", "Full _Source Viewer" },
                     menus[2].Items.Cast<MenuItem>().Select(i => i.Header));
                 var file = menus[0].Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(Key.S, file[1].InputGesture!.Key); Assert.Equal(KeyModifiers.Control, file[1].InputGesture!.KeyModifiers);
@@ -137,8 +137,9 @@ public sealed partial class ScriptEditorTests
                 Assert.True(state.Apply(state.Current with { RibbonExpanded = false })); window.UpdateLayout();
                 Assert.False(ribbon.IsExpanded); Assert.Equal(1, ribbon.SelectedTab); Assert.Equal(height, dock.Bounds.Height);
                 ribbon.SelectTab(3); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
-                var planned = ribbon.TemporaryPopup.Child!.GetVisualDescendants().OfType<Button>().ToArray();
-                Assert.Equal(2, planned.Length); Assert.All(planned, p => { Assert.False(p.IsEnabled); Assert.Contains("Planned", AutomationProperties.GetName(p)!); Assert.Contains("Planned", ToolTip.GetTip(p)!.ToString()!); });
+                var transport = ribbon.TemporaryPopup.Child!.GetVisualDescendants().OfType<Button>().ToArray();
+                Assert.Equal(new[] { "Connection Manager", "MLLP Listener" }, transport.Select(AutomationProperties.GetName));
+                Assert.All(transport, p => Assert.True(p.IsEnabled));
                 ribbon.TemporaryPopup.IsOpen = false;
             }
             finally { window.Close(); }

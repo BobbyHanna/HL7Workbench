@@ -6,6 +6,13 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 12 adds optional **Connection Manager** and **MLLP Listener** tools for explicit
+one-message TCP/MLLP testing, exact local capture, correlated original/enhanced ACKs
+and bounded listener test responses. Profiles persist metadata only; there is no
+automatic reconnect/retry. TLS and batch/load testing are deferred. Stage 12 remains
+uncommitted pending native Windows acceptance. See the [transport guide](docs/tcp-mllp.md)
+and [Stage 12 acceptance](docs/stage12-tcp-mllp-acceptance.md).
+
 Stage 11 adds optional **Synthetic Patients** from File/View: local, explicitly
 synthetic-only FHIR R4 Bundle import, bounded patient/encounter/timeline browsing,
 conservative seeded ADT A04/A01/A03 and ORU R01 generation into new unsaved HL7
@@ -18,7 +25,7 @@ and use synthetic/test input only. See the [import guide](docs/synthea-fhir-impo
 [versioned mapping](docs/fhir-to-hl7v2-mapping.md) and
 [acceptance record](docs/stage11-synthea-fhir-acceptance.md). Stage 11, including
 complete histories, passed user native Windows acceptance on 2026-10-21; one local
-checkpoint is authorized before Stage 12.
+checkpoint is `af717a66608d3277402bd6696cd4f50712c7ecf5`.
 
 Stage 9C is checkpointed locally. Stage 10 adds read-only **Field Extraction** from
 View or an HL7 document's **Extract Fields** action: configurable paths, first or
@@ -27,7 +34,7 @@ configurations and complete selected-result CSV export. Captured revisions and
 stale/closed sources remain explicit. See the [extraction guide](docs/field-extraction.md)
 for alignment, value states, privacy and limits. Stage 10 passed user native Windows
 acceptance on 2026-10-21 and is checkpointed as
-`1b04e1849b2ba3c03d135cf324bae28b8af4cba8`. Stage 11 remains uncommitted.
+`1b04e1849b2ba3c03d135cf324bae28b8af4cba8`. Stage 11 is checkpointed as above.
 
 Stage 8D synthetic generation passed user native Windows acceptance on 2026-10-20.
 Earlier pending-acceptance notes below are retained as historical implementation records.
@@ -184,8 +191,8 @@ dirty drafts/confirmation. Reports / Export CSV opens contextual retained result
 Settings → Preferences controls new-document Edit Mode, saved ribbon visibility and
 Appearance: Follow System (default), Light or Dark, applied without restarting. HL7 editors
 and source views follow the effective theme while retaining drafts, undo and selection.
-HL7 schema controls are reserved/disabled until an interpretation engine exists; TCP/MLLP
-Sender/Listener are disabled Planned placeholders. See [desktop preferences](docs/desktop-preferences.md)
+HL7 schema controls are reserved/disabled until an interpretation engine exists. TCP/MLLP
+opens Connection Manager and MLLP Listener. See [desktop preferences](docs/desktop-preferences.md)
 and the [UI finishing checklist](docs/stage5b-ui-finishing-acceptance.md).
 See [save/export safety](docs/save-and-export-safety.md) for picker authorization,
 destination-version checks, transactional replacement and the final native retest.
@@ -248,10 +255,9 @@ the reproducible synthetic sample generator. No comparison content/history is pe
 
 ## Planned capabilities
 
-Message generation, template cloning, additional batch analysis,
-SQL-style querying, and TCP/MLLP transport remain planned. File-based MLLP framing support is available
-for inspection and preservation; it does not provide network transport. Synthetic
-message generation and additional analysis tools also remain future work.
+SQL-style querying, additional batch analysis and automated batch/load transmission
+remain planned. Synthetic generation, FHIR import and interactive TCP/MLLP are
+described above; Stage 12 still requires native Windows acceptance.
 
 ## Windows setup
 

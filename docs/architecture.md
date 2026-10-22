@@ -7,6 +7,22 @@ local checkpoint before Stage 12. Stage 12 stays uncommitted pending separate na
 acceptance. Earlier pending statements below are historical. No external Git,
 packaging or publication operation is authorized.
 
+## Stage 12 interactive transport
+
+Stage 11 is checkpointed at af717a66608d3277402bd6696cd4f50712c7ecf5. Stage 12 is
+implemented for native acceptance and remains uncommitted. Core interprets headers
+and ACK semantics, with no socket/framing/UI dependency. The new Transport library
+owns strict incremental byte framing and asynchronous TCP/listener lifecycles.
+Workspace owns authoritative one-message capture, freshness, profile persistence
+and ephemeral bounded history. Desktop coordinates Dock, review and non-loopback
+confirmation, using existing unsaved document viewers for exact payload inspection.
+Stream framing remains independent of socket reads and leaves room for a future
+authenticated TLS stream; TLS connection mode currently fails without fallback.
+No parser/save/message-identity/ScriptHost isolation contract changed.
+See [ADR 0016](decisions/0016-interactive-mllp.md), [guide](tcp-mllp.md) and
+[acceptance](stage12-tcp-mllp-acceptance.md). Earlier deferred-transport statements
+below describe their original milestone, not current status.
+
 ## Stage 11 local synthetic FHIR workflow
 
 Core's narrow System.Text.Json R4 importer validates bounded collection/transaction

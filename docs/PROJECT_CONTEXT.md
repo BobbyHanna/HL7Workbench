@@ -4,6 +4,59 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 12 native send correction — automated gate passed; native retest pending
+
+Native acceptance failed: a checked connection could expire at the listener's idle
+deadline during human review. A permanent 504-byte/11-message Desktop regression
+reproduced the exact Disconnected/zero-payload timeout before correction. Confirm
+now explicitly authorizes one fresh connection to the pinned reviewed address and
+one write; the checked socket is retired without transmitting. No failed write is
+retried. Completion, ACK frames, application acceptance, failure phase/socket enum
+and actual socket/partial/complete byte counts are separate. The initial tests
+confirmed immediately and missed this interval. Cancellation and shutdown boundary
+regressions are retained. Evidence: artifacts/stage12-native-send, including the
+pre-fix failure. Eight implementation/test paths plus these docs/guide/ADR changed;
+the complete Stage 12 inventory remains 39 paths, all unstaged/uncommitted.
+The final correction gate passed: locked restore; Release build with zero warnings/
+errors (1.61s); focused 41 Core / 70 Workspace / 12 Desktop; **1,828 solution tests**
+(2m 58.698s); **854 complete Workspace stress cases** (298.318s), with no failures/
+skips or unrun focused/stress cases. Both Release-layout ScriptHost lifecycles and
+isolation, API sync, 33 frozen implementation/project/test hashes, 13 protected
+hashes, eight original HL7 blobs, artwork/derivatives/excluded HL7 and whitespace
+pass. Recovery on 2026-10-22 found the stress process had completed during the chat
+interruption; finished log/XML were reconciled without rerunning completed checks.
+Post-stress integrity was repeated. HEAD remains the Stage 11 checkpoint; empty
+index, 18 modified / 21 new Stage 12 paths plus the unchanged excluded HL7. See the
+acceptance record for exact paths, evidence and delayed-confirmation retest steps.
+The prior 1,818 solution / 848 stress gate below is historical and precedes this
+native correction. Stop for native Windows retesting. No Git/publication/Stage 13 action.
+
+## Stage 12 initial automated baseline — superseded by native failure above
+
+Stage 11 was checkpointed once as af717a66608d3277402bd6696cd4f50712c7ecf5,
+`Stage 11: Add Synthea FHIR import and HL7 generation`, with the exact accepted 44
+paths and clean index/tracked tree after commit. Stage 12 transport, Core ACK policy,
+Workspace capture/profiles/history and lazy dockable Connection Manager/MLLP Listener
+are implemented. The final implementation is frozen at 33 implementation/test/project
+hashes in artifacts/stage12/final-implementation-hashes.json. Final locked restore
+and zero-warning/error Release build pass; focused 41 Core, 64 Workspace/transport
+and 8 Desktop cases pass. Final full solution: **1,818 passed**, zero failures/skips,
+2m 56.578s. Complete Workspace stress: **848 passed**, zero errors/failures/skips/
+unrun, 290.398s. Both final Release-layout ScriptHost lifecycles/isolation, API sync,
+eight HL7 fixture blobs, 13 protected hashes, artwork/derivatives/excluded HL7 and
+whitespace pass. The 33 implementation/project/test hashes still match after stress.
+Earlier 1,811 solution / 847 stress logs are retained as pre-envelope-audit evidence.
+The final-* logs cover ACK metadata/correlation fixes and background send/inspection
+parsing. Inventory: 39 Stage 12 paths (18 modified tracked, 21 new), plus the unchanged
+excluded untracked HL7; empty index, HEAD remains the Stage 11 checkpoint. No
+disposable payload exports/probes were introduced; ignored audit/gate evidence is
+intentionally retained. Implementation is complete for native acceptance.
+See docs/stage12-tcp-mllp-acceptance.md and ADR 0016 for scope, explicit limits,
+conditional ACK behavior, TLS deferral and native steps. No Stage 12 staging/commit,
+external Git, package/deploy/release/publication or Stage 13 is authorized. Stop for
+native Windows acceptance after the complete gate. Older pending Stage 11 statements
+and deferred transport descriptions below are historical.
+
 ## Stage 11 native acceptance — checkpoint then Stage 12 authorization
 
 On 2026-10-21 the user confirmed native Windows acceptance of all Stage 11 work,
@@ -1276,7 +1329,10 @@ Do not commit or push without user authorization.
 ## Projects and boundaries
 
 - `src/HL7Workbench.Core`: dependency-free parser, paths, escapes, diagnostics,
-  controlled edits, and byte-preserving serializer. No UI, files, framing, or transport.
+  controlled edits, byte-preserving serializer and header/ACK semantics. No UI, files,
+  network I/O or network framing.
+- `src/HL7Workbench.Transport`: bounded incremental MLLP, TCP connections/listener,
+  explicit deadlines and request/response exchange. No UI, Dock or persistent payloads.
 - `src/HL7Workbench.Workspace`: document lifecycle/active context, lazy tool registry,
   bounded application-owned layout DTO and screen recovery policy. No Avalonia/Dock.
 - `src/HL7Workbench.Desktop`: Avalonia shell. Dock types stay in `Docking/` and shell

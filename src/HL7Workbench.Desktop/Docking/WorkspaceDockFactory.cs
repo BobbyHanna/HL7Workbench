@@ -21,6 +21,8 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string ScriptApiReferenceId = "tool.script-api-reference";
     public const string FieldExtractionId = "tool.field-extraction";
     public const string SyntheticPatientsId = "tool.synthetic-patients";
+    public const string ConnectionManagerId = "tool.connection-manager";
+    public const string MllpListenerId = "tool.mllp-listener";
     // Keep the original Search Results identity so saved layouts restore Find Messages.
     public const string SearchResultsId = "tool.search-results";
     public const string ComparisonId = "tool.message-comparison";

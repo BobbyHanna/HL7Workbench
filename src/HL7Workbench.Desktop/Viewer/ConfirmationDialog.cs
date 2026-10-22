@@ -10,6 +10,7 @@ namespace HL7Workbench.Desktop.Viewer;
 /// <summary>Content-sized confirmations; dismissal always retains the safe cancel result.</summary>
 internal static class ConfirmationDialog
 {
+    internal static Window Transport(string title, string prompt) => Create(title, prompt, ("Confirm", true), ("Cancel", false));
     internal static Window Unsaved(string prompt, bool script = false) => Create(script ? "Unsaved script" : "Unsaved changes", prompt,
         ("Save", UnsavedChangesDecision.Save), ("Discard", UnsavedChangesDecision.Discard), ("Cancel", UnsavedChangesDecision.Cancel));
     internal static Window Delete(string name) => Create("Delete Script",

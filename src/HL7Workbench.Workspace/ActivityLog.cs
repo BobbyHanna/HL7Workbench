@@ -8,7 +8,8 @@ public enum ActivityKind
     FileOpenCanceled, Diagnostic, DiagnosticLimit, SourceViewerOpened, SourceReadFailed,
     ExportStarted, ExportCompleted, ExportFailed, ExportCanceled, LayoutFailed,
     SaveStarted, SaveCompleted, SaveFailed, SaveCanceled,
-    ScriptStarted, ScriptCompleted, ScriptFailed, ScriptCanceled
+    ScriptStarted, ScriptCompleted, ScriptFailed, ScriptCanceled,
+    TransportExchange, TransportReceived, TransportFailed, TransportListenerStarted, TransportListenerStopped
 }
 public enum ActivityFailure { None, Unavailable, AccessDenied, ResourceLimit, Encoding, Unsupported, Unexpected }
 public enum ActivityCategory { Application, File, Boundary, Structure, Inspection, Export }
@@ -65,6 +66,11 @@ public sealed record ActivityEntry
         ActivityKind.ScriptCompleted => $"Script run completed — {Count:N0} message(s) in independent output",
         ActivityKind.ScriptFailed => "Script run failed; no partial output published",
         ActivityKind.ScriptCanceled => "Script run canceled; no partial output published",
+        ActivityKind.TransportExchange => "Interactive transport exchange completed; inspect local session result",
+        ActivityKind.TransportReceived => $"Transport received {Count:N0} local session frame(s)",
+        ActivityKind.TransportFailed => "Transport operation unavailable; no automatic retry",
+        ActivityKind.TransportListenerStarted => "Test MLLP listener started explicitly",
+        ActivityKind.TransportListenerStopped => "Test MLLP listener stopped",
         ActivityKind.DiagnosticLimit => "Additional diagnostic activity omitted; document diagnostics remain available",
         _ => Diagnostic switch
         {
@@ -136,7 +142,7 @@ public sealed class ActivityLog
                 ActivityKind.SourceViewerOpened or ActivityKind.SourceReadFailed or ActivityKind.DiagnosticLimit => ActivityCategory.Inspection,
                 _ => ActivityCategory.Application
             },
-            Severity = kind is ActivityKind.ApplicationError or ActivityKind.FileOpenFailed or ActivityKind.SourceReadFailed or ActivityKind.ExportFailed or ActivityKind.LayoutFailed or ActivityKind.SaveFailed or ActivityKind.ScriptFailed
+            Severity = kind is ActivityKind.ApplicationError or ActivityKind.FileOpenFailed or ActivityKind.SourceReadFailed or ActivityKind.ExportFailed or ActivityKind.LayoutFailed or ActivityKind.SaveFailed or ActivityKind.ScriptFailed or ActivityKind.TransportFailed
                 ? Hl7DiagnosticSeverity.Error : kind == ActivityKind.DiagnosticLimit ? Hl7DiagnosticSeverity.Warning : Hl7DiagnosticSeverity.Information });
     }
     /// <summary>Projects a diagnostic through a fixed vocabulary; imported description, code and path strings are never retained.</summary>

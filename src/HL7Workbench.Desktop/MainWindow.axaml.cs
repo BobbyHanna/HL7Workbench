@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     {
         preferences = new(Path.Combine(configurationDirectory, "editor-preferences.json"));
         layoutPath = Path.Combine(configurationDirectory, "workspace-layout.json");
+        transportProfilesPath = Path.Combine(configurationDirectory, "transport-endpoints.json");
         InitializeComponent();
         browser = new MessageBrowserViewModel(documents);
         navigator = new(documents, true); fields = new(documents, false);
@@ -48,6 +49,8 @@ public partial class MainWindow : Window
         scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
         registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "Synthetic Patients", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.ConnectionManagerId, "Connection Manager", () => CreateTransport(false), Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.MllpListenerId, "MLLP Listener", () => CreateTransport(true), Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);
@@ -88,6 +91,7 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             lifetime.Cancel();
+            foreach (var model in transportModels.ToArray()) model.Dispose();
             lifetime.Dispose();
             factory.Dispose();
             browser.Dispose();
