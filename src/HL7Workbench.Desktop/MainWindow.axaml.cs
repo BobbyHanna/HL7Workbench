@@ -49,8 +49,10 @@ public partial class MainWindow : Window
         scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
         registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "Synthetic Patients", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.GenerationReportId, "Generation Report", () => new GenerationReportViewModel(documents), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ConnectionManagerId, "Connection Manager", () => CreateTransport(false), Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.MllpListenerId, "MLLP Listener", () => CreateTransport(true), Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.BatchTransmissionId, "Batch Transmission", CreateBatchTransmission, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
         factory = new(documents, registry);
@@ -81,6 +83,11 @@ public partial class MainWindow : Window
             OpenComparison().CompareWithOriginal(e.Document); e.Handled = true;
         });
         AddHandler(Viewer.ViewerRequests.FieldExtractionEvent, (_, e) => { OpenFieldExtraction(e.Document); e.Handled = true; });
+        AddHandler(Viewer.ViewerRequests.GenerationReportEvent, (_, e) =>
+        {
+            if (!documents.Documents.Contains(e.Document)) return;
+            factory.OpenDocument(e.Document.Id); ShowGenerationReport(this, e); e.Handled = true;
+        });
         browser.OpenRequested += factory.OpenDocument;
         WorkspaceDock.Layout = factory.CreateLayout();
         InitializeShell();
@@ -92,6 +99,7 @@ public partial class MainWindow : Window
         {
             lifetime.Cancel();
             foreach (var model in transportModels.ToArray()) model.Dispose();
+            foreach (var model in batchModels.ToArray()) model.Dispose();
             lifetime.Dispose();
             factory.Dispose();
             browser.Dispose();
@@ -167,6 +175,14 @@ public partial class MainWindow : Window
     private void ShowNavigator(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.NavigatorId);
     private void ShowFields(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.FieldInspectorId);
     private void ShowScripts(object? sender, RoutedEventArgs e) => factory.ShowTool(WorkspaceDockFactory.ScriptEditorId);
+    private void ShowGenerationReport(object? sender, RoutedEventArgs e)
+    {
+        factory.ShowTool(WorkspaceDockFactory.GenerationReportId);
+        var model = (GenerationReportViewModel)registry.GetContent(WorkspaceDockFactory.GenerationReportId);
+        // Dock may construct/attach the content after activating its tab. Focus only
+        // this explicit open request, once that layout work has completed.
+        Avalonia.Threading.Dispatcher.UIThread.Post(model.NotifyShown, Avalonia.Threading.DispatcherPriority.Loaded);
+    }
     private void ShowScriptApiReference(object? sender, RoutedEventArgs e)
     {
         factory.ShowTool(WorkspaceDockFactory.ScriptApiReferenceId);

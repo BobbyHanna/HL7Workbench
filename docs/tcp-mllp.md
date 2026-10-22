@@ -1,5 +1,11 @@
 # Interactive TCP/MLLP testing
 
+Stage 12 passed native Windows acceptance and is checkpointed at
+`e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. Stage 13A adds a separate explicitly
+reviewed [Batch Transmission tool](batch-transmission.md); the one-message workflow
+below is unchanged. Concurrent loads/scheduling/retries remain deferred. Stage 13A
+passed native acceptance including report polish; its local checkpoint is authorized.
+
 Open **View → Connection Manager** and **View → MLLP Listener**, or the TCP/MLLP
 ribbon tab. Both are optional dockable tools. Opening/restoring the application
 does not connect, start listening or send. Closing a tool stops its network work

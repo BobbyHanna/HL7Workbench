@@ -48,6 +48,15 @@ public partial class MainWindow
     }
     private async void ConfirmWindowClose(object? sender, WindowClosingEventArgs e)
     {
+        if (batchModels.Any(m => m.IsBusy || m.Session.IsActive || !m.Disposal.IsCompleted))
+        {
+            e.Cancel = true;
+            if (batchShutdownDraining) return;
+            batchShutdownDraining = true;
+            try { await DrainBatchToolsAsync(); Close(); }
+            finally { batchShutdownDraining = false; }
+            return;
+        }
         if (shutdownApproved) { SaveLayout(this, new()); return; }
         if (generationDialog?.Model.IsBusy == true)
         { e.Cancel = true; generationDialog.Model.Cancel(); Status.Text = "Canceling generation; close again after it finishes."; return; }

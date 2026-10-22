@@ -167,6 +167,7 @@ public sealed class UtilityRibbon : Grid
         else
         {
             Add("Interactive TCP/MLLP", Row(Existing("Connection Manager", "Send", large: true), Existing("MLLP Listener", "Listen", large: true)));
+            Add("Controlled Batch", Existing("Batch Transmission", "Send", large: true));
         }
         var scroll = new ScrollViewer { Content = groups, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
         var border = new Border { BorderThickness = new Thickness(0, 1, 0, 1), Child = scroll };

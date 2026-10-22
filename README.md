@@ -6,11 +6,19 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 13A adds **Batch Transmission** for explicitly reviewed, paced, sequential
+test sends from an immutable document selection. Pause/resume/cancel, per-message
+ACK outcomes and privacy-safe CSV reuse the Stage 12 transport. No automatic retries,
+concurrent loads or scheduling. Stage 13A passed native Windows acceptance,
+including report polish; its single local checkpoint is authorized. See the [batch guide](docs/batch-transmission.md) and
+[acceptance record](docs/stage13a-batch-transmission-acceptance.md).
+
 Stage 12 adds optional **Connection Manager** and **MLLP Listener** tools for explicit
 one-message TCP/MLLP testing, exact local capture, correlated original/enhanced ACKs
 and bounded listener test responses. Profiles persist metadata only; there is no
-automatic reconnect/retry. TLS and batch/load testing are deferred. Stage 12 remains
-uncommitted pending native Windows acceptance. See the [transport guide](docs/tcp-mllp.md)
+automatic reconnect/retry. TLS and concurrent load testing remain deferred. Stage 12
+passed native Windows acceptance and is checkpointed as
+`e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. See the [transport guide](docs/tcp-mllp.md)
 and [Stage 12 acceptance](docs/stage12-tcp-mllp-acceptance.md).
 
 Stage 11 adds optional **Synthetic Patients** from File/View: local, explicitly

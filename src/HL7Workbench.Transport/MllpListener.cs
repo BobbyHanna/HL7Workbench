@@ -137,7 +137,9 @@ public sealed class MllpListener : IAsyncDisposable
         await Task.WhenAll(pending.Select(c => c.Work)).ConfigureAwait(false); clients.Clear();
         cancellation.Dispose();
     }
-    private static string SafeRemote(TcpClient client) { try { return client.Client.RemoteEndPoint?.ToString() ?? "Disconnected"; } catch (ObjectDisposedException) { return "Disconnected"; } }
+    // TcpClient clears Client on disposal before the worker leaves the dictionary.
+    // A UI snapshot can legitimately observe that interval while exchanges close.
+    private static string SafeRemote(TcpClient client) { try { return client.Client?.RemoteEndPoint?.ToString() ?? "Disconnected"; } catch (ObjectDisposedException) { return "Disconnected"; } }
     public async ValueTask DisposeAsync()
     { lock (lifecycleGate) disposed = true; await StopAsync().ConfigureAwait(false); ClearReceipts(); }
 }

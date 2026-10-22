@@ -15,9 +15,16 @@ public sealed class RawInspectorRequestEventArgs(MessageDocument document, Chara
     public string? Path { get; } = path;
 }
 
+public sealed class GenerationReportRequestEventArgs(MessageDocument document) : RoutedEventArgs(ViewerRequests.GenerationReportEvent)
+{
+    public MessageDocument Document { get; } = document;
+}
+
 /// <summary>View-to-shell intent, without coupling viewer controls to Dock.</summary>
 public static class ViewerRequests
 {
+    public static readonly RoutedEvent<GenerationReportRequestEventArgs> GenerationReportEvent =
+        RoutedEvent.Register<Control, GenerationReportRequestEventArgs>("GenerationReport", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<RawInspectorRequestEventArgs> FieldExtractionEvent =
         RoutedEvent.Register<Control, RawInspectorRequestEventArgs>("FieldExtraction", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<RawInspectorRequestEventArgs> CompareOriginalEvent =

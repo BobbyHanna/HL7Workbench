@@ -1,5 +1,27 @@
 # Architecture
 
+## Stage 13A controlled batch transmission
+
+Stage 12 passed native acceptance and was committed by the user at
+e575ebe47921f33b3431d32bf26a5fc87aee4a0a. Stage 13A and its report polish passed
+native acceptance; the single local checkpoint is authorized. Earlier pending
+Stage 12/13A statements below are historical.
+
+Workspace owns a bounded immutable selection and an explicitly authorized sequential
+batch. It reuses authoritative Stage 12 captures and production MllpConnection/Core
+ACK handling, with one connection per message and an ACK-gated, monotonic, bounded
+post-exchange pacing/pause scheduler. A source change before Start requires fresh
+preparation; afterward it cannot change captured payloads. No retry/concurrency/load/
+schedule is added. Typed result metadata is separate from bounded retained ACK bytes;
+explicit reports reuse Core CSV escaping and version-consented atomic file publication.
+Desktop supplies only lazy themed Dock controls, confirmations, viewer/picker actions
+and task-draining ownership on close/reset/application shutdown. Layouts persist no
+network state or authorization. Core, ScriptHost, document/save identities and package
+dependencies are unchanged. A null-safe listener client-endpoint snapshot corrects
+the disposal race demonstrated by batch integration tests; Stage 12 single-send
+protocol and confirmation behavior remain intact. See [ADR 0017](decisions/0017-controlled-batch-transmission.md),
+[guide](batch-transmission.md) and [acceptance](stage13a-batch-transmission-acceptance.md).
+
 Stage 10 passed user native Windows acceptance and is checkpointed at
 1b04e1849b2ba3c03d135cf324bae28b8af4cba8 (2026-10-21). The user confirmed Stage 11
 native acceptance, including complete histories, and authorized one exact 44-path
@@ -53,8 +75,13 @@ builds a private empty document and opens it only on complete/current success.
 Existing documents, original generator contracts and save semantics are unchanged.
 
 An immutable count-only Generation Report is attached before public document open.
-The normal FileDocumentView reconstructs its report panel from the document, so
-attribution survives tool closure and view replacement. No clinical data, paths or
+FileDocumentView reconstructs a compact provenance/count indicator from the document.
+A lazy release-on-close Generation Report Dock tool projects the active document's
+report through the existing formatter; nonreport tabs show an empty state. The tool
+can float/resize/restore placement and visibility through the existing layout DTO,
+without serializing reports. Only explicit open actions request keyboard focus,
+including when Dock attaches the view afterward. Thus attribution survives tool
+closure and view replacement. No clinical data, paths or
 exception text enter reports/log diagnostics. Reports do not reassess later edits
 and are not automatically saved alongside HL7. Core/Workspace remain UI/Dock free;
 ScriptHost permissions, isolation, packages and Dock layout schema do not change.

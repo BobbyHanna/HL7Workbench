@@ -43,8 +43,8 @@ public sealed class SyntheticPatientsViewTests
                 view.Browse.SelectedIndex=2;Pump(window);Assert.Contains(model.Session.TimelinePage,e=>e.Kind==FhirEventKind.ConditionOnset);Assert.Contains(model.Session.TimelinePage,e=>e.Kind==FhirEventKind.ObservationEffective);
                 view.Seed.Text="123";Click(view.Preview);await view.ActionTask;Pump(window);Assert.Equal(3,model.Session.Preview!.Messages);Assert.True(view.Generate.IsEnabled);Assert.Contains("Review required",view.PreviewSummary.Text!);
                 Click(view.Generate);await view.ActionTask;Pump(window);var doc=Assert.Single(documents.Documents);Assert.NotNull(doc.GenerationReport);Assert.True(doc.IsDirty);Assert.Null(doc.SavePath);
-                var reportView=new FileDocumentView(doc);Assert.NotNull(reportView.GenerationReportPanel);Assert.Contains("mapping 1",reportView.GenerationReportPanel.Details.Text!);Assert.DoesNotContain("SYN-ALPHA",reportView.GenerationReportPanel.Details.Text!);
-                var reconstructed=new FileDocumentView(doc);Assert.Equal(reportView.GenerationReportPanel.Details.Text,reconstructed.GenerationReportPanel!.Details.Text);
+                using var reportModel=new GenerationReportViewModel(documents);var reportView=new GenerationReportView(reportModel);Assert.Contains("mapping 1",reportView.Details.Text!);Assert.DoesNotContain("SYN-ALPHA",reportView.Details.Text!);
+                var reconstructed=new FileDocumentView(doc);Assert.True(reconstructed.GenerationIndicator.IsVisible);Assert.Contains("3 messages",reconstructed.GenerationIndicator.Summary.Text!);Assert.Equal(reportView.Details.Text,new GenerationReportView(reportModel).Details.Text);
                 Assert.True(view.Browse.Bounds.Height>70);Assert.True(view.Generate.Bounds.Width>50);
                 Click(view.Clear);Pump(window);Assert.Null(model.Session.Data);Assert.Equal(0,view.Patients.ItemCount);Assert.Equal("",view.Search.Text);Assert.Equal("",view.Details.Text);Assert.Same(doc.GenerationReport,documents.Documents[0].GenerationReport);
             }

@@ -1,18 +1,48 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using System.ComponentModel;
 using HL7Workbench.Core;
+using HL7Workbench.Desktop.ViewModels;
 
 namespace HL7Workbench.Desktop.Viewer;
 
 /// <summary>Count-only report associated before output publication; never reads patient/resource values.</summary>
-public sealed class GenerationReportView : Expander
+public sealed class GenerationReportView : Grid
 {
-    public TextBlock Details { get; } = new() { TextWrapping = TextWrapping.Wrap };
-    public GenerationReportView(FhirGenerationReport report)
+    private readonly GenerationReportViewModel model;
+    private FhirGenerationReport? rendered;
+    public SelectableTextBlock Details { get; } = new() { TextWrapping = TextWrapping.Wrap, Focusable = true };
+    public TextBlock EmptyState { get; } = new() { Text = "No Generation Report for the selected document. Generate HL7 from Synthetic Patients to create one.", TextWrapping = TextWrapping.Wrap };
+    public ScrollViewer ReportScroll { get; }
+    public GenerationReportView(GenerationReportViewModel model)
     {
-        Header = "Generation Report — Review required"; IsExpanded = true; HorizontalAlignment = HorizontalAlignment.Stretch;
-        Details.Text = Format(report); Content = new ScrollViewer { MaxHeight = 180, Content = Details, Margin = new(8) };
+        this.model = model; RowDefinitions = new("Auto,*"); Margin = new(8);
+        Children.Add(new TextBlock { Text = "Generation Report — Review required", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new(0, 0, 0, 8) });
+        var body = new StackPanel { Spacing = 8 }; body.Children.Add(EmptyState); body.Children.Add(Details);
+        ReportScroll = new() { Content = body, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = true };
+        SetRow(ReportScroll, 1); Children.Add(ReportScroll);
+        AttachedToVisualTree += (_, _) => { model.PropertyChanged += Changed; model.Shown += FocusReport; Refresh(); if (model.FocusRequested) FocusReport(); };
+        DetachedFromVisualTree += (_, _) => { model.PropertyChanged -= Changed; model.Shown -= FocusReport; rendered = null; Details.Text = ""; };
+        Refresh();
+    }
+    private void Changed(object? sender, PropertyChangedEventArgs e) => Refresh();
+    private void FocusReport() => Dispatcher.UIThread.Post(() =>
+    {
+        // An explicit open can precede Dock attaching this projection. Retain that
+        // request until attachment; ordinary document changes never request focus.
+        if (model.FocusRequested && this.IsAttachedToVisualTree() && IsEffectivelyVisible &&
+            (Details.IsVisible ? Details.Focus() : ReportScroll.Focus())) model.FocusHandled();
+    }, DispatcherPriority.Loaded);
+    private void Refresh()
+    {
+        var report = model.Report;
+        if (!ReferenceEquals(rendered, report)) { ReportScroll.Offset = default; rendered = report; }
+        Details.Text = report is null ? "" : Format(report);
+        Details.IsVisible = report is not null; EmptyState.IsVisible = report is null;
     }
     public static string Format(FhirGenerationReport report)
     {

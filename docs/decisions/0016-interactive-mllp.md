@@ -1,5 +1,11 @@
 # ADR 0016: Interactive TCP/MLLP
 
+Current milestone status: Stage 12 passed native Windows acceptance and was committed
+by the user as `e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. Stage 13A now adds controlled
+batch orchestration under [ADR 0017](0017-controlled-batch-transmission.md), while the
+single-message contract below is retained. Earlier pending/deferral statements are
+historical; concurrent loads, scheduling, automatic retry and Stage 13B stay deferred.
+
 Status: Stage 12 native send correction passed the complete automated gate;
 native Windows retest pending. See the Stage 12 acceptance record for exact results.
 

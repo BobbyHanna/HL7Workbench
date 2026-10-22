@@ -35,7 +35,9 @@ public sealed class SyntheticHistoryScopeViewTests
                 view.Patients.SelectedItem = model.Session.PatientPage[0]; Pump(window); Assert.True(view.Preview.IsEnabled); Assert.Empty(model.Session.SelectedEncounters); Assert.Empty(model.Session.SelectedEvents);
                 Click(view.Preview); await view.ActionTask; Pump(window); Assert.Equal(4, model.Session.Preview!.Messages); Assert.True(view.Generate.IsEnabled); Assert.Contains("1 patients", view.GenerationState.Text!);
                 Click(view.Generate); await view.ActionTask; Pump(window); Assert.Equal(4, Assert.Single(documents.Documents).MessageCount);
-                Assert.Contains("Successfully generated", new FileDocumentView(documents.Documents[0]).GenerationReportPanel!.Details.Text!);
+                using var reportModel = new GenerationReportViewModel(documents);
+                Assert.Contains("Successfully generated", new GenerationReportView(reportModel).Details.Text!);
+                Assert.True(new FileDocumentView(documents.Documents[0]).GenerationIndicator.IsVisible);
                 view.Scope.SelectedIndex = (int)FhirGenerationScope.SelectedEvents; Pump(window); Assert.False(view.Preview.IsEnabled); Assert.Contains("at least one", view.GenerationState.Text!);
                 view.Browse.SelectedIndex = 1; view.Encounters.SelectedItems!.Add(model.Session.EncounterPage[0]); Pump(window); Assert.True(view.Preview.IsEnabled);
                 view.Scope.SelectedIndex = (int)FhirGenerationScope.EntireImport; Click(view.Preview); await view.ActionTask; Pump(window); Assert.Equal(40, model.Session.Preview!.Messages); Assert.Equal(10, model.Session.Preview.PatientsIncluded);

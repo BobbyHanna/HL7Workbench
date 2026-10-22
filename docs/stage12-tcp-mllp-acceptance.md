@@ -1,5 +1,13 @@
 # Stage 12: interactive TCP/MLLP acceptance
 
+User acceptance update: Stage 12, including the native send correction below, passed
+native Windows acceptance and was committed by the user as
+`e575ebe47921f33b3431d32bf26a5fc87aee4a0a` (`MLLP functionality`). Earlier pending
+status and mandatory-stop statements below record the pre-acceptance verification.
+Stage 13A passed separate native acceptance and has one local checkpoint authorized.
+The user checkpoint also tracks the formerly excluded `_TEST.hl7`;
+its bytes are preserved and it is not opened or changed by Stage 13A.
+
 Status: initial native Windows acceptance **failed**; the send correction has
 passed the complete automated gate. Native Windows retesting remains pending.
 Stage 12 remains unstaged and uncommitted. No push,

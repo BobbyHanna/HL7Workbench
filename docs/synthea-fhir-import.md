@@ -126,7 +126,13 @@ editing, Inspector/Navigator, Search, comparison, Field Extraction and Save As.
 The generated batch is one history action: Undo removes it and Redo restores it.
 Save As is explicit; source JSON is never rewritten.
 
-The expanded **Generation Report — Review required** belongs to the output document.
+The compact **Generated from FHIR R4** row beneath RAW navigation shows the original
+generated message/patient counts. **View report** opens or focuses the dockable
+**Generation Report**; **View → Generation Report** reopens it after closing. The
+row is absent on documents without generation metadata. The full scrollable
+**Generation Report — Review required** follows the selected document, with an empty
+state for other tabs. Dock, float and resize it using the normal workspace controls.
+Closing the tool releases its presentation, while the report belongs to the output document.
 It records mapping version, opaque captured session/fingerprint, seed/transport time,
 scope, included-patient/considered-encounter counts, import/event/reference/date
 counts and selected mapping warnings. Preview counts are labeled eligible/estimated;
@@ -138,7 +144,8 @@ counts may overlap. Actual failed/canceled operations show fixed status diagnost
 and publish no document/report. The report contains no
 patient names, source identifiers, values or filenames. It survives tool closure and
 document-view reconstruction during this application session. It is not serialized
-into the HL7 file, and does not reassess later manual edits. The generated HL7 itself
+into the HL7 file or retained across application restarts, and does not reassess
+later manual edits. Saved layouts contain placement/visibility only. The generated HL7 itself
 contains the selected source demographics/clinical data, so synthetic-only input
 confirmation remains essential.
 

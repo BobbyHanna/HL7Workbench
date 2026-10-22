@@ -25,8 +25,10 @@
         <MenuItem Header="Script _Editor" Click="ShowScripts" ToolTip.Tip="Create, save and run trusted local C# scripts" />
         <MenuItem x:Name="FieldExtractionMenu" Header="Field E_xtraction" Click="ShowFieldExtraction" ToolTip.Tip="Extract fields into a read-only table and CSV" />
         <MenuItem x:Name="SyntheticPatientsMenu" Header="Synthetic _Patients" Click="ShowSyntheticPatients" ToolTip.Tip="Import local synthetic FHIR R4 and generate test HL7" />
+        <MenuItem Header="_Generation Report" Click="ShowGenerationReport" ToolTip.Tip="Review the selected document's FHIR generation report" />
         <MenuItem Header="_Connection Manager" Click="ShowConnections" />
         <MenuItem Header="_MLLP Listener" Click="ShowListener" />
+        <MenuItem Header="Batch _Transmission" Click="ShowBatchTransmission" />
         <MenuItem x:Name="FindMessagesMenu" Header="_Find Messages" InputGesture="Ctrl+F" ToolTip.Tip="Open Find Messages and focus the search value (Ctrl+F)" AutomationProperties.Name="Find Messages" />
         <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
       </MenuItem>

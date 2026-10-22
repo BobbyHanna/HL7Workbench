@@ -57,6 +57,7 @@ public partial class MainWindow
             ["Message Browser"] = Action(ShowBrowser), ["Segment Navigator"] = Action(ShowNavigator), ["Field Inspector"] = Action(ShowFields),
             ["Full Source Viewer"] = Action(ShowRaw), ["Activity Log"] = Action(ShowActivity),
             ["Connection Manager"] = Action(ShowConnections), ["MLLP Listener"] = Action(ShowListener),
+            ["Batch Transmission"] = Action(ShowBatchTransmission),
             ["Find Messages"] = search.OpenCommand, ["Clear Search / Restore Navigator"] = search.ClearCommand,
             ["Message Comparison"] = new UiCommand(() => { OpenComparison(); return Task.CompletedTask; }),
             ["Compare With Original"] = new UiCommand(() => { OpenComparison().CompareWithOriginal(); return Task.CompletedTask; }, () => documents.ActiveDocument is { MessageNumber: > 0 })

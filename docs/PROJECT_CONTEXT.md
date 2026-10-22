@@ -4,6 +4,102 @@ HL7 Workbench is an independent, local-first HL7 v2 development tool. Windows is
 the initial desktop platform. No runtime telemetry, cloud features, or HL7 content logging.
 All committed examples and tests must be synthetic.
 
+## Stage 13A checkpoint authorization — native acceptance complete
+
+The user explicitly confirmed all eight Stage 13A native Windows acceptance checks
+passed, including Generation Report polish, and authorized one local checkpoint:
+`Stage 13A: Add controlled batch MLLP transmission`. The exact 37-path inventory and
+all final file hashes matched the completed gate before this acceptance-only
+documentation update. All 27 implementation/test hashes, protected assets and
+Stage 12 baseline e575ebe47921f33b3431d32bf26a5fc87aee4a0a remain verified.
+No implementation/test changes require repeating the completed gate. After the
+single checkpoint, Stage 13B is authorized under the supplied bounded controlled
+load-testing requirements, but must remain unstaged/uncommitted for native acceptance.
+No amendment, push/tag/package/deploy/publish/release or later milestone is authorized.
+Earlier pending/stop statements below are historical records of their verification.
+
+## Stage 13A report UI polish — accepted verification record
+
+The user confirmed native Windows acceptance of controlled batch transmission.
+The final authorized Part A moves the full FHIR Generation Report out of RAW into
+an optional dockable Generation Report tool, replacing the expanded panel with one
+compact metadata row and View report action. The existing formatter and immutable
+document-owned report remain authoritative; no Core/Workspace generation/payload,
+identity/save or report persistence changes. The tool follows selected documents,
+clears for nonreport tabs, closes/reopens independently, and restores only existing
+placement/visibility metadata. Later edits retain original generation attribution.
+The final 2026-10-22 gate passed: locked restore; Release 0 warnings/errors (3.58s);
+focused 109 Core / 129 Workspace-Transport / 44 Desktop / 3 shell cases; **1,884
+solution tests** (3m 33.082s) and **890 complete Workspace stress cases** (328.532s),
+zero failures/skips and no focused/stress errors or unrun cases. Both Release-layout
+ScriptHost lifecycles/isolation and API sync passed, without a publish command.
+Post-stress checks match 27 frozen source/test hashes, 13 protected hashes, eight
+original HL7 blobs, artwork/derivatives/formerly excluded HL7 and all tracked/new
+whitespace checks. Core/Workspace/Transport/Workspace.Tests binaries remain identical
+to the accepted batch baseline; the complete report formatter is unchanged.
+The shell focus regression retains an explicit open request until Dock attaches;
+passive document updates do not request focus. A retained batch shutdown regression
+now waits for actual Closed before asserting disposal, preserving exact delivery/
+client/no-restart checks; production batch behavior is unchanged. All permanent
+coverage remains. Exact evidence/inventory/native steps: acceptance record and
+artifacts/stage13a-report-polish. Current tree: **37 paths (22 modified tracked,
+15 new), empty index**, no code/test changes after the final gate. The prior 28
+accepted Stage 13A file hashes matched before polish; accepted evidence remains
+under artifacts/stage13a. No protected material was changed or excluded HL7 opened.
+
+Stop after Part A verification for explicit user native acceptance of this polish.
+No staging/commit now. The one Stage 13A checkpoint is conditional on that future
+acceptance; Stage 13B is gated on that checkpoint and has not begun. No push/tag/
+package/deploy/publish/release. Stage 12 HEAD remains e575ebe47921f33b3431d32bf26a5fc87aee4a0a.
+
+## Stage 13A controlled batch transmission — accepted baseline before report polish
+
+The user confirmed Stage 12 native Windows acceptance and committed it as
+e575ebe47921f33b3431d32bf26a5fc87aee4a0a (`MLLP functionality`). The actual initial
+working tree/index were clean. That user-created checkpoint also tracks the formerly
+excluded `_TEST.hl7`; preserve its existing bytes and history, without opening it.
+Earlier pending Stage 12/no-Stage-13 statements below are historical authorization.
+Stage 13A is authorized, but must stay unstaged/uncommitted for native acceptance.
+No Stage 13B, push/tag/package/deploy/publish/release is authorized.
+
+Workspace now owns immutable ordered selected payloads, source revision, pinned
+endpoint/options and one explicitly authorized sequential run over production
+MllpConnection. One message/connection, full ACK gate, default Stop unless correlated
+AA; Continue is explicitly reviewed. Default 1,000 ms post-exchange pacing, hard
+250–60,000 ms, pending/effective pause, resume remaining only, cancel/drain, bounded
+metadata/ACK bytes and whitelist atomic CSV are implemented. A lazy themed Dock tool
+owns review/non-loopback confirmations and independent ACK documents. Closing/reset/
+application shutdown cancels and drains; placement restore never starts a run.
+
+The first batch tests reproduced a listener endpoint-inspection disposal race
+(TcpClient.Client becomes null before dictionary removal); a narrow null-safe
+snapshot fixes it. No single-send framing/capture/ACK/confirmation behavior changed.
+All Stage 12 sender/capture/regression files remain intact. Real loopback exchanges
+plus an internal controlled write-boundary seam test cancellation without assuming
+Windows send-buffer timing. Early failure/build logs remain in artifacts/stage13a.
+Final verification passed: locked restore; Release warnings-as-errors build with
+zero warnings/errors (2.38s); focused 41 Core / 106 Workspace-Transport / 26 Desktop
+and one legacy ribbon regression; **1,878 solution tests** (3m 10.673s); **890 complete
+Workspace stress cases** (292.458s), zero failures/skips/unrun focused/stress cases.
+Both existing Release-layout ScriptHost lifecycles/isolation and API sync passed.
+All 19 frozen implementation/test hashes, 13 protected hashes, eight original HL7
+blobs, artwork/derivatives/formerly excluded HL7 and tracked/new-file whitespace
+passed after stress. The initial full-run ribbon inventory failure is retained;
+the exact expectation now includes Batch Transmission with all other checks intact.
+A later NE/NE test asserted receipt count before asynchronous listener publication;
+it now waits for the actual bounded receipt and retains strict exact assertions.
+Full/focused/stress reruns passed for those final test bytes. The final progress
+presentation explicitly includes completed/unsuccessful/transport-failure/skipped
+aggregates alongside phase-specific outcomes. Production transport behavior was
+unchanged by those presentation/test corrections. All diagnostics are retained.
+Current inventory: 28 paths (16 modified tracked, 12 new); empty index, unchanged
+Stage 12 HEAD. No implementation/test changed after the final build/gate. Ignored
+verification evidence is retained in artifacts/stage13a. See the acceptance record
+for exact results/inventory and native checklist. Stop for native Windows acceptance.
+See docs/batch-transmission.md and ADR 0017 for the lifecycle, report schema, precise
+bounds, uncertainty semantics and deferrals. Protected hashes/artwork/original
+fixtures and the formerly excluded HL7 must remain unchanged.
+
 ## Stage 12 native send correction — automated gate passed; native retest pending
 
 Native acceptance failed: a checked connection could expire at the listener's idle
