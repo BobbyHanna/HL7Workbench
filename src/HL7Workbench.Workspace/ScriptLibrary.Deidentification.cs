@@ -26,8 +26,9 @@ public sealed partial class ScriptLibrary
             // Optional: ShiftDays = 30 (otherwise derived deterministically from seed).
         }, Cancellation);
         var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+        var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
         Batch.SetOutputFileName("{{output}}");
         void Main() { workflow.Apply(Message); }
-        void Complete() { review.Row(workflow.Summary.Cells); }
+        void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
         """, preset == DeidentificationPreset.PatientDeidentifier ? "bundled-deidentification-v2" : "bundled-deidentification-v1", true);
 }

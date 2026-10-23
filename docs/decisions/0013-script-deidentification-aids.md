@@ -4,6 +4,40 @@ Status: accepted after user native Windows acceptance (2026-10-20).
 Stage 8D parent: 5eebc767eae5f241ac4c7a02c4275ae0305b76fa. Included in the accepted
 Stage 9 local checkpoint after its verification gate.
 
+## Beta report correction (2026-10-23; user reports all nine native checks passed)
+
+The fixed status previously conflated successful execution, specific findings and
+general limitations. Summary.Status now derives only from missing/ambiguous identity,
+unsupported timestamp, unknown segment, high-risk and retained-review counts. It says
+Completed — review required or Completed — no flagged findings. The latter is not a
+privacy certification. The unassessed-scope warning remains separately labeled.
+
+Patient transformation policy 2 and narrow policy 1 retain their byte transformation,
+identity, suppression and timestamp rules. Reporting distinguishes routine protocol/
+sequence values from retained clinical/event codes/results/units. EVN-1 is an event
+code even when numeric. Unqualified identifiers, unsupported content and retained
+clinical patterns remain reviewable; a successful substitution does not resolve an
+ambiguous relationship. The former high-risk and total-retained counts are preserved.
+
+The existing journal now also carries a bounded deidentification-findings CSV with
+fixed enums and numeric structural coordinates only, up to 1,000 occurrences. Exact
+summary counts and omitted-detail counts remain available. Unknown source segment
+names, original values and keys never enter this projection. Workspace validates
+both schemas before display; invalid/missing detail data yields an explicit
+unavailable-details label while preserving valid summary counts. Arbitrary script CSV
+still requires the existing explicit export action. No worker protocol/isolation change.
+
+The document owns its immutable report independently of the latest-run export journal.
+A lazy optional De-identification Report Dock tool follows selected output documents,
+using the Generation Report release/reconstruction/placement conventions. A compact
+document indicator replaces the expanded inline report. Source and output revision
+freshness are observed separately, with a session-local execution ID. Current-message
+workflow ordinals map through the captured target ordinal rather than current positions.
+Closing the tool releases observers; closing the output disposes its report. Only
+placement/visibility metadata persists. Full details: docs/deidentification-report-fix-acceptance.md.
+
+Earlier presentation/status descriptions below record the original Stage 9 behavior.
+
 Native acceptance amendment: Patient Deidentifier now uses policy 2 with an original,
 embedded version-1 vocabulary and a separately testable execution-local
 SyntheticIdentityLibrary. Seed + opaque identity context choose independent names,

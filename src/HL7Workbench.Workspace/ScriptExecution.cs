@@ -166,7 +166,7 @@ public sealed class ScriptExecution(DocumentManager documents, ScriptExecutionOp
             if (!documents.Documents.Contains(source)) throw new OperationCanceledException(linked.Token);
             var sourceChanged = !mapping.IsCurrent(source);
             if (reportBuilder.Items.Count > 0) { reports = new(reportJournal, reportBuilder); reportJournal = null; }
-            if (reports is not null) pending.TransformationReport = TransformationReport.Read(reports, scope, mapping, source, sourceChanged, processed);
+            if (reports is not null) pending.TransformationReport = TransformationReport.Read(reports, scope, mapping, input.TargetOrdinal, source, pending, sourceChanged, processed);
             documents.Open(pending);
             var published = pending; pending = null;
             documents.Activity.Record(ActivityKind.ScriptCompleted, source.ActivityNumber, count: kept);

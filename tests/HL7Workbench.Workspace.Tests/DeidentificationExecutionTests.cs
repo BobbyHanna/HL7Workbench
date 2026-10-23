@@ -40,11 +40,11 @@ public sealed class DeidentificationExecutionTests : IAsyncDisposable
         if (preset != 2) Assert.NotEqual(doc.Message.Get("PID-3").Raw, result.Document.Message.Get("PID-3").Raw);
         if (preset != 1) Assert.NotEqual(doc.Message.Get("MSH-7").Raw, result.Document.Message.Get("MSH-7").Raw);
         Assert.Equal(original, doc.Snapshot.ReadBytes(new(0, doc.Snapshot.Length))); Assert.Equal(ids, doc.Messages); Assert.False(doc.IsDirty);
-        Assert.Single(reports.Items); Assert.Equal(1, reports.Items[0].Rows); Assert.True(reports.Items[0].Bytes < 4096);
+        Assert.Equal(2, reports.Items.Count); Assert.Equal(1, reports.Items[0].Rows); Assert.True(reports.Items[0].Bytes < 4096);
         Assert.NotNull(result.Document.TransformationReport); Assert.Equal(Preset(preset).Name, result.Document.TransformationReport.PresetName);
         Assert.Equal(scope, result.Document.TransformationReport.Scope); Assert.Equal(result.Input!.Revision, result.Document.TransformationReport.CapturedRevision);
         var path = Path.Combine(root, "review.csv"); await reports.ExportAsync("deidentification-review", path, Token);
-        var csv = await File.ReadAllTextAsync(path, Token); Assert.Contains("Review required", csv); Assert.Contains("container bytes", csv);
+        var csv = await File.ReadAllTextAsync(path, Token); Assert.Contains("Completed — review required", csv); Assert.Contains("container bytes", csv);
         Assert.DoesNotContain("SYN-0000002A", csv); Assert.DoesNotContain("EXAMPLE", csv); Assert.DoesNotContain("2030", csv);
         var save = Path.Combine(root, "transformed.hl7"); await result.Document.SaveAsync(save, Token); Assert.False(result.Document.IsDirty);
         using var saved = File.OpenRead(save); var reopened = await MessageFileReader.OpenFileAsync(documents, "Reopened", saved, Token);
@@ -137,12 +137,15 @@ public sealed class DeidentificationExecutionTests : IAsyncDisposable
         Assert.True(old.SourceIsCurrent); var revision = old.CapturedRevision;
         documents.Activate(source.Id); var second = await Run(source, ScriptLibrary.TimestampShifter, ScriptScope.CurrentMessage); second.Reports?.Dispose();
         Assert.NotSame(old, second.Document.TransformationReport); Assert.Equal(ScriptScope.CurrentMessage, second.Document.TransformationReport!.Scope);
+        Assert.NotEqual(old.ExecutionId, second.Document.TransformationReport.ExecutionId); Assert.True(old.OutputIsCurrent);
         documents.Activate(first.Document.Id); Assert.Same(old, first.Document.TransformationReport); Assert.Same(summary, old.Summary);
         source.IsEditMode = true; source.ReplaceWorkingText(source.EditableText + "NTE|1||SYN-LATER\r"); await source.EditRefresh;
         Assert.False(old.SourceIsCurrent); Assert.Contains("Stale source", old.SourceState); Assert.Equal(revision, old.CapturedRevision);
         Assert.False(old.SourceChangedDuringRun); Assert.False(second.Document.TransformationReport.SourceIsCurrent);
         Assert.True(documents.Close(source.Id, discardChanges: true)); await source.Disposal;
         Assert.Contains("Source closed", old.SourceState); Assert.Equal(2, old.Summary.Messages);
+        first.Document.IsEditMode = true; first.Document.ReplaceWorkingText(first.Document.EditableText + "NTE|1||SYN-OUTPUT-EDIT\r"); await first.Document.EditRefresh;
+        Assert.False(old.OutputIsCurrent); Assert.Contains("Stale output", old.OutputState);
     }
     [Theory]
     [InlineData("PHI-SHAPED-NOT-A-COUNT")] [InlineData("-1")] [InlineData("9999999999999999999999999")] [InlineData("0")]
@@ -151,7 +154,7 @@ public sealed class DeidentificationExecutionTests : IAsyncDisposable
         var source = await Open(); var script = ScriptLibrary.PatientDeidentifier with
         { Source = ScriptLibrary.PatientDeidentifier.Source.Replace("review.Row(workflow.Summary.Cells);", "var cells = workflow.Summary.Cells; cells[2] = \"" + value + "\"; review.Row(cells);", StringComparison.Ordinal) };
         var result = await Run(source, script); using var reports = result.Reports;
-        Assert.Null(result.Document.TransformationReport); Assert.NotNull(reports); Assert.Single(reports.Items);
+        Assert.Null(result.Document.TransformationReport); Assert.NotNull(reports); Assert.Equal(2, reports.Items.Count);
         Assert.False(source.IsDirty); // Original user-script CSV remains available through existing explicit export.
     }
     [Fact]

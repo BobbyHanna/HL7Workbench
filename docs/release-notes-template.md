@@ -25,5 +25,16 @@ approval, HIPAA certification or independent security audit is claimed. Third-pa
 notice applicability, owner beta terms, employer security review and separate limited
 distribution authorization remain pending. Do not bypass Windows/employer controls.
 
+The accepted de-identification update replaces the expanded inline report with a
+dockable **De-identification Report** (View menu or the output's View report button).
+It adds structured transformation/suppression/review counts, value-free field paths
+and reasons, execution/source attribution and independent source/output stale labels.
+Both summary and bounded findings CSVs remain explicitly exportable from Script
+Editor for its last successful run. Execution completion, specific findings and
+general limitations are shown separately; no flagged findings is not a privacy
+certification. Existing transformations, conservative review findings and safeguards
+are preserved. The user reports all nine native checks passed for this fix; the
+replacement ZIP still requires exact-ZIP VM acceptance and distribution authorization.
+
 See README.md for launch/privacy/MLLP precautions and private bug reporting;
 USER-GUIDE.md has details. Preserve all runtime files and third-party notices.

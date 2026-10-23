@@ -50,6 +50,7 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "Synthetic Patients", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.GenerationReportId, "Generation Report", () => new GenerationReportViewModel(documents), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
+        registry.Register(new(WorkspaceDockFactory.DeidentificationReportId, "De-identification Report", () => new DeidentificationReportViewModel(documents), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ConnectionManagerId, "Connection Manager", () => CreateTransport(false), Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.MllpListenerId, "MLLP Listener", () => CreateTransport(true), Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.BatchTransmissionId, "Batch Transmission", CreateBatchTransmission, Optional: true, ReleaseOnClose: true));
@@ -90,6 +91,11 @@ public partial class MainWindow : Window
             factory.OpenDocument(e.Document.Id); ShowGenerationReport(this, e); e.Handled = true;
         });
         browser.OpenRequested += factory.OpenDocument;
+        AddHandler(Viewer.ViewerRequests.DeidentificationReportEvent, (_, e) =>
+        {
+            if (!documents.Documents.Contains(e.Document)) return;
+            factory.OpenDocument(e.Document.Id); ShowDeidentificationReport(this, e); e.Handled = true;
+        });
         WorkspaceDock.Layout = factory.CreateLayout();
         InitializeShell();
         ActivityIndicatorHost.Content = new Viewer.ActivityStatusIndicator(documents.Activity, () => factory.ShowTool(WorkspaceDockFactory.ActivityLogId));
@@ -183,6 +189,12 @@ public partial class MainWindow : Window
         var model = (GenerationReportViewModel)registry.GetContent(WorkspaceDockFactory.GenerationReportId);
         // Dock may construct/attach the content after activating its tab. Focus only
         // this explicit open request, once that layout work has completed.
+        Avalonia.Threading.Dispatcher.UIThread.Post(model.NotifyShown, Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+    private void ShowDeidentificationReport(object? sender, RoutedEventArgs e)
+    {
+        factory.ShowTool(WorkspaceDockFactory.DeidentificationReportId);
+        var model = (DeidentificationReportViewModel)registry.GetContent(WorkspaceDockFactory.DeidentificationReportId);
         Avalonia.Threading.Dispatcher.UIThread.Post(model.NotifyShown, Avalonia.Threading.DispatcherPriority.Loaded);
     }
     private void ShowScriptApiReference(object? sender, RoutedEventArgs e)

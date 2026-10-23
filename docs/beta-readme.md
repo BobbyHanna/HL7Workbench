@@ -39,6 +39,28 @@ Known limitations: beta defects, Windows x64 only, unsigned, no installer/update
 plaintext temporary storage/MLLP, and no guarantee of clinical correctness. Read
 USER-GUIDE.md and RELEASE-NOTES.md. Keep every third-party notice with this folder.
 
+## De-identification reports
+
+After a de-identification preset completes, open **View → De-identification Report**
+or choose **View report** in the output document's compact report row. The report is
+dockable/floating and follows the selected output document; no expanded report
+occupies RAW or Script Editor. It shows transformation/suppression counts and
+field-specific review reasons without original sensitive values. Source and output
+edits have separate stale labels; the report describes its captured execution.
+
+**Completed — review required** means specific findings need inspection.
+**Completed — no flagged findings** means the supported policy flagged none; it does
+not certify anonymity, complete de-identification, HIPAA compliance or permission to
+disclose. Retained clinical patterns, container bytes and nested metadata can remain
+identifying. General limitations stay visible regardless of findings.
+
+Use **Script Editor → Reports / Export CSV** to explicitly export the last successful
+run's `deidentification-review` summary and `deidentification-findings` details.
+The summary retains its original column order with appended review/omission counts;
+details contain fixed structural coordinates/reasons, capped at 1,000 occurrences
+with omissions disclosed. Older saved script copies may provide only summary counts;
+duplicate the current built-in preset for detailed findings. Review every export.
+
 ## Feedback
 
 Find the version under **Help → About Message Workbench**. Report bugs privately to

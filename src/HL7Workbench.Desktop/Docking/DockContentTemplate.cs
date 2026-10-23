@@ -33,6 +33,7 @@ public sealed class DockContentTemplate : IDataTemplate
         if (context is FieldExtractionViewModel extraction) return new Viewer.FieldExtractionView(extraction);
         if (context is SyntheticPatientsViewModel patients) return new Viewer.SyntheticPatientsView(patients);
         if (context is GenerationReportViewModel report) return new Viewer.GenerationReportView(report);
+        if (context is DeidentificationReportViewModel deidentification) return new Viewer.TransformationReportView(deidentification);
         if (context is TransportToolViewModel transport) return new Viewer.TransportToolView(transport);
         if (context is BatchTransmissionViewModel batch) return new Viewer.BatchTransmissionView(batch);
         if (context is LoadTestingViewModel load) return new Viewer.LoadTestingView(load);

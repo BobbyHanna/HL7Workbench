@@ -19,10 +19,16 @@ public sealed class GenerationReportRequestEventArgs(MessageDocument document) :
 {
     public MessageDocument Document { get; } = document;
 }
+public sealed class DeidentificationReportRequestEventArgs(MessageDocument document) : RoutedEventArgs(ViewerRequests.DeidentificationReportEvent)
+{
+    public MessageDocument Document { get; } = document;
+}
 
 /// <summary>View-to-shell intent, without coupling viewer controls to Dock.</summary>
 public static class ViewerRequests
 {
+    public static readonly RoutedEvent<DeidentificationReportRequestEventArgs> DeidentificationReportEvent =
+        RoutedEvent.Register<Control, DeidentificationReportRequestEventArgs>("DeidentificationReport", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<GenerationReportRequestEventArgs> GenerationReportEvent =
         RoutedEvent.Register<Control, GenerationReportRequestEventArgs>("GenerationReport", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<RawInspectorRequestEventArgs> FieldExtractionEvent =

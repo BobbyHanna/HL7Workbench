@@ -8,6 +8,42 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## Current beta follow-up — de-identification reporting (2026-10-23)
+
+The user reports all nine native Windows de-identification acceptance checks passed
+and authorizes one local checkpoint, `Beta: Improve de-identification reporting and
+review findings`, plus a fresh v0.1.0-beta self-contained Windows x64 candidate from
+committed source. Preserve the old ZIP/evidence and all safeguards; run the full
+normal/portable/packaging/privacy/worker/stress/integrity gate and independent rebuild.
+The replacement awaits exact-ZIP VM acceptance and separate distribution permission.
+No amendment, push/tag/upload/publication/distribution or new milestone. Packaged
+README/release notes are updated before checkpointing so provenance can be clean.
+The user explicitly authorized including these two documentation paths with the
+original 30 accepted paths in the single checkpoint (32 total); no additional commit.
+Earlier pending acceptance and no-commit paragraphs below are historical.
+
+The packaging correction is checkpointed as afe7f6576f67ce25e72caa298adc94694d611d56.
+Its clean-source verified ZIP remains unchanged. Native testing of that ZIP found a
+large inline Transformation Report and an unconditional Review required status.
+The authorized correction adds a dockable De-identification Report, compact document
+link, fixed structural findings, separate retained-review counts, neutral completion
+statuses, and source/output revision freshness. Transformation/identity/timestamp
+policies, isolation, explicit CSV export and safety limits are preserved. The default
+synthetic ADT reproduces the reported 28/7/1/8 totals: PV1-7 lacks authority; EVN-1,
+PV1-2 and PV1-4 are retained clinical/event codes; five routine fields are not specific
+review findings. No disclaimer-only risk is invented and no legitimate finding is hidden.
+See docs/deidentification-report-fix-acceptance.md and ADR 0013 for the current gate
+and native checklist. Final gate passed: locked restore, Release 0 warnings/errors,
+70 Scripting/API / 40 Workspace / 12 Desktop focused cases, 1,973 solution cases and
+940 complete unfiltered Workspace stress cases (376.903s), no final failures/skips.
+Normal worker Current/Whole smoke, API sync, all 25 frozen code/test/API hashes,
+13 protected hashes, 2 icon derivatives, 17 fixture/artwork blobs and tracked/new
+whitespace checks pass. The original verified ZIP remains byte-identical. There are
+30 pending files (23 modified / 7 new), with an empty index and unchanged HEAD.
+Work remains unstaged/uncommitted for user acceptance. No new
+candidate, history change, push/tag/upload/distribution or next milestone is authorized.
+Earlier authorization/status paragraphs below are historical.
+
 ## Stage 14 — usability, stability and portable beta readiness
 
 Current follow-up: the single Stage 14 checkpoint was created as

@@ -67,7 +67,7 @@ public sealed partial class DeidentificationWorkflow
                 DateOnly.TryParseExact(shiftedDate.AsSpan(0, 8), "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out reference);
             var age = person.AgeOn(reference);
             Replace(field, (_, c, _) => c == 0 && age >= 0 ? age.ToString(CultureInfo.InvariantCulture) : "", edits);
-            if (age < 0) highRisk++;
+            if (age < 0) Risk(DeidentificationReason.InvalidSyntheticAge);
             return true;
         }
         if (IsName(name, number))

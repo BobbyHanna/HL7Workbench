@@ -30,11 +30,15 @@ public sealed record DeidentificationSummary(long Messages, long MissingIdentiti
     public DeidentificationPreset Preset { get; init; }
     public int Version { get; init; } = DeidentificationOptions.ImplementationVersion;
     public IReadOnlyList<DeidentificationCategoryCount> Categories { get; init; } = [];
-    public string Status => "Review required";
+    public long RetainedValuesRequiringReview { get; init; }
+    public long OmittedFindings { get; init; }
+    public bool RequiresReview => MissingIdentities + AmbiguousIdentities + UnsupportedTimestamps + UnknownSegments + HighRiskFields + RetainedValuesRequiringReview > 0;
+    public string Status => RequiresReview ? "Completed — review required" : "Completed — no flagged findings";
     /// <summary>Fixed count-only report schema suitable for one Complete row through the existing CSV journal.</summary>
     public static string[] Columns => ["Status", "Version", "Messages", "Missing identities", "Ambiguous identities", "Replaced values",
         "Suppressed values", "Shifted timestamps", "Unsupported timestamps", "Unknown segments", "High risk fields", "Retained values", "Unassessed scope", "Preset",
-        .. Enum.GetValues<DeidentificationCategory>().SelectMany(c => new[] { c + " transformed", c + " suppressed" })];
+        .. Enum.GetValues<DeidentificationCategory>().SelectMany(c => new[] { c + " transformed", c + " suppressed" }),
+        "Retained values requiring review", "Omitted findings"];
     public string[] Cells => [Status, Version.ToString(CultureInfo.InvariantCulture),
         Messages.ToString(CultureInfo.InvariantCulture), MissingIdentities.ToString(CultureInfo.InvariantCulture), AmbiguousIdentities.ToString(CultureInfo.InvariantCulture),
         ReplacedValues.ToString(CultureInfo.InvariantCulture), SuppressedValues.ToString(CultureInfo.InvariantCulture), ShiftedTimestamps.ToString(CultureInfo.InvariantCulture),
@@ -43,8 +47,8 @@ public sealed record DeidentificationSummary(long Messages, long MissingIdentiti
         {
             var count = Categories.FirstOrDefault(v => v.Category == c);
             return new[] { (count?.Transformed ?? 0).ToString(CultureInfo.InvariantCulture), (count?.Suppressed ?? 0).ToString(CultureInfo.InvariantCulture) };
-        })];
-    public const string ScopeNotice = "Review required: container bytes, nested metadata and retained clinical values are not certified de-identified.";
+        }), RetainedValuesRequiringReview.ToString(CultureInfo.InvariantCulture), OmittedFindings.ToString(CultureInfo.InvariantCulture)];
+    public const string ScopeNotice = "General limitation: container bytes, nested metadata and retained clinical values are not certified de-identified.";
 }
 
 public enum DeidentificationCategory { Names, Addresses, Contacts, Demographics, Identifiers, Providers, Narratives, Attachments, Other }

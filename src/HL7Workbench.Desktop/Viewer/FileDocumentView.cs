@@ -28,7 +28,7 @@ public sealed class FileDocumentView : ContentControl
     public UiCommand NextMessageCommand { get; }
     public IReadOnlyDictionary<MessageInsertionPosition, UiCommand> InsertionCommands { get; }
     public MessageDocument Document => document;
-    public TransformationReportView? TransformationReportPanel { get; }
+    public DeidentificationReportIndicator DeidentificationIndicator { get; }
     public GenerationReportIndicator GenerationIndicator { get; }
     public string? NavigationStatus => status.Text;
     private readonly ComboBox regions = new() { Width = 190 };
@@ -88,8 +88,7 @@ public sealed class FileDocumentView : ContentControl
         if (regions.ItemCount > 0)
         { toolbar.Children.Add(new TextBlock { Text = "Source regions", VerticalAlignment = VerticalAlignment.Center }); toolbar.Children.Add(regions); }
         navigation.Children.Add(status); navigation.Children.Add(regionInspector); navigation.Children.Add(toolbar);
-        if (document.TransformationReport is { } report)
-        { TransformationReportPanel = new(report); navigation.Children.Add(TransformationReportPanel); }
+        DeidentificationIndicator = new(document); navigation.Children.Add(DeidentificationIndicator);
         GenerationIndicator = new(document); navigation.Children.Add(GenerationIndicator);
         Refresh();
     }

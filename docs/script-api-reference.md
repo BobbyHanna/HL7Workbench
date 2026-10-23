@@ -4,7 +4,7 @@
 
 Reference version 1 · scripting API 2 · available offline in Help → Script API Reference.
 
-Source SHA-256: `986d61fe20b75f9b0d887a2de7685d5b3513428b5d4cc2dc13f756e241487889`.
+Source SHA-256: `3832002eedd54c01701769378596dbf55cfeecb1822d9881f7d905e874705f22`.
 
 Supported user-script facade and helpers in HL7Workbench.Scripting, API 2. Inherited .NET members and compiler-generated record equality, printing, copying and deconstruction use ordinary C# semantics; they are not host operations. Host transport/orchestration types are classified separately and are not supported authoring facilities.
 
@@ -1238,13 +1238,14 @@ void Main() {}
 
 ### DeidentificationWorkflow construction and Apply
 
-Construct once in initialization; Apply the current Message in Main. Summary returns fixed count-only metadata, and ShiftDays exposes the common calendar-day offset for this run. Patient policy uses qualified identities and conservative field handling.
+Construct once in initialization; Apply the current Message in Main. Summary returns fixed count-only metadata, and ShiftDays exposes the common calendar-day offset for this run. Patient policy uses qualified identities and conservative field handling. Findings returns up to 1,000 structural review occurrences with fixed reasons, never original values.
 
 ```csharp
 DeidentificationWorkflow(DeidentificationOptions options, CancellationToken cancellation = default)
 void Apply(ScriptMessage message)
 int ShiftDays { get; }
 DeidentificationSummary Summary { get; }
+IReadOnlyList<DeidentificationFinding> Findings { get; }
 ```
 
 **Parameters:** options: supported preset/seed/shift/mapping bounds. cancellation: run token. message: current invocation facade.
@@ -1260,8 +1261,9 @@ var workflow = new DeidentificationWorkflow(new DeidentificationOptions
     Seed = 42
 }, Cancellation);
 var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
 void Main() { workflow.Apply(Message); }
-void Complete() { review.Row(workflow.Summary.Cells); }
+void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
 ### DeidentificationOptions and presets
@@ -1292,8 +1294,9 @@ var workflow = new DeidentificationWorkflow(new DeidentificationOptions
     Seed = 42
 }, Cancellation);
 var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
 void Main() { workflow.Apply(Message); }
-void Complete() { review.Row(workflow.Summary.Cells); }
+void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
 ### DeidentificationSummary counters
@@ -1317,13 +1320,14 @@ var workflow = new DeidentificationWorkflow(new DeidentificationOptions
     Seed = 42
 }, Cancellation);
 var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
 void Main() { workflow.Apply(Message); }
-void Complete() { review.Row(workflow.Summary.Cells); }
+void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
 ### Summary metadata, categories and CSV projection
 
-Preset/Version identify policy; Categories counts transformed/suppressed leaves. Status is always Review required. Columns and Cells share a fixed count-only schema. ScopeNotice states the unassessed scope.
+Counts and preset/category metadata from the producing execution. Status is Completed — review required when specific identity, timestamp, unknown-segment, high-risk or retained-review counts are nonzero; otherwise Completed — no flagged findings. ScopeNotice is a separate general limitation, never a detected finding.
 
 ```csharp
 DeidentificationPreset Preset { get; init; }
@@ -1332,14 +1336,17 @@ IReadOnlyList<DeidentificationCategoryCount> Categories { get; init; }
 string Status { get; }
 static string[] Columns { get; }
 string[] Cells { get; }
-const string ScopeNotice = "Review required: container bytes, nested metadata and retained clinical values are not certified de-identified.";
+const string ScopeNotice = "General limitation: container bytes, nested metadata and retained clinical values are not certified de-identified.";
+long RetainedValuesRequiringReview { get; init; }
+long OmittedFindings { get; init; }
+bool RequiresReview { get; }
 ```
 
 **Parameters:** No method parameters. Define Batch.Report with Columns in initialization and call Row(Summary.Cells) once in Complete.
 
 **Returns:** Read-only metadata and fresh arrays. A validated built-in report is associated with its output document’s Transformation Report panel.
 
-**Limits and important behavior:** The document summary is session-only and tracks captured/stale/closed source; later output edits are not reassessed. Arbitrary CSV remains available only through explicit export. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
+**Limits and important behavior:** CSV keeps the original columns in order and appends Retained values requiring review and Omitted findings. The Status wording and unassessed-scope notice are updated. No source values, filenames or mappings. No flagged findings is not certification or permission to disclose. Existing script copies without a findings CSV show counts with details unavailable.
 
 ```csharp
 var workflow = new DeidentificationWorkflow(new DeidentificationOptions
@@ -1348,8 +1355,9 @@ var workflow = new DeidentificationWorkflow(new DeidentificationOptions
     Seed = 42
 }, Cancellation);
 var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
 void Main() { workflow.Apply(Message); }
-void Complete() { review.Row(workflow.Summary.Cells); }
+void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
 ### DeidentificationCategoryCount and categories
@@ -1374,8 +1382,42 @@ var workflow = new DeidentificationWorkflow(new DeidentificationOptions
     Seed = 42
 }, Cancellation);
 var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
 void Main() { workflow.Apply(Message); }
-void Complete() { review.Row(workflow.Summary.Cells); }
+void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
+```
+
+### Structural de-identification findings
+
+Fixed structural coordinates and reasons for manual review. No original values are present. Unknown segment names are replaced by the fixed Unknown vocabulary entry.
+
+```csharp
+record DeidentificationFinding(int MessageNumber, int SegmentNumber, DeidentificationSegment Segment, int SegmentOccurrence, int FieldNumber, DeidentificationReason Reason)
+const int MaximumFindings = 1000;
+static string[] Columns { get; }
+string[] Cells { get; }
+string Path { get; }
+string Description { get; }
+enum DeidentificationSegment { Unknown, MSH, EVN, PID, PD1, NK1, PV1, PV2, IN1, IN2, GT1, ORC, OBR, OBX, NTE, DG1, AL1 }
+enum DeidentificationReason { MissingIdentity, AmbiguousIdentity, UnknownSegment, UnqualifiedIdentifier, UnsupportedIdentifier, UnsupportedTimestamp, SensitiveContentSuppressed, RetainedClinicalValue, RetainedOutsidePolicy, InvalidSyntheticAge }
+```
+
+**Parameters:** MessageNumber is the one-based processed ordinal within this workflow, not a current source position. SegmentNumber is the one-based absolute segment position; SegmentOccurrence is the same-name occurrence. FieldNumber is one-based, or zero for a segment finding. Segment position zero denotes a message-level PID-3 identity finding.
+
+**Returns:** Findings snapshot and CSV projection; Path and Description use only fixed text, enum vocabulary and numeric coordinates.
+
+**Limits and important behavior:** At most 1,000 occurrence rows per run. Summary.OmittedFindings discloses further occurrences; summary counts remain exact. Findings and counter types can overlap. Workspace maps processed ordinals to captured logical positions, including Current message scope. These are supported-policy findings, not a comprehensive PHI detector. No raw patient values, dates, filenames or identity crosswalks.
+
+```csharp
+var workflow = new DeidentificationWorkflow(new DeidentificationOptions
+{
+    Preset = DeidentificationPreset.PatientDeidentifier,
+    Seed = 42
+}, Cancellation);
+var review = Batch.Report("deidentification-review", DeidentificationSummary.Columns);
+var findings = Batch.Report("deidentification-findings", DeidentificationFinding.Columns);
+void Main() { workflow.Apply(Message); }
+void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
 ## Host infrastructure outside the supported authoring facade

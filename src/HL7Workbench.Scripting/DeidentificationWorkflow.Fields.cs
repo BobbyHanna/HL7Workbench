@@ -44,32 +44,32 @@ public sealed partial class DeidentificationWorkflow
         }
         if (IsDate(name, number) || name == "OBX" && number == 5 && dataType is "DT" or "DTM" or "TS")
         {
-            if (options.Preset == DeidentificationPreset.IdentifierPseudonymizer) { retained++; return; }
+            if (options.Preset == DeidentificationPreset.IdentifierPseudonymizer) { Retain(true, DeidentificationReason.RetainedOutsidePolicy); return; }
             Shift(field, edits); return;
         }
         if (options.Preset == DeidentificationPreset.TimestampShifter)
-        { retained++; highRisk++; return; }
+        { Retain(true, DeidentificationReason.RetainedOutsidePolicy); highRisk++; return; }
         if (Identity(name, number) is { } identity)
         { Identifiers(model, field, context, identity.Domain, identity.Authority, identity.Type, edits); return; }
         if (IsProvider(name, number)) { Identifiers(model, field, context, "provider", 9, 13, edits); return; }
         if (options.Preset == DeidentificationPreset.IdentifierPseudonymizer)
-        { retained++; highRisk++; return; }
+        { Retain(true, DeidentificationReason.RetainedOutsidePolicy); highRisk++; return; }
         if (name == "MSH" && number is 3 or 4 or 5 or 6 || name == "PV1" && number is 3 or 6 or 11 or 42 or 43 || name == "OBX" && number is 15 or 18)
         { Identifiers(model, field, context, "organization-location", 0, 0, edits); return; }
         if (name == "OBX" && number == 5)
         {
             if (dataType == "NM" && field.Repetitions.All(r => r.Components.Count == 1 && r.Components[0].Subcomponents.Count == 1 &&
-                (r.Value.State != Hl7ValueState.Value || decimal.TryParse(r.Raw, NumberStyles.Float, CultureInfo.InvariantCulture, out _)))) { retained++; return; }
-            highRisk++; Suppress(field, edits); return;
+                (r.Value.State != Hl7ValueState.Value || decimal.TryParse(r.Raw, NumberStyles.Float, CultureInfo.InvariantCulture, out _)))) { Retain(true); return; }
+            Risk(DeidentificationReason.SensitiveContentSuppressed); Suppress(field, edits); return;
         }
         if (name == "OBX" && number == 6 && KeepClinical(model, name, field))
         {
             foreach (var rep in field.Repetitions)
                 if (rep.Components.Count > 1) foreach (var part in rep.Components[1].Subcomponents) Write(part, "Synthetic unit", edits);
-            retained++; return;
+            Retain(true); return;
         }
-        if (KeepClinical(model, name, field)) { retained++; return; }
-        if (name == "NTE" || !KnownSegments.Contains(name) || name == "OBX") highRisk++;
+        if (KeepClinical(model, name, field)) { Retain(!(number == 1 && name is not ("MSH" or "EVN") || name == "MSH" && number is 9 or 11 or 12)); return; }
+        if (name == "NTE" || !KnownSegments.Contains(name) || name == "OBX") Risk(DeidentificationReason.SensitiveContentSuppressed);
         Suppress(field, edits);
     }
     private static bool KeepClinical(Hl7Message model, string name, Hl7Field field)
@@ -77,7 +77,7 @@ public sealed partial class DeidentificationWorkflow
         var n = field.Number;
         // This is intentionally a small allowlist, not an inferred HL7 schema.
         // Other values are suppressed; retained clinical/quasi-identifying values
-        // are counted and the report always demands review.
+        // are counted separately from routine protocol/sequence fields for review.
         if (n == 1 && name != "MSH" && field.Raw.All(char.IsAsciiDigit)) return true;
         if (name == "MSH" && n is 9 or 11 or 12) return true;
         if (name == "EVN" && n == 1 || name == "PV1" && n is 2 or 4 || name == "PID" && n is 8 or 24 or 25 or 30) return true;
@@ -100,9 +100,10 @@ public sealed partial class DeidentificationWorkflow
             else
             {
                 unsupportedTimes++;
+                Finding(DeidentificationReason.UnsupportedTimestamp);
                 if (options.Preset == DeidentificationPreset.PatientDeidentifier)
                     foreach (var component in rep.Components) foreach (var part in component.Subcomponents) Write(part, "", edits, suppress: true);
-                else retained++;
+                else Retain(true, DeidentificationReason.RetainedOutsidePolicy);
             }
         }
     }
@@ -112,11 +113,11 @@ public sealed partial class DeidentificationWorkflow
         {
             var qualified = authority > 0 ? QualifiedIdentity(model, rep, domain, authority, type) : null;
             var first = ComponentText(model, rep, 1);
-            if (first is null) { highRisk++; foreach (var component in rep.Components) foreach (var leaf in component.Subcomponents) Write(leaf, "REDACTED", edits, true); continue; }
+            if (first is null) { Risk(DeidentificationReason.UnsupportedIdentifier); foreach (var component in rep.Components) foreach (var leaf in component.Subcomponents) Write(leaf, "REDACTED", edits, true); continue; }
             // Never correlate unqualified patient/provider/visit identifiers by a
             // bare number or a name. Unsupported scope stays explicitly unresolved.
             var unresolved = authority > 0 && qualified is null || context.Unresolved && domain == "patient";
-            if (unresolved) highRisk++;
+            if (unresolved) Risk(DeidentificationReason.UnqualifiedIdentifier);
             var identity = qualified ?? Digest(domain, first, unresolved ? context.Tag : "");
             if (context.Unresolved && domain == "patient") identity = Digest("ambiguous-patient", identity, context.Tag);
             var profile = options.Preset == DeidentificationPreset.PatientDeidentifier ? Profile(domain == "patient" ? context.Tag : domain + ":" + identity) : null;
@@ -126,7 +127,7 @@ public sealed partial class DeidentificationWorkflow
             foreach (var leaf in rep.Components[c].Subcomponents)
             {
                 if (c == 0) Write(leaf, synthetic, edits);
-                else if (c + 1 == type && leaf.Raw is "MR" or "PI" or "PN" or "AN" or "VN" or "SS" or "DL" or "NPI") retained++;
+                else if (c + 1 == type && leaf.Raw is "MR" or "PI" or "PN" or "AN" or "VN" or "SS" or "DL" or "NPI") Retain(false);
                 else Write(leaf, c + 1 == authority ? Issue("authority", ComponentText(model, rep, authority) ?? "") : "SYNTHETIC", edits);
             }
         }

@@ -1,5 +1,33 @@
 # Stage 9 — de-identification assistance workflows
 
+## Current beta follow-up — report and review status (2026-10-23)
+
+Native beta testing found the expanded inline report and an unconditional review
+label. The dedicated dockable **De-identification Report** now separates execution
+completion, specific findings and general limitations. The original 28 transformed /
+7 suppressed / 1 high-risk / 8 retained synthetic ADT case is explained by an
+unqualified PV1-7 provider and three retained clinical/event fields (EVN-1, PV1-2,
+PV1-4); five retained protocol/sequence fields add no specific review flag. These
+are legitimate findings, not evidence of a failed execution. Other inputs must be
+reviewed using their own paths; matching totals alone do not identify an input.
+
+The existing summary CSV columns remain in order with two appended counts; a second
+bounded findings CSV adds fixed reasons/coordinates without original values. The
+Status and general-limitation wording have changed. Source and output edits label
+their original report stale. Existing saved script copies can still export summary
+counts; copies without findings show details unavailable. See
+[the beta correction acceptance record](deidentification-report-fix-acceptance.md)
+for current verification, limitations and native checks. Earlier expanded-panel,
+one-report and unconditional-status descriptions below are historical.
+
+This correction is unstaged/uncommitted on afe7f6576f67ce25e72caa298adc94694d611d56.
+The verified portable ZIP is preserved; no replacement candidate is authorized.
+Stop for user acceptance before a checkpoint or packaging.
+Final correction verification passed: locked restore; Release 0 warnings/errors;
+70 Scripting/API, 40 Workspace and 12 Desktop focused cases; 1,973 solution tests;
+940 complete Workspace stress cases (376.903s); normal Current/Whole worker smoke,
+API sync and all protected/frozen/ZIP/whitespace checks. No native acceptance claim.
+
 ## Native acceptance and checkpoint authorization
 
 The user confirmed successful native Windows acceptance of Stage 9 de-identification,

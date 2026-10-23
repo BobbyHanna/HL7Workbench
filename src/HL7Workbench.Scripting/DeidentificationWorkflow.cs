@@ -17,13 +17,18 @@ public sealed partial class DeidentificationWorkflow
     private readonly SyntheticIdentityLibrary? synthetic;
     private readonly long[] transformedCategories = new long[Enum.GetValues<DeidentificationCategory>().Length], suppressedCategories = new long[Enum.GetValues<DeidentificationCategory>().Length];
     private long messages, missing, ambiguous, replaced, suppressed, shifted, unsupportedTimes, unknown, highRisk, retained, operations;
+    private long retainedReview, omittedFindings;
+    private readonly List<DeidentificationFinding> findings = [];
+    private int segmentNumber, segmentOccurrence, fieldNumber;
+    private DeidentificationSegment reportingSegment;
+    public IReadOnlyList<DeidentificationFinding> Findings => findings.AsReadOnly();
     private sealed class Patient(string tag, string? birthEvidence)
     { internal string Tag { get; } = tag; internal string? BirthEvidence { get; set; } = birthEvidence; }
     private sealed record Context(string Tag, bool Unresolved);
     public int ShiftDays { get; }
     public DeidentificationSummary Summary => new(messages, missing, ambiguous, replaced, suppressed, shifted, unsupportedTimes, unknown, highRisk, retained)
     {
-        Preset = options.Preset, Version = PolicyVersion,
+        Preset = options.Preset, Version = PolicyVersion, RetainedValuesRequiringReview = retainedReview, OmittedFindings = omittedFindings,
         Categories = Array.AsReadOnly(Enum.GetValues<DeidentificationCategory>().Select(c => new DeidentificationCategoryCount(c, transformedCategories[(int)c], suppressedCategories[(int)c])).ToArray())
     };
     private int PolicyVersion => options.Preset == DeidentificationPreset.PatientDeidentifier ? DeidentificationOptions.PatientImplementationVersion : DeidentificationOptions.ImplementationVersion;
@@ -45,12 +50,18 @@ public sealed partial class DeidentificationWorkflow
         var model = message.Model;
         var context = options.Preset == DeidentificationPreset.TimestampShifter ? new Context("", false) : ResolvePatient(model);
         var edits = new List<ScriptMessage.LiteralEdit>();
+        segmentNumber = 0;
+        var occurrences = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var segment in model.Segments)
         {
             cancellation.ThrowIfCancellationRequested();
-            if (!KnownSegments.Contains(segment.Identifier)) unknown++;
+            segmentNumber++; fieldNumber = 0;
+            reportingSegment = KnownSegments.Contains(segment.Identifier) ? Enum.Parse<DeidentificationSegment>(segment.Identifier) : DeidentificationSegment.Unknown;
+            occurrences.TryGetValue(segment.Identifier, out var occurrence); segmentOccurrence = occurrence + 1; occurrences[segment.Identifier] = segmentOccurrence;
+            if (!KnownSegments.Contains(segment.Identifier)) { unknown++; Finding(DeidentificationReason.UnknownSegment); }
             foreach (var field in segment.Fields)
             {
+                fieldNumber = field.Number;
                 if (segment.Identifier == "MSH" && field.Number <= 2) continue;
                 if (field.Value.State != Hl7ValueState.Value) continue;
                 var beforeReplaced = replaced; var beforeSuppressed = suppressed;
@@ -65,16 +76,16 @@ public sealed partial class DeidentificationWorkflow
     private Context ResolvePatient(Hl7Message model)
     {
         var segments = model.Segments.Where(s => s.Identifier == "PID").ToArray();
-        if (segments.Length != 1) { if (segments.Length == 0) missing++; else ambiguous++; return Unresolved(); }
+        if (segments.Length != 1) { if (segments.Length == 0) missing++; else ambiguous++; IdentityFinding(segments.Length == 0); return Unresolved(); }
         var pid = segments[0]; var identifiers = pid.GetField(3)?.Repetitions ?? [];
         var aliases = identifiers.Where(r => r.Value.State == Hl7ValueState.Value).Select(r => QualifiedIdentity(model, r, "patient", 4, 5))
             .Where(k => k is not null).Cast<string>().Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-        if (aliases.Length == 0) { missing++; return Unresolved(); }
+        if (aliases.Length == 0) { missing++; IdentityFinding(true); return Unresolved(); }
         var birthRaw = pid.GetField(7)?.Value;
         var birth = birthRaw is { State: Hl7ValueState.Value, Raw: { } value } ? Digest("birth-evidence", value) : null;
         var known = aliases.Select(a => patients.GetValueOrDefault(a)).OfType<Patient>().DistinctBy(p => p.Tag).ToArray();
         if (known.Length > 1 || known.Length == 1 && birth is not null && known[0].BirthEvidence is { } old && old != birth)
-        { ambiguous++; return Unresolved(); }
+        { ambiguous++; IdentityFinding(false); return Unresolved(); }
         var patient = known.FirstOrDefault() ?? new Patient(Issue("patient", aliases[0]), birth);
         patient.BirthEvidence ??= birth;
         if (patients.Count + aliases.Count(a => !patients.ContainsKey(a)) > options.MaximumMappings) throw Failure("TransformationLimit");
@@ -82,6 +93,14 @@ public sealed partial class DeidentificationWorkflow
         return new(patient.Tag, false);
     }
     private Context Unresolved() => new(Digest("unresolved-message", messages.ToString(CultureInfo.InvariantCulture))[..24], true);
+    private void IdentityFinding(bool absent) => AddFinding(new(checked((int)messages + 1), 0, DeidentificationSegment.PID, 0, 3,
+        absent ? DeidentificationReason.MissingIdentity : DeidentificationReason.AmbiguousIdentity));
+    private void Finding(DeidentificationReason reason) => AddFinding(new(checked((int)messages + 1), segmentNumber, reportingSegment, segmentOccurrence, fieldNumber, reason));
+    private void AddFinding(DeidentificationFinding finding)
+    { if (findings.Count < DeidentificationFinding.MaximumFindings) findings.Add(finding); else omittedFindings++; }
+    private void Risk(DeidentificationReason reason) { highRisk++; Finding(reason); }
+    private void Retain(bool review, DeidentificationReason reason = DeidentificationReason.RetainedClinicalValue)
+    { retained++; if (review) { retainedReview++; Finding(reason); } }
     private string? QualifiedIdentity(Hl7Message model, Hl7Repetition rep, string domain, int authorityComponent, int typeComponent = 0)
     {
         var id = ComponentText(model, rep, 1);

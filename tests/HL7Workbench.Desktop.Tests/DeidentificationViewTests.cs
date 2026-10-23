@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using HL7Workbench.Core;
 using HL7Workbench.Desktop.Viewer;
 using HL7Workbench.Desktop.ViewModels;
@@ -32,24 +33,30 @@ public sealed class DeidentificationViewTests
                 Assert.True(model.Session.Duplicate()); model.Session.Source = model.Session.Source.Replace("seed = 42", "seed = 123", StringComparison.Ordinal); Assert.True(model.Session.Save());
                 model.Scope = ScriptScope.WholeDocument; await model.RunAsync(); Assert.Empty(model.Diagnostics);
                 var output = Assert.Single(documents.Documents, d => !ReferenceEquals(d, source)); Assert.Contains("Review Required", output.Title);
-                Assert.True(output.IsDirty); Assert.Null(output.SavePath); Assert.False(source.IsDirty); Assert.Single(model.Reports); Assert.True(model.CanExport);
+                Assert.True(output.IsDirty); Assert.Null(output.SavePath); Assert.False(source.IsDirty); Assert.Equal(2, model.Reports.Count); Assert.True(model.CanExport);
                 Assert.DoesNotContain("PRIVATE", output.Title); Assert.NotNull(model.ReportOrigin); Assert.False(model.ReportOrigin.SourceChangedDuringRun);
                 var outputView = new FileDocumentView(output); window.Content = outputView;
                 window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
-                var panel = Assert.IsType<TransformationReportView>(outputView.TransformationReportPanel);
-                Assert.True(panel.IsExpanded); Assert.True(panel.IsVisible); Assert.Contains("Review required", panel.Details.Text);
-                Assert.Contains(output.TransformationReport!.PresetName, panel.Details.Text); Assert.Contains("Whole document", panel.Details.Text);
-                Assert.Contains("Captured source revision", panel.Details.Text); Assert.Contains("Messages processed: 1", panel.Details.Text);
-                Assert.DoesNotContain("PRIVATE", panel.Details.Text); Assert.Contains("No HIPAA certification", panel.Details.Text);
-                source.IsEditMode = true; source.ReplaceWorkingText(source.EditableText + "NTE|1||SYN-LATER\r"); await source.EditRefresh;
-                Assert.Contains("Stale source", panel.Details.Text);
-                window.Content = new FileDocumentView(source); Assert.Null(((FileDocumentView)window.Content).TransformationReportPanel);
-                var reconstructed = new FileDocumentView(output); window.Content = reconstructed;
+                Assert.True(outputView.DeidentificationIndicator.IsVisible);
+                Assert.Empty(outputView.GetVisualDescendants().OfType<TransformationReportView>());
+                using var reportModel = new DeidentificationReportViewModel(documents);
+                var panel = new TransformationReportView(reportModel); window.Content = panel;
                 window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
-                Assert.Contains("Stale source", reconstructed.TransformationReportPanel!.Details.Text);
+                Assert.True(panel.IsVisible); Assert.Contains("Completed — review required", panel.Summary.Text);
+                Assert.Contains(output.TransformationReport!.PresetName, panel.Provenance.Text); Assert.Contains("Whole document", panel.Provenance.Text);
+                Assert.Contains("Captured source revision", panel.Provenance.Text); Assert.Contains("Messages processed: 1", panel.Summary.Text);
+                Assert.DoesNotContain("PRIVATE", panel.Provenance.Text); Assert.Contains("No HIPAA certification", panel.Provenance.Text);
+                source.IsEditMode = true; source.ReplaceWorkingText(source.EditableText + "NTE|1||SYN-LATER\r"); await source.EditRefresh;
+                Assert.Contains("Stale source", panel.Provenance.Text);
+                documents.Activate(source.Id); Assert.True(panel.EmptyState.IsVisible);
+                window.Content = new FileDocumentView(source); Assert.False(((FileDocumentView)window.Content).DeidentificationIndicator.IsVisible);
+                documents.Activate(output.Id);
+                var reconstructed = new TransformationReportView(reportModel); window.Content = reconstructed;
+                window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+                Assert.Contains("Stale source", reconstructed.Provenance.Text);
                 Assert.True(documents.Close(source.Id, discardChanges: true)); await source.Disposal;
                 Dispatcher.UIThread.RunJobs();
-                Assert.Contains("Source closed", reconstructed.TransformationReportPanel.Details.Text);
+                Assert.Contains("Source closed", reconstructed.Provenance.Text);
             }
             finally
             {

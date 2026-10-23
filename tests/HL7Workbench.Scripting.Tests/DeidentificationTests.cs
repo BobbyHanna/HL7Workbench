@@ -23,7 +23,7 @@ public sealed class DeidentificationTests
         Assert.Equal(a.Get("PID-3.1").Raw, again.Get("PID-3.1").Raw); Assert.Equal(a.Get("PID-5").Raw, again.Get("PID-5").Raw);
         Assert.NotEqual(a.Get("PID-3.1").Raw, b.Get("PID-3.1").Raw); Assert.NotEqual(a.Get("PID-5").Raw, b.Get("PID-5").Raw);
         Assert.Equal("MR", a.Get("PID-3.5").Raw); Assert.DoesNotContain("SYN-PRIVATE", a.RawText);
-        Assert.Equal("Review required", flow.Summary.Status); Assert.Equal(3, flow.Summary.Messages); Assert.Equal(0, flow.Summary.AmbiguousIdentities);
+        Assert.Equal("Completed — no flagged findings", flow.Summary.Status); Assert.Equal(3, flow.Summary.Messages); Assert.Equal(0, flow.Summary.AmbiguousIdentities);
     }
     [Fact]
     public void RepeatingAliasesCorrelateOnlyDeclaredPatientLinksAndContradictionsAreNotMerged()
