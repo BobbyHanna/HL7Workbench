@@ -1,5 +1,190 @@
 # Stage 14 — usability, stability and portable release readiness
 
+## Desktop CodeView correction — current continuation
+
+The user resumed the same Stage 14 correction, with no new milestone or Git mutation.
+HEAD stays **b14b100e399a4eb44a05c98b4844f552f080eb68**. Changes and any candidate
+remain unstaged/uncommitted/local; no distribution is authorized. Earlier stopped
+attempts below are historical and their diagnostic evidence is retained.
+
+Desktop and Core initially evaluated the same PathMap, portable DebugType, false
+DebugSymbols, true Deterministic, empty ContinuousIntegrationBuild/PdbFile/PdbFileName,
+and conventional bin/Release/net10.0 and obj/Release/net10.0 paths. No
+Directory.Build.targets exists. Desktop imports AvaloniaBuildTasks.targets;
+portable CLI globals request CI=true, DebugType=None and DebugSymbols=false.
+
+A genuinely fresh Desktop build used empty isolated output/intermediate directories,
+retaining project identity and normal referenced outputs. Diagnostic logs prove
+**Csc and CompileAvaloniaXamlTask executed**. Captures on either side of XAML processing:
+
+| PE phase | CodeView PDB reference |
+| --- | --- |
+| Original normal Release output | Absolute src/HL7Workbench.Desktop/obj/Release/net10.0/HL7Workbench.Desktop.pdb under the checkout |
+| Fresh Csc output with PathMap | `/_/artifacts/stage14-desktop-path-fix/fresh-original/obj/Release/net10.0/HL7Workbench.Desktop.pdb` |
+| Same fresh output after Avalonia XAML processing | Absolute artifacts/stage14-desktop-path-fix/fresh-original/obj/Release/net10.0/HL7Workbench.Desktop.pdb under the checkout |
+| Fixed fresh Csc and post-XAML output | No CodeView entry |
+
+This isolates a **postprocessing cause**, not compiler PDB naming or stale reuse.
+The pinned Avalonia 12.1.4 task writes the assembly through Cecil with WriteSymbols
+equal to the input module's symbol state, recreating the physical PDB reference.
+PathMap correctly controls Roslyn's emitted filename, but not that later symbol writer.
+SourceLink URL generation is not the cause. Relevant pinned upstream source is
+[XamlCompilerTaskExecutor.cs](https://github.com/AvaloniaUI/Avalonia/blob/2d79ba55fae1b1e71c69f93a668080c9029e6a31/src/Avalonia.Build.Tasks/XamlCompilerTaskExecutor.cs);
+copies and exact build diagnostics remain in artifacts/stage14-desktop-path-fix/.
+
+The smallest additional correction is a Release-only Desktop project group setting
+DebugType=none and DebugSymbols=false, consistent with existing portable CLI settings.
+It prevents symbol/CodeView emission before XAML processing, without changing IL
+features, assembly identities, settings paths, worker deployment, icon or privacy guard.
+Debug symbols in Debug builds are retained. The prior generic early Release PathMap
+remains necessary for the other project-reference DLLs and warm reuse.
+
+| Value reaching Desktop CoreCompile | Original fresh | Fixed fresh |
+| --- | --- | --- |
+| PathMap | checkout root to `/_/` | Same |
+| DebugType | portable | none |
+| DebugSymbols | false | false |
+| Deterministic | true | true |
+| ContinuousIntegrationBuild | Empty (normal Release) | Same |
+| PdbFile / PdbFileName | Empty / empty | Same |
+| OutputPath | Fresh isolated bin/net10.0 | A separate fresh isolated bin/net10.0 |
+
+Original compiler command evidence includes `/debug:portable`, `/deterministic+`,
+`/pathmap` and `/out` for the isolated Desktop DLL. Fixed captures and evaluated
+properties are stored alongside the full command/task log; no target was hidden by
+incremental skipping in either fresh build. Warm regression explicitly verifies
+CoreCompile skips and the final Desktop DLL hash/empty CodeView entries stay unchanged.
+
+Permanent build/test_release_compilation.py coverage now copies production sources
+into a new temporary checkout (including new bin/obj directories), builds real Desktop,
+inspects pre/post-XAML PE CodeView entries, scans source/home bytes, then verifies warm
+CI/no-symbol reuse. It runs alongside the real-Core cross-root reproducibility case
+and existing injected-private-path/deterministic-package tests. The production guard
+is unchanged. The complete final gate passed on the frozen correction inputs;
+only result documentation was reconciled afterwards. Evidence is ignored under
+artifacts/stage14-desktop-path-fix/.
+
+| Final check | Actual result |
+| --- | --- |
+| Locked solution restore | Passed (`restore.log`) |
+| Zero-warning Release build | **0 warnings/errors**, 3.53s (`build.log`) |
+| Packaging and real-compiler regressions | **12 passed**, 11.643s (`packaging-compiler-tests.log`) |
+| Focused Desktop lifecycle/branding/metadata | **13 passed**, 0.929s (`focused-desktop.log`, XML) |
+| Focused worker launch | **2 passed**, 0.097s (`focused-worker.log`, XML) |
+| Both normal production worker lifecycles | Current/whole Main, deployed hashes, completion/deferred output/clean exit and isolation passed (`normal-worker-lifecycles.log`) |
+| Full solution | **1,961 passed**, **0 failed/skipped**, **3m 18.360s** (`full-solution.log`) |
+| Complete unfiltered Workspace stress | **935 passed**, **0 errors/failures/skips/not-run**, **346.139s**, HL7WORKBENCH_STRESS=1 scoped/restored (`workspace-stress.log`, XML) |
+| API reference sync | Passed (`reference-sync.log`) |
+| Two fresh locked portable restores and self-contained builds | Both passed with warnings-as-errors; actual metadata/binding/runtime/contents verified (`portable-1.log`, `portable-2.log`) |
+| Both native self-contained worker lifecycles per candidate | Passed with unusable DOTNET_ROOT and restricted PATH; post-smoke integrity passed |
+| Independent rebuild / ZIP integrity | **Byte-identical** ZIPs from separate restore/publish/assembly output directories; streamed CRC/SHA-256 roundtrip passed (`candidate-verification.log`, JSON) |
+| Original privacy guard / PE inspection | Known checkout/home UTF-8/UTF-16 bytes absent; all product CodeView paths virtual or absent; Desktop has none; guard source unchanged |
+| Notices / provenance | All deployed notice bytes match package/pinned sources; **35** runtime/package entries; all **254** source-input hashes match |
+| Protected assets and scope | **13** protected hashes, **2** icon derivatives, **17** fixture/artwork Git blobs and **4** frozen correction/test inputs match; TEST hash only; guards/deployment/dependencies unchanged |
+| Whitespace / Git | git diff --check and new-test check passed; **8 unstaged paths**, empty index, unchanged Stage 14 HEAD; final record under artifacts/stage14-desktop-path-fix/ |
+
+All focused cases have zero errors/failures/skips/not-run. No existing permanent test
+was removed or weakened. No cleanup of pre-existing files, failed outputs or build
+trees was used to make the fix pass. Fresh/warm regressions and the original failing
+pre/post-XAML captures remain available for review.
+
+Verified local candidate, **not for distribution**:
+`artifacts/stage14-desktop-path-fix/portable-1/CANDIDATE/MessageWorkbench-v0.1.0-beta-win-x64.zip`
+with adjacent `.zip.sha256` sidecar. **95,844,601 bytes**, **581 files**, SHA-256:
+`5478697F3E226937CB415D2211571E2EE14F253A9F09AF2F7BCDA146ADAEED4A`.
+The independently rebuilt identical archive is under portable-2/CANDIDATE/.
+Contents include MessageWorkbench.exe, unchanged internal assembly identities,
+separate self-contained ScriptHost/runtime, recipient guide/notes, full notices and
+integrity/provenance manifests. Debug symbols, source/fixtures/data/logs/development
+files are excluded. No candidate marker was removed.
+
+Provenance is explicit: base commit b14b100e399a4eb44a05c98b4844f552f080eb68,
+**dirty=true**, candidateOnly=true, with 254 exact production/build/curated input
+hashes. It does not claim the correction was committed. Current inventory:
+Directory.Build.props; src/HL7Workbench.Desktop/HL7Workbench.Desktop.csproj;
+build/test_portable_release.py; new build/test_release_compilation.py;
+docs/PROJECT_CONTEXT.md; docs/portable-release.md;
+docs/decisions/0019-portable-beta-readiness.md; this acceptance record.
+All eight remain unstaged/uncommitted; HEAD and index are unchanged.
+
+Remaining review: verify/extract this exact checksum in the approved Windows x64 VM,
+check startup/title/About/icon, exercise current/whole scripting without installed
+.NET, dock/render/close/relaunch and the existing native checklist below. Prior VM
+success concerned an earlier candidate. No new full native matrix is claimed.
+Human embedded-component license applicability, owner beta terms/licensor, employer
+approval of unsigned binaries, reviewed source checkpoint and separate exact-artifact/
+recipient/channel distribution authorization remain unresolved. Proposed terms and
+transfer procedure remain drafts for later approval; no sharing/upload/publication.
+
+## Embedded build-path correction after Stage 14 checkpoint
+
+Checkpoint: **b14b100e399a4eb44a05c98b4844f552f080eb68**,
+`Stage 14: Prepare portable beta release`. It remains unchanged. The user authorizes
+this correction and local candidate verification only, **unstaged/uncommitted**;
+no amendment, additional commit, push/tag/upload/distribution or next milestone.
+The earlier statuses below record the checkpoint and pre-checkpoint gates.
+
+The first committed-source candidate was rejected before ZIP creation. Its Core PE
+CodeView/RSDS record at file offset 239596 contained a PDB path at offset 239620:
+`C:\Dev\HL7Workbench\src\HL7Workbench.Core\obj\Release\net10.0\HL7Workbench.Core.pdb`.
+This is compiler debug-directory metadata retained inside the DLL, not an HL7 value,
+embedded clinical resource or required runtime path. The same absolute-PDB defect
+appeared in Scripting, Transport, Workspace and the worker's Core/Scripting copies
+(six affected DLL copies total). The full candidate scan and exact per-file contexts
+are in artifacts/stage14-build-path-fix/original-binary-findings.json.
+
+Root cause: normal Release uses portable debug metadata with no explicit PathMap.
+Portable publishing requested CI/no-symbol compilation but shared non-RID referenced
+project outputs with that normal build. A diagnostic build recorded CoreCompile
+being skipped and an identical Core DLL hash, despite DebugType=None and
+DebugSymbols=false. The installed SDK compiler-input cache includes PathMap but not
+those debug properties; its CI SourceRoot mapping is initialized later. Thus warm
+reuse retained the original absolute CodeView path. Deterministic compilation alone
+does not mean independence from a checkout path, and omitting PDB files does not
+remove the DLL's embedded reference. No SourceLink URL or resource caused this leak.
+
+The correction sets deterministic compilation and derives a Release-only checkout
+mapping to the virtual `/_/` prefix in Directory.Build.props, before incremental
+inputs are hashed. Existing mappings are retained and key escaping follows Roslyn's
+comma/equals rules. Ordinary and portable Release outputs are now safe to reuse;
+source/PDB diagnostic locations are virtual, while application paths, version/binding,
+settings, ScriptHost isolation/deployment and artwork stay unchanged. Debug builds
+retain their existing source debugging behavior. No post-compilation patching,
+cache deletion, assembly exception or privacy-guard change is used.
+
+Permanent regression coverage: build/test_release_compilation.py compiles actual
+Core sources under two independent temporary checkout roots (including spaces),
+asserts no checkout/home bytes or absolute CodeView paths, compares real DLL hashes
+and repeats the warm CI/no-symbol build sequence. Existing packaging cases now
+inject both checkout and home paths into a DLL and a document, in UTF-8/UTF-16,
+and still require rejection after checksum refresh. Existing deterministic ZIP,
+metadata/identity and normal/self-contained worker lifecycle coverage remains.
+
+Verification **stopped on a remaining privacy failure**, as required by the user.
+The normal Release production scan confirms mapped CodeView paths and no checkout
+bytes in Core, Transport, Scripting, ScriptHost and Workspace. Desktop still has an
+absolute CodeView reference at file offset 1105172:
+`C:\Dev\HL7Workbench\src\HL7Workbench.Desktop\obj\Release\net10.0\HL7Workbench.Desktop.pdb`.
+Its compiler/postprocessing origin has not yet been isolated; no exemption, rewriting
+or guard change is applied. The compiler-only correction is partial, not release-ready.
+
+Completed: locked solution restore; Release build **0 warnings/errors**, 9.62s;
+**11 packaging/real-compiler tests passed** (5.464s), including identical actual Core
+DLLs from two roots and warm reuse; **13 focused Desktop cases passed** (1.697s);
+**2 worker-launch cases passed** (0.190s); both normal production ScriptHost lifecycles
+passed. Focused tests have zero errors/failures/skips/not-run. The full solution run
+was already underway when the scan failed and completed with **1,961 passed**,
+**0 failed/skipped**, **3m 19.886s**. Final status is also recorded separately in
+artifacts/stage14-build-path-fix/FINAL-REVIEW.md. No further implementation or
+new verification sequence runs after the privacy failure.
+
+Portable restores/builds, complete stress, self-contained worker verification,
+candidate assembly, ZIP integrity/deterministic rebuild and checksum remain pending.
+No new ZIP exists. Exact-artifact/native review and the existing human licensing,
+owner terms, unsigned employer trust and separate distribution approvals remain open.
+Evidence is retained under artifacts/stage14-build-path-fix/. Original failed
+output/logs remain intact; no cleanup hides the failure.
+
 Status: implemented; complete automated gate **passed** (2026-10-22). The user reports
 portable application and self-contained scripting success in a separate work VM and
 authorizes **one local Stage 14 checkpoint and fresh verified clean-source ZIP**.

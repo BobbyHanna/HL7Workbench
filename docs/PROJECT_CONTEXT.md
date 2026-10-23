@@ -10,6 +10,41 @@ publisher, company or product status.
 
 ## Stage 14 — usability, stability and portable beta readiness
 
+Current follow-up: the single Stage 14 checkpoint was created as
+**b14b100e399a4eb44a05c98b4844f552f080eb68**, `Stage 14: Prepare portable beta release`.
+Its final clean-source package attempt stopped before ZIP creation: six DLL copies
+contained compiler CodeView records with absolute obj/Release PDB paths. A diagnostic
+warm build confirmed CoreCompile skipped despite CI/no-symbol publish settings.
+The user authorizes only an unstaged/uncommitted build-path correction and a fresh
+local candidate, with all guards enabled. Release mapping now derives this checkout
+root from Directory.Build.props and maps it to `/_/` before incremental inputs;
+permanent tests compile actual Core sources in two roots and exercise warm reuse.
+The first attempt stopped on a remaining Desktop CodeView path. The continuation
+isolated it in a fresh build: Csc emitted a mapped virtual PDB reference, then
+Avalonia's XAML/Cecil postprocessor recreated the physical PDB filename. Desktop
+Release now sets DebugType=none and DebugSymbols=false, matching existing portable
+settings; Debug is unchanged. Fresh pre/post-XAML PE captures and the permanent
+fresh/warm Desktop regression pass, with no Desktop CodeView entry. All six normal
+production DLLs pass the checkout/home byte scan. The complete updated gate passed:
+1,961 solution / 935 unfiltered Workspace stress / 12 packaging-compiler tests;
+zero-warning Release build, locked solution/portable restores, focused 13 Desktop /
+2 worker-launch tests, normal and self-contained current/whole worker lifecycles,
+API sync and all integrity checks. Two independently built portable ZIPs are identical:
+581 files / 35 runtime-package entries / 95,844,601 bytes, SHA-256
+5478697F3E226937CB415D2211571E2EE14F253A9F09AF2F7BCDA146ADAEED4A.
+The local candidate is artifacts/stage14-desktop-path-fix/portable-1/CANDIDATE/
+MessageWorkbench-v0.1.0-beta-win-x64.zip. Its provenance truthfully records base
+b14b100e399a4eb44a05c98b4844f552f080eb68, dirty=true and 254 exact build-input hashes.
+Eight correction paths (seven modified tracked / one new test) remain unstaged and
+uncommitted; no history change. Exact-artifact native testing and existing licensing,
+terms, unsigned trust and separate distribution approval remain open. Current evidence
+is under artifacts/stage14-desktop-path-fix/; earlier failed outputs remain intact.
+No binary rewriting, developer-path hardcoding, guard exemption or runtime change.
+Updated full verification and candidate results are recorded in
+docs/stage14-release-readiness-acceptance.md and artifacts/stage14-build-path-fix/.
+No additional commit/amendment, push/tag/upload/distribution or further milestone.
+Earlier checkpoint authorization, clean-tree and gate statements below are historical.
+
 Current authorization (2026-10-22): the user reports the portable application and
 self-contained scripting worker worked in a separate work VM, and authorizes exactly
 one local commit, `Stage 14: Prepare portable beta release`, followed by a fresh

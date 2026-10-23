@@ -10,4 +10,12 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>0.1.0.0</FileVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Map compiler-emitted source/PDB paths before incremental inputs are hashed.
+         Publish can reuse ordinary Release project-reference outputs; CI-only
+         late SourceRoot mapping or omitting PDB files cannot make those bytes private. -->
+    <Deterministic>true</Deterministic>
+    <_WorkbenchMappedSourceRoot>$([MSBuild]::ValueOrDefault('$(MSBuildThisFileDirectory)', '').Replace(',', ',,').Replace('=', '=='))</_WorkbenchMappedSourceRoot>
+    <PathMap>$(_WorkbenchMappedSourceRoot)=/_/,$(PathMap)</PathMap>
+  </PropertyGroup>
 </Project>

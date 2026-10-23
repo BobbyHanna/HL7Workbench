@@ -125,11 +125,21 @@ class PortableReleaseTests(unittest.TestCase):
             portable.verify_archive(self.root, changed)
 
     def test_private_build_roots_in_utf8_or_utf16_are_not_packaged(self):
-        for encoding in ("utf-8", "utf-16-le"):
-            with self.subTest(encoding=encoding):
-                (self.root / "USER-GUIDE.md").write_bytes(str(portable.ROOT).encode(encoding)); self.checksums()
-                with self.assertRaisesRegex(ValueError, "Private build path"):
-                    portable.validate_tree(self.root)
+        for name in ("USER-GUIDE.md", "HL7Workbench.Core.dll"):
+            for location in (portable.ROOT, pathlib.Path.home()):
+                for encoding in ("utf-8", "utf-16-le"):
+                    with self.subTest(name=name, location=location, encoding=encoding):
+                        path = self.root / name
+                        original = path.read_bytes() if path.exists() else None
+                        try:
+                            path.write_bytes(str(location).encode(encoding)); self.checksums()
+                            with self.assertRaisesRegex(ValueError, "Private build path"):
+                                portable.validate_tree(self.root)
+                        finally:
+                            if original is None:
+                                path.unlink()
+                            else:
+                                path.write_bytes(original)
 
 
 if __name__ == "__main__":

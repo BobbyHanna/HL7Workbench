@@ -6,6 +6,23 @@ checkpoint plus a fresh verified clean-source candidate. Branding baseline is
 84fdc22925173250fad132d0d4b4c6768d3c68e0. Distribution remains unapproved; human review
 and exact rebuilt artifact/native acceptance details remain open.
 
+Stage 14 checkpoint is b14b100e399a4eb44a05c98b4844f552f080eb68. Its clean-source
+candidate was correctly rejected for absolute CodeView PDB paths in reused Release
+DLLs. The follow-up correction is authorized for implementation/verification only,
+unstaged/uncommitted. Release path mapping is now established in Directory.Build.props
+before the incremental compiler-input cache; normal and portable builds share stable
+virtual source/PDB paths. CI-only late mapping, PDB omission and deterministic=true
+alone did not cover the warm project-reference reuse sequence. Runtime behavior,
+binding identities, worker containment/deployment and privacy guards are unchanged.
+The first attempt stopped on Desktop. A fresh isolated build then proved Csc's
+mapped reference is overwritten by Avalonia's XAML/Cecil symbol writer, not stale
+output. Desktop Release therefore uses DebugType=none / DebugSymbols=false, matching
+portable settings; Debug is unchanged. Fresh and warm PE regressions pass without
+a CodeView entry. All corrections remain unstaged/uncommitted; see acceptance for
+the completed 1,961 solution / 935 stress / 12 packaging-compiler gate and identical
+independent portable builds. Candidate provenance records the base commit plus dirty
+working inputs; no release/distribution is authorized. No binary rewriting or guard exception.
+
 Use a directory-based self-contained .NET 10 Windows x64 deployment, without trimming,
 single-file extraction, ReadyToRun, installer, updater, service or elevated runtime.
 Pin runtime 10.0.12 and retain separate packages.win-x64.lock.json files for all six

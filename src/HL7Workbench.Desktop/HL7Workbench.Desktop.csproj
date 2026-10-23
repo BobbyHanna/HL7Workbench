@@ -7,6 +7,13 @@
     <Description>A local-first healthcare interoperability development tool.</Description>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Avalonia rewrites symbol-bearing PE files after Csc and recreates CodeView
+         from the physical PDB location, outside Roslyn's PathMap. Match portable
+         publishing here so ordinary Release output is also safe for warm reuse. -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
   <ItemGroup><AvaloniaResource Include="Assets/**" /></ItemGroup>
   <ItemGroup>
     <!-- Compiler-only symbol binding for editor colors; execution stays in ScriptHost. -->

@@ -1,7 +1,9 @@
 # Message Workbench portable release preparation
 
 Target: **v0.1.0-beta**, Windows 10/11 x64, portable self-contained ZIP. Stage 14
-now authorizes one local checkpoint and a fresh verified clean-source candidate.
+is checkpointed as b14b100e399a4eb44a05c98b4844f552f080eb68. The current follow-up
+authorizes an unstaged/uncommitted build-path correction and fresh local candidates,
+with dirty-source provenance and exact input hashes. No additional commit is authorized.
 No installer, administrator rights, installed SDK/runtime, updater, telemetry,
 account or automatic network activity is required for normal application use.
 Distribution, publication, upload, signing and tags need separate authorization.
@@ -33,6 +35,32 @@ are disabled. A nonprivate project reference plus explicit copying prevents work
 execution dependencies from leaking into Desktop. The normal solution lockfiles and
 build/test gate remain unchanged; run normal locked restore before normal tests
 after RID publishing, since NuGet's intermediate assets file is shared per project.
+
+Release compilation maps this checkout's root to the stable virtual `/_/` prefix
+in Directory.Build.props, before incremental compiler inputs are calculated. This
+applies to ordinary and portable Release builds, including referenced projects;
+it does not change runtime paths or assembly identities. The SDK's late CI-only
+SourceRoot mapping and excluding separate PDB files are insufficient: a warm
+publish can reuse a normal DLL containing an absolute CodeView PDB reference.
+Keep the private-build-path guard enabled for every candidate. Never patch strings
+in compiled binaries, exempt a whole assembly or delete caches to mask the defect.
+
+Permanent real-compiler coverage builds the actual Core project in two independent
+temporary source roots, inspects PE CodeView records/byte content, compares assembly
+hashes and exercises normal-to-CI/no-symbol incremental reuse. Run it with packaging
+tests using `python -B -m unittest discover -s build -p 'test_*release*.py' -v`.
+This uses the installed repository SDK; it copies only Core sources/build metadata,
+without fixtures, Git mutations or modifications to repository bin/obj outputs.
+
+Desktop needs an additional Release-only setting: DebugType=none and
+DebugSymbols=false in its project, matching the portable command line. Fresh
+pre/post-XAML captures prove Roslyn maps the CodeView filename but Avalonia's
+symbol-writing postprocessor recreates a physical PDB reference. Disabling Release
+symbols at compilation prevents that rewrite from emitting CodeView; source mapping
+alone does not control this later writer. Debug builds retain symbols. The Desktop
+regression checks real PE entries before/after XAML compilation in a fresh temporary
+checkout and after warm CI/no-symbol reuse. The guard remains unchanged and enabled.
+See the acceptance record for the evaluated properties, compiler evidence and gate.
 
 The builder assembles new files only under repository artifacts. Existing output
 directories/archives are refused. It makes no recursive deletions and never mutates
@@ -119,7 +147,8 @@ dialogs/Windows Event logs for external crash-collection policy; no PHI in feedb
 See the [complete acceptance record](stage14-release-readiness-acceptance.md) and
 [candidate user guide](beta-user-guide.md) for privacy boundaries/troubleshooting.
 
-The current user authorization permits the single checkpoint and clean-source build.
+The earlier authorization permitted the completed checkpoint and clean-source build;
+the correction's current candidate is explicitly dirty review evidence, not a release.
 After exact-artifact/native and human rights/license/terms review, obtain separate
 distribution authorization, reconcile provenance and checksums, consider signing/OS trust requirements,
 approve limited recipients and a synthetic-only feedback procedure, and share through
