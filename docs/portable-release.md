@@ -1,13 +1,53 @@
 # Message Workbench portable release preparation
 
 Target: **v0.1.0-beta**, Windows 10/11 x64, portable self-contained ZIP. Stage 14
-is checkpointed as b14b100e399a4eb44a05c98b4844f552f080eb68. The current follow-up
-authorizes an unstaged/uncommitted build-path correction and fresh local candidates,
-with dirty-source provenance and exact input hashes. No additional commit is authorized.
+is checkpointed, with accepted application binaries from
+af06e576a0a761f092db6ea7047b488570c0ee06. The current follow-up authorizes one local
+private-preview documentation/notice/packaging checkpoint and a new candidate with
+clean packaging provenance, exact input hashes and unchanged accepted binaries.
 No installer, administrator rights, installed SDK/runtime, updater, telemetry,
 account or automatic network activity is required for normal application use.
 Distribution, publication, upload, signing and tags need separate authorization.
 This document is a build procedure, not release permission.
+
+## Final private-preview candidate from accepted binaries
+
+The owner reports VM acceptance of the af06e576a0a761f092db6ea7047b488570c0ee06
+application ZIP. The owner explicitly selected reuse: a fresh compile embeds the new
+Git revision in AssemblyInformationalVersion and would change the accepted DLLs.
+After the authorized checkpoint, assemble a fresh ZIP with the accepted publish trees
+and committed documents/notices, retaining every binary byte and original notice.
+The supplement adds HarfBuzz COPYING, Skia LICENSE and Wuffs license/header (65 notices
+total). The approved PRIVATE-PREVIEW.txt is now a required curated package document;
+the withdrawn agreement is never packaged.
+
+Use the pinned accepted archive and hash to gate reuse, with a new output directory:
+
+```powershell
+python -B build/portable_release.py `
+  --desktop artifacts/deidentification-checkpoint/portable-1/publish/Desktop `
+  --worker artifacts/deidentification-checkpoint/portable-1/publish/ScriptHost `
+  --output artifacts/private-preview/final-checkpoint/CANDIDATE `
+  --package-cache "$env:USERPROFILE/.nuget/packages" `
+  --accepted-archive artifacts/deidentification-checkpoint/portable-1/CANDIDATE/MessageWorkbench-v0.1.0-beta-win-x64.zip `
+  --accepted-sha256 CAAC67803963A082B00541C0A05B49D64BBC4424AF23FCEE34459CA52CCBBD6D
+```
+
+The assembler rejects a wrong archive hash, dirty origin, changed compilation inputs
+or any different/additional/missing runtime file. It records the current packaging
+sourceCommit and dirty=false separately from binarySourceCommit and binarySourceArchive.
+This does not claim the old executable was recompiled at the new revision. Version,
+assembly identities and accepted revision stamps remain unchanged.
+
+Run locked portable restore, packaging/compiler regressions, original privacy/tree/ZIP
+guards, pinned notice/source-hash checks, explicit preview/no-second-agreement checks,
+both self-contained worker lifecycles, complete accepted-runtime hash comparison and
+independent deterministic assembly. No full application suite is needed for unchanged
+runtime bytes. Original scripts/fixtures/artwork and build configuration are preserved,
+except the reviewed minimal assembler/tests/notice-manifest updates. Evidence and final
+commit/archive metadata are under artifacts/private-preview/final-checkpoint/.
+Keep the candidate marker until owner approval of recipients and transfer. No upload,
+distribution, new version or next milestone is authorized.
 
 ## Identity and local build
 
@@ -69,7 +109,7 @@ the user's installation/settings. No package is uploaded, installed or registere
 ## Contents and repeatability
 
 Include: main apphost/assemblies/native runtime, separate ScriptHost and its runtime,
-curated README.md, USER-GUIDE.md and RELEASE-NOTES.md, full dependency/license inventory,
+curated README.md, USER-GUIDE.md, RELEASE-NOTES.md and PRIVATE-PREVIEW.txt, full dependency/license inventory,
 ThirdPartyNotices/, BUILD-PROVENANCE.json and SHA256SUMS.txt. The optional runtime
 createdump utility and all PDBs are deliberately omitted. Do not include source,
 fixtures/HL7/CSV data, development files, credentials, local settings, internal logs,
@@ -124,8 +164,10 @@ the scanner cannot provide legal clearance. Do not delete notices to silence que
 
 The owner confirmed ownership or redistribution permission for the approved MW artwork
 in the Stage 14 conversation (2026-10-22). No new visual identity or public-source
-artwork is introduced. The application's own beta usage terms still require owner
-approval; no open-source license or coworker distribution grant is invented here.
+artwork is introduced. The short private-preview wording is accepted; owner approval
+of the exact ZIP, recipients and transfer method remains separate.
+No open-source license for the owner's application or unrestricted redistribution
+grant is invented. All third-party rights remain unaffected.
 
 ## Clean-machine native smoke and proposed later distribution
 
@@ -147,15 +189,15 @@ dialogs/Windows Event logs for external crash-collection policy; no PHI in feedb
 See the [complete acceptance record](stage14-release-readiness-acceptance.md) and
 [candidate user guide](beta-user-guide.md) for privacy boundaries/troubleshooting.
 
-The earlier authorization permitted the completed checkpoint and clean-source build;
-the correction's current candidate is explicitly dirty review evidence, not a release.
-After exact-artifact/native and human rights/license/terms review, obtain separate
+The earlier dirty candidates remain preserved historical evidence. The final private
+preview uses clean committed packaging source and the byte-identical VM-accepted
+application. After exact-artifact and human rights/license review, obtain separate
 distribution authorization, reconcile provenance and checksums, consider signing/OS trust requirements,
 approve limited recipients and a synthetic-only feedback procedure, and share through
 an approved channel. Never repurpose a dirty local candidate as the approved beta.
 See [distribution review](beta-distribution-review.md) for resolved questions,
-remaining blockers and the later approved-transfer procedure; [proposed beta terms](beta-usage-terms-proposed.md)
-are a draft for human approval, not a distribution license.
+remaining decisions and the later approved-transfer procedure. The [former draft](beta-usage-terms-proposed.md)
+is withdrawn; [PRIVATE-PREVIEW.txt](PRIVATE-PREVIEW.txt) supplies the approved notice.
 
 Technical sources: Microsoft's [self-contained deployment documentation](https://learn.microsoft.com/en-us/dotnet/core/deploying/),
 [NuGet lock-file documentation](https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies)

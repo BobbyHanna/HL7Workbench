@@ -1,0 +1,17 @@
+Message Workbench v0.1.0-beta - Private Preview
+
+Message Workbench is an experimental developer utility intended for personal and
+internal development and evaluation. It is provided as-is, without guaranteed
+support or continued availability. It is not intended for clinical decisions or
+production use.
+
+Use only data and systems you are authorized to access, and follow applicable
+workplace, privacy and security requirements.
+
+Do not redistribute the owner's application without permission. This restriction
+does not limit rights granted by third-party licenses. Third-party components
+remain governed by their own licenses; keep their copyright, license and notice
+files intact.
+
+Send feedback privately to the person who supplied this preview. Do not include
+PHI, credentials, private data or unreviewed logs or crash dumps.

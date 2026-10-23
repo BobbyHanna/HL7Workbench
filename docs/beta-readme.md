@@ -1,8 +1,11 @@
 # Message Workbench v0.1.0-beta
 
-Local review candidate. Coworker distribution requires separate owner and employer
-approval; this README does not grant it. Message Workbench is a desktop tool for
-HL7 v2 inspection/editing, search/extraction, trusted C# scripting, de-identification
+Personal developer project; no commercial sale or public release. This compiled-ZIP
+private preview is for development/evaluation with a few trusted coworkers; access
+to the owner's source repository is not included. Support is not guaranteed. See
+PRIVATE-PREVIEW.txt. Sharing requires owner permission and compliance with
+applicable workplace rules; no employer approval is implied. Message Workbench is a
+desktop tool for HL7 v2 inspection/editing, search/extraction, trusted C# scripting, de-identification
 aids, synthetic generation, FHIR R4 conversion and controlled TCP/MLLP testing.
 
 ## Start
@@ -37,7 +40,8 @@ Back up originals and valuable scripts/settings. Do not store data beside the ap
 
 Known limitations: beta defects, Windows x64 only, unsigned, no installer/updater,
 plaintext temporary storage/MLLP, and no guarantee of clinical correctness. Read
-USER-GUIDE.md and RELEASE-NOTES.md. Keep every third-party notice with this folder.
+USER-GUIDE.md and RELEASE-NOTES.md. Keep PRIVATE-PREVIEW.txt and every third-party
+notice with this folder; the owner's restrictions do not limit third-party rights.
 
 ## De-identification reports
 

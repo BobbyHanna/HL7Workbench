@@ -1,5 +1,6 @@
 import json
 import pathlib
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -15,7 +16,7 @@ class PortableReleaseTests(unittest.TestCase):
                  "coreclr.dll", "hostfxr.dll", "hostpolicy.dll", "ScriptHost/HL7Workbench.ScriptHost.exe", "ScriptHost/HL7Workbench.ScriptHost.dll",
                  "ScriptHost/HL7Workbench.ScriptHost.runtimeconfig.json", "ScriptHost/coreclr.dll", "ScriptHost/hostfxr.dll", "ScriptHost/hostpolicy.dll",
                  "ScriptHost/Microsoft.CodeAnalysis.Scripting.dll", "ScriptHost/Microsoft.CodeAnalysis.CSharp.Scripting.dll",
-                 "CANDIDATE-NOT-FOR-DISTRIBUTION.txt", "BUILD-PROVENANCE.json", "dependency-licenses.json", "THIRD-PARTY-NOTICES.md", "README.md", "USER-GUIDE.md", "RELEASE-NOTES.md", "ThirdPartyNotices/synthetic/LICENSE"]
+                 "CANDIDATE-NOT-FOR-DISTRIBUTION.txt", "BUILD-PROVENANCE.json", "dependency-licenses.json", "THIRD-PARTY-NOTICES.md", "README.md", "USER-GUIDE.md", "RELEASE-NOTES.md", "PRIVATE-PREVIEW.txt", "ThirdPartyNotices/synthetic/LICENSE"]
         for name in names:
             path = self.root / name; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(b"synthetic fixture")
         for name in ("HL7Workbench.Desktop", "ScriptHost/HL7Workbench.ScriptHost"):
@@ -55,7 +56,7 @@ class PortableReleaseTests(unittest.TestCase):
 
     def test_missing_or_changed_files_and_absent_checksums_are_rejected(self):
         # Refreshing checksums cannot excuse a missing recipient document.
-        for name in ("README.md", "USER-GUIDE.md", "RELEASE-NOTES.md"):
+        for name in ("README.md", "USER-GUIDE.md", "RELEASE-NOTES.md", "PRIVATE-PREVIEW.txt"):
             with self.subTest(name=name):
                 path = self.root / name; content = path.read_bytes(); path.unlink(); self.checksums()
                 with self.assertRaisesRegex(ValueError, "Incomplete"):
@@ -109,6 +110,17 @@ class PortableReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "hash mismatch"):
             portable.copy_notices(pathlib.Path(self.temp.name) / "modified", cache, upstream, {"Synthetic/1.0": {"Desktop"}})
 
+    def test_pinned_packaged_notice_tamper_fails_even_with_updated_checksums(self):
+        name = "ThirdPartyNotices/synthetic/LICENSE"
+        portable.write_json(self.root / "dependency-licenses.json", [{"notices": [name], "upstreamNotices": [
+            {"path": name, "sha256": portable.digest(self.root / name)}]}])
+        self.checksums()
+        portable.validate_tree(self.root)
+        (self.root / name).write_bytes(b"synthetic altered license")
+        self.checksums()
+        with self.assertRaisesRegex(ValueError, "Pinned packaged notice"):
+            portable.validate_tree(self.root)
+
     def test_archive_roundtrip_rejects_extra_entries_or_changed_content(self):
         archive = pathlib.Path(self.temp.name) / "verified.zip"
         portable.deterministic_zip(self.root, archive); portable.verify_archive(self.root, archive)
@@ -140,6 +152,78 @@ class PortableReleaseTests(unittest.TestCase):
                                 path.unlink()
                             else:
                                 path.write_bytes(original)
+
+    def published_inputs(self):
+        desktop = pathlib.Path(self.temp.name) / "publish/Desktop"
+        worker = pathlib.Path(self.temp.name) / "publish/ScriptHost"
+        for name in ("HL7Workbench.Desktop", "ScriptHost/HL7Workbench.ScriptHost"):
+            portable.write_json(self.root / (name + ".deps.json"), {"libraries": {"Synthetic/1.0": {"type": "package"}}})
+        for path in self.root.rglob("*"):
+            name = path.relative_to(self.root).as_posix()
+            if not path.is_file() or not (path.suffix in {".dll", ".exe"} or name.endswith((".deps.json", ".runtimeconfig.json"))):
+                continue
+            destination = worker / name.removeprefix("ScriptHost/") if name.startswith("ScriptHost/") else desktop / ("HL7Workbench.Desktop.exe" if name == "MessageWorkbench.exe" else name)
+            destination.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(path, destination)
+        cache = pathlib.Path(self.temp.name) / "cache"
+        package = cache / "synthetic/1.0"; package.mkdir(parents=True)
+        (package / "synthetic.nuspec").write_text('<package><metadata><license type="expression">MIT</license></metadata></package>', encoding="utf-8")
+        (package / "LICENSE").write_text("synthetic copyright/license", encoding="utf-8")
+        return desktop, worker, cache
+
+    def test_assembly_includes_approved_preview_without_superseded_agreement(self):
+        desktop, worker, cache = self.published_inputs()
+        tree, archive = portable.assemble(desktop, worker, pathlib.Path(self.temp.name) / "assembled", cache,
+                                          {"version": portable.VERSION, "candidateOnly": True})
+        with portable.zipfile.ZipFile(archive) as zipped:
+            self.assertEqual((portable.ROOT / "docs/PRIVATE-PREVIEW.txt").read_bytes(), zipped.read("PRIVATE-PREVIEW.txt"))
+            self.assertFalse(any("beta-usage-terms" in name or "agreement" in name for name in zipped.namelist()))
+            for source, target in portable.RECIPIENT_DOCUMENTS.items():
+                self.assertEqual((portable.ROOT / source).read_bytes(), (tree / target).read_bytes())
+
+    def test_native_supplements_preserve_vendor_notices_and_complete_pinned_texts(self):
+        cache = pathlib.Path(self.temp.name) / "cache"
+        dependencies = {"HarfBuzzSharp.NativeAssets.Win32/8.3.1.3": {"Desktop"}, "SkiaSharp.NativeAssets.Win32/3.119.4": {"Desktop"}}
+        for key in dependencies:
+            name, version = key.split("/")
+            package = cache / name.lower() / version; package.mkdir(parents=True)
+            (package / (name.lower() + ".nuspec")).write_text('<package><metadata><license type="expression">MIT</license></metadata></package>', encoding="utf-8")
+            (package / "THIRD-PARTY-NOTICES.txt").write_bytes(b"unchanged synthetic vendor notice\r\n")
+        destination = pathlib.Path(self.temp.name) / "notices"
+        upstream = portable.ROOT / "build/third-party"
+        records = portable.copy_notices(destination, cache, upstream, dependencies)
+        expected = {"harfbuzz-harfbuzz-COPYING", "mono-skia-LICENSE", "google-wuffs-LICENSE", "google-wuffs-COPYRIGHT.txt"}
+        actual = set()
+        for record in records:
+            for name in record["notices"]:
+                path = destination / name
+                if "/upstream/" in name:
+                    actual.add(path.name)
+                    self.assertEqual((upstream / path.name).read_bytes(), path.read_bytes())
+                else:
+                    self.assertEqual(b"unchanged synthetic vendor notice\r\n", path.read_bytes())
+        self.assertEqual(expected, actual)
+        self.assertEqual(expected, {pathlib.PurePosixPath(item["path"]).name for record in records for item in record["upstreamNotices"]})
+        self.assertIn("Matthias Clasen", (upstream / "harfbuzz-harfbuzz-COPYING").read_text(encoding="utf-8"))
+        self.assertIn("Copyright 2017 The Wuffs Authors.", (upstream / "google-wuffs-COPYRIGHT.txt").read_text(encoding="utf-8"))
+
+    def test_accepted_binary_reuse_requires_exact_archive_sources_and_worker_bytes(self):
+        desktop, worker, cache = self.published_inputs()
+        inputs = {"src/Synthetic.cs": "unchanged", "Directory.Build.props": "unchanged"}
+        origin = {"version": portable.VERSION, "candidateOnly": True, "dirty": False, "sourceCommit": "a" * 40, "inputsSha256": inputs}
+        _, archive = portable.assemble(desktop, worker, pathlib.Path(self.temp.name) / "accepted", cache, origin)
+        provenance = portable.accepted_binary_provenance(desktop, worker, archive, portable.digest(archive), inputs)
+        self.assertEqual("a" * 40, provenance["binarySourceCommit"])
+        self.assertEqual(portable.digest(archive), provenance["binarySourceArchive"]["sha256"])
+        with self.assertRaisesRegex(ValueError, "checksum"):
+            portable.accepted_binary_provenance(desktop, worker, archive, "0" * 64, inputs)
+        with self.assertRaisesRegex(ValueError, "compilation inputs"):
+            portable.accepted_binary_provenance(desktop, worker, archive, portable.digest(archive), {**inputs, "src/New.cs": "new"})
+        _, dirty_archive = portable.assemble(desktop, worker, pathlib.Path(self.temp.name) / "dirty", cache, {**origin, "dirty": True})
+        with self.assertRaisesRegex(ValueError, "clean binary source"):
+            portable.accepted_binary_provenance(desktop, worker, dirty_archive, portable.digest(dirty_archive), inputs)
+        (worker / "HL7Workbench.ScriptHost.dll").write_bytes(b"synthetic changed worker")
+        with self.assertRaisesRegex(ValueError, "differ from accepted"):
+            portable.accepted_binary_provenance(desktop, worker, archive, portable.digest(archive), inputs)
 
 
 if __name__ == "__main__":

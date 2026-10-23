@@ -8,6 +8,36 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## Final private-preview checkpoint
+
+The accepted binary checkpoint is af06e576a0a761f092db6ea7047b488570c0ee06. The user
+reports its ZIP passed automated and native Windows VM acceptance. The owner has
+accepted PRIVATE-PREVIEW.txt for a personal developer project: no sale/public release,
+compiled ZIP only, no owner-repository access, limited trusted coworker development/
+evaluation, authorized data/systems, no clinical or production use or guaranteed support.
+Third-party rights remain intact. No company or blanket employer approval is implied.
+
+The owner authorizes one local documentation/notice/necessary-packaging checkpoint
+and a new reproducible ZIP, followed by final owner review. The owner explicitly
+selected reuse of the accepted binaries: recompilation embeds a new Git revision in
+AssemblyInformationalVersion. Packaging therefore records the new committed-source
+revision and dirty=false separately from the original binary revision/archive hash,
+and rejects changed compilation inputs or runtime bytes. No application/build
+configuration, dependency, fixture, icon, branding or product-version changes.
+
+The pinned native investigation excludes the historical Netscape GIF reader; Wuffs
+0.3.3 uses Apache-2.0. Supplement the original 61 notices with pinned HarfBuzz COPYING
+(including Matthias Clasen's 2022 credit), current Skia LICENSE and Wuffs license/header
+attribution. Do not invent a Wuffs NOTICE file or claim legal clearance. The original
+vendor notices, approved preview wording and earlier ZIPs/evidence remain unchanged.
+The superseded agreement is not packaged. Minimal permanent packaging changes require
+the preview notice, verify pinned notices and enforce exact accepted-binary provenance.
+
+See docs/native-license-applicability-review.md, docs/beta-distribution-review.md and
+docs/portable-release.md. Final evidence/commit/archive metadata is recorded under
+artifacts/private-preview/final-checkpoint/. No push/tag/upload/distribution, new
+version or next milestone is authorized. Earlier statuses below are historical.
+
 ## Current beta follow-up — de-identification reporting (2026-10-23)
 
 The user reports all nine native Windows de-identification acceptance checks passed

@@ -15,6 +15,8 @@ ARCHIVE = f"MessageWorkbench-v{VERSION}-win-x64.zip"
 ALLOWED = {".dll", ".exe", ".json", ".txt", ".md", ".rtf", ".dat", ".bin"}
 FORBIDDEN_PARTS = {"bin", "obj", "testresults", "samples", "fixtures", ".git", ".vs", ".vscode", "scripts", "searches", "extractions"}
 EXECUTION = {"Microsoft.CodeAnalysis.Scripting.dll", "Microsoft.CodeAnalysis.CSharp.Scripting.dll", "HL7Workbench.ScriptHost.dll"}
+RECIPIENT_DOCUMENTS = {"docs/beta-readme.md": "README.md", "docs/beta-user-guide.md": "USER-GUIDE.md",
+                       "docs/release-notes-template.md": "RELEASE-NOTES.md", "docs/PRIVATE-PREVIEW.txt": "PRIVATE-PREVIEW.txt"}
 
 def digest(path):
     with path.open("rb") as stream:
@@ -77,6 +79,7 @@ def copy_notices(destination, cache, upstream_root, dependencies):
         directory = destination / "ThirdPartyNotices" / name / version
         directory.mkdir(parents=True)
         notices = []
+        upstream_records = []
         for path in checked_files(package):
             if re.search(r"licen[cs]e|notice|copying", path.name, re.I):
                 relative = path.relative_to(package)
@@ -92,6 +95,8 @@ def copy_notices(destination, cache, upstream_root, dependencies):
             target = directory / "upstream" / entry["file"]
             target.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(source, target)
             notices.append(target.relative_to(destination).as_posix())
+            upstream_records.append({"path": notices[-1], **{key: entry[key] for key in
+                                    ("source", "revision", "component", "sha256", "sourceSha256", "sourceSelection") if key in entry}})
         if not notices:
             raise ValueError("Missing original license text: " + key)
         repository = metadata.find("{*}repository")
@@ -100,6 +105,8 @@ def copy_notices(destination, cache, upstream_root, dependencies):
                         "repository": {} if repository is None else repository.attrib,
                         "scopes": sorted(scopes), "notices": notices,
                         "obligations": "Retain original copyright, license, disclaimer and bundled notices. Native/third-party terms also apply; no endorsement or legal-clearance claim."})
+        if upstream_records:
+            records[-1]["upstreamNotices"] = upstream_records
     write_json(destination / "dependency-licenses.json", records)
     lines = ["# Third-party dependency inventory", "", "Retain every referenced notice. This is an inventory, not legal clearance.", "",
              "| Package | Version | License declaration | Scope |", "| --- | --- | --- | --- |"]
@@ -125,7 +132,7 @@ def validate_tree(root, require_checksums=True):
                 "ScriptHost/HL7Workbench.ScriptHost.exe", "ScriptHost/HL7Workbench.ScriptHost.dll",
                 "ScriptHost/HL7Workbench.ScriptHost.runtimeconfig.json", "ScriptHost/coreclr.dll",
                 "ScriptHost/hostfxr.dll", "ScriptHost/hostpolicy.dll", "CANDIDATE-NOT-FOR-DISTRIBUTION.txt",
-                "BUILD-PROVENANCE.json", "dependency-licenses.json", "THIRD-PARTY-NOTICES.md", "README.md", "USER-GUIDE.md", "RELEASE-NOTES.md"}
+                "BUILD-PROVENANCE.json", "dependency-licenses.json", "THIRD-PARTY-NOTICES.md", *RECIPIENT_DOCUMENTS.values()}
     required.update("ScriptHost/" + name for name in EXECUTION)
     if require_checksums:
         required.add("SHA256SUMS.txt")
@@ -156,6 +163,9 @@ def validate_tree(root, require_checksums=True):
     for record in inventory:
         if not record["notices"] or any(name not in paths for name in record["notices"]):
             raise ValueError("Missing required third-party notice")
+        for notice in record.get("upstreamNotices", []):
+            if notice["path"] not in record["notices"] or digest(paths[notice["path"]]) != notice["sha256"]:
+                raise ValueError("Pinned packaged notice hash mismatch")
     provenance = json.loads(paths["BUILD-PROVENANCE.json"].read_text(encoding="utf-8"))
     if provenance.get("version") != VERSION or provenance.get("candidateOnly") is not True:
         raise ValueError("Invalid candidate provenance")
@@ -190,14 +200,50 @@ def verify_archive(root, archive_path):
                 if hashlib.file_digest(stream, "sha256").hexdigest() != digest(path):
                     raise ValueError("Archive content differs from verified directory")
 
+def accepted_binary_provenance(desktop, worker, archive_path, expected_sha256, inputs):
+    """Reuse accepted executables only when their bytes and compilation inputs match.
+
+    Packaging commits change the SDK's assembly revision stamp on recompilation.
+    Keep that accepted stamp and identify the original binary commit separately.
+    The explicit archive checksum is the owner's selected acceptance boundary.
+    """
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha256) or digest(archive_path) != expected_sha256.lower():
+        raise ValueError("Accepted archive checksum mismatch")
+    with zipfile.ZipFile(archive_path) as archive:
+        origin = json.loads(archive.read("BUILD-PROVENANCE.json"))
+        if origin.get("dirty") is not False or origin.get("version") != VERSION or not re.fullmatch(r"[0-9a-f]{40}", origin.get("sourceCommit", "")):
+            raise ValueError("Accepted archive must identify a clean binary source commit")
+        def compilation_input(name):
+            return name.startswith("src/") or name in {"Directory.Build.props", "Directory.Packages.props", "global.json", "build/ScriptHost.targets"}
+        original_inputs = {name: value for name, value in origin["inputsSha256"].items() if compilation_input(name)}
+        current_inputs = {name: value for name, value in inputs.items() if compilation_input(name)}
+        if not original_inputs or original_inputs != current_inputs:
+            raise ValueError("Accepted binary compilation inputs changed")
+        expected = {name: archive.read(name) for name in archive.namelist()
+                    if pathlib.PurePosixPath(name).suffix.lower() in {".dll", ".exe", ".dat", ".bin"}
+                    or name.endswith((".deps.json", ".runtimeconfig.json"))}
+        actual = {}
+        for source, prefix in ((desktop, ""), (worker, "ScriptHost/")):
+            for path in checked_files(source):
+                if path.suffix.lower() == ".pdb" or path.name.lower() == "createdump.exe":
+                    continue
+                name = path.relative_to(source).as_posix()
+                if not prefix and name == "HL7Workbench.Desktop.exe":
+                    name = "MessageWorkbench.exe"
+                actual[prefix + name] = path
+        if actual.keys() != expected.keys() or any(digest(actual[name]) != hashlib.sha256(data).hexdigest() for name, data in expected.items()):
+            raise ValueError("Published binary/runtime inputs differ from accepted archive")
+    return {"assemblyMethod": "accepted-binary-repackage", "binarySourceCommit": origin["sourceCommit"],
+            "binarySourceArchive": {"file": archive_path.name, "sha256": expected_sha256.lower()},
+            "acceptedBinaryFiles": len(expected)}
+
 def assemble(desktop, worker, output, cache, provenance):
     output.mkdir(parents=True, exist_ok=False)
     tree = output / "MessageWorkbench"; tree.mkdir()
     copy_publish(desktop, tree, True); copy_publish(worker, tree / "ScriptHost", False)
     copy_notices(tree, cache, ROOT / "build/third-party", dependency_inventory(desktop, worker))
-    shutil.copyfile(ROOT / "docs/beta-readme.md", tree / "README.md")
-    shutil.copyfile(ROOT / "docs/beta-user-guide.md", tree / "USER-GUIDE.md")
-    shutil.copyfile(ROOT / "docs/release-notes-template.md", tree / "RELEASE-NOTES.md")
+    for source, target in RECIPIENT_DOCUMENTS.items():
+        shutil.copyfile(ROOT / source, tree / target)
     (tree / "CANDIDATE-NOT-FOR-DISTRIBUTION.txt").write_text("Local Stage 14 review candidate only. Human license/terms review and separate distribution authorization are required. Not signed. No updater.\n", encoding="utf-8")
     write_json(tree / "BUILD-PROVENANCE.json", provenance)
     paths = validate_tree(tree, require_checksums=False)
@@ -212,20 +258,26 @@ def main():
     parser.add_argument("--verify", type=pathlib.Path)
     parser.add_argument("--desktop", type=pathlib.Path); parser.add_argument("--worker", type=pathlib.Path)
     parser.add_argument("--output", type=pathlib.Path); parser.add_argument("--package-cache", type=pathlib.Path)
+    parser.add_argument("--accepted-archive", type=pathlib.Path)
+    parser.add_argument("--accepted-sha256")
     args = parser.parse_args()
     if args.verify:
         print(f"Verified {len(validate_tree(args.verify.resolve()))} candidate files; self-contained runtime, exclusions, notices and checksums."); return
     if any(value is None for value in (args.desktop, args.worker, args.output, args.package_cache)):
         parser.error("assembly requires desktop, worker, output and package-cache")
+    if (args.accepted_archive is None) != (args.accepted_sha256 is None):
+        parser.error("accepted-binary reuse requires both accepted-archive and accepted-sha256")
     output = args.output.resolve(); output.relative_to(ROOT / "artifacts")
     source_paths = subprocess.check_output(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=ROOT).decode().split("\0")
-    inputs = {p: digest(ROOT / p) for p in sorted(set(source_paths)) if p and (p.startswith(("src/", "build/")) or p in {"Directory.Build.props", "Directory.Packages.props", "global.json", "docs/beta-readme.md", "docs/beta-user-guide.md", "docs/release-notes-template.md"})}
+    inputs = {p: digest(ROOT / p) for p in sorted(set(source_paths)) if p and (p.startswith(("src/", "build/")) or p in {"Directory.Build.props", "Directory.Packages.props", "global.json", *RECIPIENT_DOCUMENTS})}
     provenance = {"product": "Message Workbench", "version": VERSION, "candidateOnly": True, "rid": "win-x64",
                   "sourceCommit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
                   "dirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT)), "inputsSha256": inputs,
                   "sdk": subprocess.check_output(["dotnet", "--version"], cwd=ROOT).decode().strip(), "runtime": "10.0.12",
                   "assemblyIdentity": "HL7Workbench.Desktop", "entryPoint": "MessageWorkbench.exe",
                   "artworkRights": "Owner confirmed ownership or redistribution permission in Stage 14 conversation; artwork unchanged."}
+    if args.accepted_archive:
+        provenance.update(accepted_binary_provenance(args.desktop.resolve(), args.worker.resolve(), args.accepted_archive.resolve(), args.accepted_sha256, inputs))
     tree, archive = assemble(args.desktop.resolve(), args.worker.resolve(), output, args.package_cache.resolve(), provenance)
     print(f"Local candidate only: {archive.name}; {len(validate_tree(tree))} files; SHA-256 {digest(archive)}")
 

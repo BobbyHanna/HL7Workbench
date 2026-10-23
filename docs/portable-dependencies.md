@@ -1,10 +1,10 @@
 # Portable Windows x64 dependency and license review
 
-Stage 14 local candidate review, 2026-10-22. Actual published dependency manifests:
+Private-preview checkpoint review. Actual published dependency manifests:
 35 runtime/package entries. No legal clearance or distribution authorization is implied.
 The [checkpoint distribution review](beta-distribution-review.md) distinguishes
-technical notice-retention findings from unresolved embedded-component applicability,
-application terms, unsigned trust and owner/employer approval requirements.
+technical notice-retention/applicability findings from legal certification, unsigned
+trust and the remaining owner/artifact/workplace decisions.
 
 All notice paths below are relative to `ThirdPartyNotices/<Package>/<Version>/` in
 the candidate. Every available package-bundled notice and pinned upstream text is
@@ -49,18 +49,48 @@ versions, package scopes and redistribution-obligation notes.
 | SkiaSharp | 3.119.4 | MIT | Keep MIT copyright/permission/disclaimer and any complete upstream notices. |
 | Tmds.DBus.Protocol | 0.94.1 | MIT | Keep MIT copyright/permission/disclaimer and any complete upstream notices. |
 
-The top-level MIT declaration does not replace bundled third-party terms. The
-ANGLE, native rendering, .NET runtime, Roslyn and Toolkit notice bundles include
-component-specific conditions. Broad upstream notices mention licenses/components
-that may not apply to every selected Windows binary; confirm applicability and any
-source/relinking obligations with a qualified human reviewer before distribution.
-No proprietary runtime dependency or paid component was added. Source/asset origin
-is not independently established by a package metadata scan.
+The top-level MIT declaration does not replace embedded-component conditions.
+The private-preview review now distinguishes these concrete cases:
+
+- SkiaSharp/HarfBuzzSharp native bundles retain a historical Netscape GIF notice:
+  MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later. The pinned Windows source/DEPS/build
+  excludes that reader and libgifcodec. GIF decoding uses Apache-2.0 Wuffs 0.3.3,
+  statically incorporated into libSkiaSharp.dll; the full Apache terms are retained.
+  HarfBuzzSharp's separate font library has no GIF dependency. This resolves the
+  identified GIF applicability question without electing GPL/LGPL for the application.
+- HarfBuzz's old bundled notice omits current pinned source credits, including
+  Matthias Clasen (2022) in compiled/exported paint code. The checkpoint adds the
+  exact pinned COPYING without changing the original bundle. Current Skia BSD text,
+  Wuffs' Apache-2.0 license and its verbatim copyright/header attribution are also
+  supplied. The four supplements bring the preserved 61-file collection to 65 notices.
+  No Wuffs NOTICE file is invented, and no new copyleft obligation is asserted.
+- The examined Windows defaults exclude FreeType and do not enable HarfBuzz's
+  optional FreeType integration. Preserve FTL/GPL alternatives anyway. For builds
+  including it, optional GPL wording is not an automatic GPL election; FTL has credit
+  requirements.
+- Broad Roslyn notices name VsSDK analyzer/build-tool components absent as separate
+  packages/files here. This is not proof of a runtime LGPL obligation or proof that
+  no vendored component exists. Existing source-access/reverse-engineering text stays.
+- Toolkit's broad notices include Common/notification/UnitTests and MVVM material.
+  Only the MVVM package ships; no LGPL text was found in its complete notice bundle.
+- The .NET runtime retains its complete additional component notices. Non-Windows
+  native assets and build/test packages are not standalone shipped entries; some
+  managed cross-platform libraries remain. All 35 entries and all notices are kept.
+
+See [the specific evidence, primary sources and remaining questions](beta-distribution-review.md).
+See also [the pinned native source/build applicability investigation](native-license-applicability-review.md).
+It identifies the historical GIF code as excluded and records the now-implemented
+HarfBuzz attribution remedy. The pinned upstream manifest and packaged inventory
+record source revisions and source/stored SHA-256 hashes. No application source-
+publication requirement or blanket legal clearance is established. The new candidate
+has its own checksum; both earlier ZIPs remain unchanged.
 
 The owner confirmed rights to redistribute the unchanged approved MW artwork.
-Application beta usage terms and distribution authorization remain unapproved.
-Build/test packages and non-Windows native packages are outside this candidate.
-The complete normal dependency graph remains locked for the solution gate.
+The lengthy proposed application agreement is withdrawn in favor of
+[PRIVATE-PREVIEW.txt](PRIVATE-PREVIEW.txt), whose wording the owner has accepted.
+Original licenses/notices and all application/dependency versions remain unchanged;
+the inventory gains supplementary notices and their exact upstream references.
+Private/noncommercial intent does not itself waive third-party conditions.
 
 See [portable procedure](portable-release.md), [existing dependency inventory](dependencies.md),
 [ADR 0019](decisions/0019-portable-beta-readiness.md) and the actual included notice

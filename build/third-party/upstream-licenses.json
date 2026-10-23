@@ -143,5 +143,54 @@
     ],
     "sourceSha256": "2b3a10daf2350f7b900bd7b989cdff149b6b4bd07358db9e5c112bd9560b6b46",
     "formatting": "UTF-8 LF; trailing line whitespace/extra EOF blank lines removed. All notice words/copyrights retained."
+  },
+  {
+    "file": "harfbuzz-harfbuzz-COPYING",
+    "source": "https://raw.githubusercontent.com/harfbuzz/harfbuzz/2b3631a866b3077d9d675caa4ec9010b342b5a7c/COPYING",
+    "revision": "2b3631a866b3077d9d675caa4ec9010b342b5a7c",
+    "component": "HarfBuzz 8.3.1",
+    "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+    "sourceSha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+    "formatting": "Verbatim pinned upstream UTF-8 bytes; LF line endings.",
+    "packages": [
+      "HarfBuzzSharp.NativeAssets.Win32/8.3.1.3"
+    ]
+  },
+  {
+    "file": "mono-skia-LICENSE",
+    "source": "https://raw.githubusercontent.com/mono/skia/7dbfc07dd33181f84e0958afb7ee805c6c769f0b/LICENSE",
+    "revision": "7dbfc07dd33181f84e0958afb7ee805c6c769f0b",
+    "component": "Skia m119",
+    "sha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd",
+    "sourceSha256": "5f787c1dee3c56547f09ccc2906ab5f5293c4d8dd6c8654e573216c38e908dbd",
+    "formatting": "Verbatim pinned upstream UTF-8 bytes; LF line endings.",
+    "packages": [
+      "SkiaSharp.NativeAssets.Win32/3.119.4"
+    ]
+  },
+  {
+    "file": "google-wuffs-LICENSE",
+    "source": "https://raw.githubusercontent.com/google/wuffs-mirror-release-c/e3f919ccfe3ef542cfc983a82146070258fb57f8/LICENSE",
+    "revision": "e3f919ccfe3ef542cfc983a82146070258fb57f8",
+    "component": "Wuffs 0.3.3 (Apache-2.0)",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "sourceSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "formatting": "Verbatim pinned upstream UTF-8 bytes; LF line endings.",
+    "packages": [
+      "SkiaSharp.NativeAssets.Win32/3.119.4"
+    ]
+  },
+  {
+    "file": "google-wuffs-COPYRIGHT.txt",
+    "source": "https://raw.githubusercontent.com/google/wuffs-mirror-release-c/e3f919ccfe3ef542cfc983a82146070258fb57f8/release/c/wuffs-v0.3.c",
+    "revision": "e3f919ccfe3ef542cfc983a82146070258fb57f8",
+    "component": "Wuffs 0.3.3 (Apache-2.0)",
+    "sha256": "3b2f3521bdfe18740646352b8800fb4b49e57b3e2693805820891b97899ff0a9",
+    "sourceSha256": "ca10c422ebd4bf9f2cc469bafec4d5606eed3db0db7cbe21cb5232249ac0fe68",
+    "sourceSelection": "Lines 38-50: verbatim copyright and license header; not an upstream NOTICE file.",
+    "formatting": "Verbatim source excerpt; no paraphrasing or invented NOTICE.",
+    "packages": [
+      "SkiaSharp.NativeAssets.Win32/3.119.4"
+    ]
   }
 ]

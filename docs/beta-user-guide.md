@@ -1,8 +1,15 @@
-# Message Workbench v0.1.0-beta — local candidate guide
+# Message Workbench v0.1.0-beta — private-preview guide
 
-This is a local test candidate, not an approved coworker release. Use synthetic data
-for acceptance. Native acceptance, owner approval of beta usage terms, human review
-of third-party notices and separate distribution authorization are still required.
+This private-preview candidate is for owner review before any sharing. Use is
+intended for personal/internal development and evaluation, as described in
+PRIVATE-PREVIEW.txt. Use synthetic data by default and only authorized data/systems.
+This personal developer project is not for commercial sale or public release;
+sharing supplies a compiled ZIP, not access to the owner's repository. Support is
+not guaranteed. The accepted application passed user-reported Windows VM acceptance;
+the new ZIP retains its exact executable/runtime bytes and adds documentation/notices.
+BUILD-PROVENANCE.json records separate packaging and binary commits. No employer or
+legal approval is implied. Preserve all third-party licenses and rights. Do not use
+this utility for clinical decisions or production deployment.
 
 ## Start and preserve your data
 
@@ -82,5 +89,6 @@ payloads, patient identifiers or arbitrary exception messages.
 Report reproducible steps, public version and fixed error/status codes with synthetic
 examples only. Include whether Windows is 10/11, x64, theme and display scaling.
 Keep `THIRD-PARTY-NOTICES.md`, `dependency-licenses.json`, ThirdPartyNotices/,
-BUILD-PROVENANCE.json and SHA256SUMS.txt with the candidate. No redistribution is
-authorized by this local test guide.
+BUILD-PROVENANCE.json and SHA256SUMS.txt with the candidate. The owner
+must approve the exact preview ZIP and recipients before sharing; this guide does
+not grant redistribution permission for the owner's application.
