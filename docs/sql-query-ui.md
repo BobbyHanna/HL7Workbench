@@ -149,4 +149,23 @@ results are not restored by layout or preferences. Tool closure cancels/drains w
 and releases result snapshots. Existing temporary Workspace journals/spools can
 contain sensitive data and follow the [15B ownership/cleanup rules](sql-hl7-workflows.md).
 
-See [Stage 15C verification and native checklist](stage15c-sql-ui-acceptance.md).
+## Practical limits and CSV interpretation
+
+Metadata queries can cover large message batches without decoding unused OBX
+payloads. A structural Fields query still populates all scoped field metadata
+before SQL predicates run: a small final result does not guarantee a small import.
+The measured 10,000-message Fields workload reaches the accounted import limit;
+4,000 succeeds. For narrow lookups, use the existing Messages/HL7_VALUE examples
+when appropriate. All scanning, value and deadline limits still apply.
+
+`substr(DecodedValue,1,32)` does not bypass a large field's materialization limit.
+Inspect ValueLength/HL7_STATUS first or use bounded source-inspection tools.
+
+CSV is spreadsheet-guarded presentation. Risky leading characters receive an
+apostrophe even after numeric-to-display conversion (for example `-42`), and type
+companion columns retain the SQL kind. Ordinary CSV quoting is not formula
+protection. Full typed journal values and exact-byte HL7 extraction retain their
+separate contracts; CSV is not an unmodified raw-value interchange format.
+
+See [Stage 15C UI verification](stage15c-sql-ui-acceptance.md) and the
+[Stage 15D measurements, limits and native checklist](stage15d-sql-final-acceptance.md).

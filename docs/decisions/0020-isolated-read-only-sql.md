@@ -1,8 +1,8 @@
 # ADR 0020: Isolated, bounded read-only SQLite querying
 
-Status: Stages 15A/15B provisionally accepted; Stage 15C implemented for review.
-Stage 15D remains gated. The original engine decision and later amendments are
-retained below; this is not a new release.
+Status: Stages 15A–15C and UI follow-ups are checkpointed at fc802a8. Stage 15D
+stabilization preserves this decision; see the final amendment and evidence below.
+Earlier per-stage gates remain historical. This is not a new release.
 
 ## Original Stage 15A decision and boundaries
 
@@ -318,4 +318,27 @@ version change, release packaging or accepted-artifact rebuild. The UI currently
 has no named-parameter entry panel; Workspace parameter APIs remain available.
 Native Windows docking/DPI/clipboard/monitor behavior still requires owner manual
 verification. See [15C acceptance](../stage15c-sql-ui-acceptance.md) and
-[user guide](../sql-query-ui.md). Stop before 15D.
+[user guide](../sql-query-ui.md).
+
+## Stage 15D amendment: measured stabilization
+
+Keep the existing engine and limits. Release measurements demonstrate zero OBX-body
+decoding in metadata queries through 100k messages and 64 MiB values. General Fields
+queries can reach the 64 MiB accounted import cap before 10k messages because the
+full relation is populated before predicates. Do not raise caps or add a second SQL
+parser to disguise this bound. Messages/path queries are an existing alternative
+for narrow reports. No optimization is claimed from noisy timing differences.
+
+The only production hardening rejects explicit-null nested frame collections/items
+and invalid planning-table enums at deserialization. Nullable C# annotations cannot
+establish a wire invariant. Malformed peers receive fixed ProtocolError rather than
+escaping via NullReferenceException. Version 2, frame budgets, authorizer, sealed
+import and all valid query semantics remain unchanged.
+
+CSV keeps the shared formula-guarded presentation contract; numeric display strings
+can receive an apostrophe too. It is distinct from unmodified typed ReadRow values
+and exact source-span extraction. No new export mode or silent conversion was added.
+Actual Windows job membership/limits and worker/cap recovery are tested. Native UI,
+unforced hard maxima and residual same-user/process isolation limitations are stated
+in [15D acceptance](../stage15d-sql-final-acceptance.md); do not promote inspected
+boundaries or headless measurements to unconditional security/native acceptance.

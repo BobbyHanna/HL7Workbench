@@ -33,10 +33,15 @@ internal static class QueryProtocol
         if (length is < 1 or > QueryLimits.MaximumFrameBytes) throw new QueryException(QueryError.ProtocolError);
         var bytes = new byte[length]; await stream.ReadExactlyAsync(bytes, token);
         var frame = JsonSerializer.Deserialize<QueryFrame>(bytes, Options);
+        // Nullable annotations do not validate JSON. Reject missing nested collections/items
+        // here so malformed peers cannot escape the fixed protocol-error boundary.
         if (frame is null || frame.Version != 2 || !Enum.IsDefined(frame.Kind) || frame.Error is { } error && !Enum.IsDefined(error) ||
             frame.Input?.Length > QueryLimits.MaximumImportBatchRows || frame.Rows?.Length > QueryLimits.MaximumPageRows ||
             frame.Columns?.Length > QueryLimits.MaximumColumns || frame.Parameters?.Length > QueryLimits.MaximumParameters ||
-            frame.Origins?.Length > QueryLimits.MaximumColumns || frame.Plan?.Tables.Length > 6)
+            frame.Origins?.Length > QueryLimits.MaximumColumns || frame.Plan is { Tables: null } || frame.Plan?.Tables.Length > 6 ||
+            frame.Plan?.Tables.Any(t => !Enum.IsDefined(t)) == true || frame.Columns?.Any(c => c is null) == true ||
+            frame.Origins?.Any(o => o is null) == true || frame.Rows?.Any(r => r is null || r.Cells is null || r.Cells.Any(c => c is null)) == true ||
+            frame.Input?.Any(r => r is null || r.Values is null || r.Values.Any(c => c is null)) == true)
             throw new QueryException(QueryError.ProtocolError);
         return frame;
     }

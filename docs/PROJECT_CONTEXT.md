@@ -8,6 +8,38 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## Stage 15D — SQL stabilization and final acceptance (2026-10-28)
+
+The owner checkpointed/pushed 15A–15C and UI follow-ups at fc802a8, then authorized
+15D stabilization only. Earlier stop-before-15D notes are historical. The isolated
+SQLite/Workspace/Desktop boundaries, schema and limits are preserved. A reproduced
+malformed JSON Plan.Tables=null exception and nested null items now fail at the
+protocol boundary with fixed ProtocolError. No policy bypass, new SQL capability,
+dependency, UI redesign or speculative performance rewrite was introduced.
+
+Explicit synthetic Release measurements cover 50/4,000/10,000/100,000 messages,
+1/16/64 MiB OBX values and malformed data. Metadata retains zero body decoding;
+100k aggregate/complete identity results measured about 3.2/4.1s. The representative
+10k Fields join hits the existing accounted import budget; 4k succeeds. Predicates
+do not push through full-scope relation import. Large-value substr/filter attempts
+still refuse materialization rather than returning partial data. CSV retains its
+spreadsheet-guarded presentation semantics, including numeric display strings;
+exact typed values and original HL7 bytes remain separate contracts.
+
+New deterministic tests cover adversarial syntax, malformed IPC, exact lower/at/over
+budgets, actual worker Job Object settings, source identity/byte extraction and
+recovery. Expensive measurements/cap tests are explicit opt-ins, separately reported
+from ordinary CI. See docs/stage15d-sql-final-acceptance.md for counts, measured
+memory/timing methodology, resource/cancellation evidence and native checklist.
+Acceptance is conditional on those explicit native/unforced-boundary qualifications.
+Final gate: both locked restores and Release build passed (0 warnings/errors).
+All 2,282 ordinary regressions passed; 14 explicit skips were all executed separately
+and passed (9 performance + 5 actual-cap cases). Focused Querying 158, Workspace
+SQL/hardening/library 27/32/10 and Desktop SQL 22 passed. All 2,384 protected preview
+hashes remain unchanged. There are 13 Stage 15D paths: 8 modified / 5 untracked,
+empty index; main/HEAD fc802a8 unchanged. Native verification was not performed.
+No commit, push, packaging, protected-preview change or Stage 16 is authorized.
+
 ## FHIR generation UX polish (2026-10-28)
 
 The owner reports native Windows acceptance of the preceding FHIR workspace

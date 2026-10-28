@@ -45,8 +45,11 @@ Source bytes/framing remain authoritative; unsafe outputs fail without publicati
 [ADR 0020](decisions/0020-isolated-read-only-sql.md) and
 [15C acceptance](stage15c-sql-ui-acceptance.md),
 [SQL UI guide](sql-query-ui.md) and [HL7 workflow reference](sql-hl7-workflows.md).
-15D requires owner review;
-accepted preview artifacts remain unchanged.
+Stage 15D preserves these boundaries after measured stabilization. The protocol now
+rejects malformed nested JSON shapes with fixed errors. No engine rewrite, new SQL
+capability or limit increase is introduced. See [15D acceptance](stage15d-sql-final-acceptance.md)
+for runtime measurements, exact-byte/resource tests and conditional native/limit
+verification. Accepted preview artifacts remain unchanged.
 
 ## Stage 14 portable beta readiness
 

@@ -43,6 +43,33 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
     private static Window Host(SqlQueryView view, int width = 1150)
     { var window = new Window { Content = view, Width = width, Height = 800 }; window.Show(); Pump(window); return window; }
     [Fact]
+    public async Task SortedSecondPageNavigationSurvivesOtherDocumentClosureAndPolicyFailureCanRetry()
+    {
+        await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
+        await ui.Dispatch(async () =>
+        {
+            using var documents = new DocumentManager(); var source = await OpenDocument(documents, 205); var other = await OpenDocument(documents);
+            using var model = Model(documents); model.SelectedScope = true; model.ScopeDocuments.Single(c => c.Document == source).Selected = true;
+            model.Sql = "SELECT DocumentId,MessageId,MessageNumber FROM Messages";
+            var view = new SqlQueryView(model); var window = Host(view, 350); window.Height = 300;
+            model.OpenDocumentRequested += documents.Activate;
+            try
+            {
+                await model.RunAsync(); await model.SortAsync(2); await model.SortAsync(2); await model.ChangePageAsync(1); Pump(window);
+                Assert.Equal(100, view.Results.ItemCount); documents.Close(other.Id, true); await other.Disposal;
+                model.SelectCell(7, 2); await model.NavigateAsync(); Assert.Same(source, documents.ActiveDocument); Assert.Equal(98, source.MessageNumber);
+                model.Sql = "SELECT load_extension('SYN-PRIVATE')"; await model.RunAsync(); Pump(window);
+                Assert.False(model.IsBusy); Assert.Null(model.Results); Assert.Empty(model.Page); Assert.Equal(0, view.Results.ItemCount); Assert.True(model.CanRun);
+                Assert.DoesNotContain("SYN-PRIVATE", model.Status); Assert.DoesNotContain("SYN-PRIVATE", string.Join('\n', documents.Activity.Snapshot()));
+                model.Sql = "SELECT count(*) FROM Messages"; await model.RunAsync(); Pump(window);
+                Assert.Equal(205, model.Results!.ReadRow(0).Cells[0].Integer); Assert.Single(model.Page); Assert.False(model.IsBusy);
+                Assert.False(source.IsDirty);
+            }
+            finally { window.Close(); }
+            return true;
+        }, Token);
+    }
+    [Fact]
     public async Task MenuOpensAnOptionalSqlToolAndDefaultLayoutRemainsUnchanged()
     {
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);

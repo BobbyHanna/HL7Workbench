@@ -101,7 +101,7 @@ FROM Messages m WHERE NOT EXISTS (SELECT 1 FROM Segments s
 
 `PageAsync(page, token)` returns 100 rows with 256-character previews and explicit
 scalar kinds/abbreviation flags. `ReadRow(index)` deliberately returns a complete
-bounded row for full-value inspection. UI controls are deferred.
+bounded row for full-value inspection. Desktop consumes these same bounded pages.
 
 `await result.ExportCsvAsync(destination, token)` exports **every journal row** and
 full values behind previews. Core's CSV encoder uses UTF-8 without BOM, commas,
@@ -112,6 +112,13 @@ overload accepts only a complete unique permutation, so UI sorting never creates
 partial export. Existing destinations
 require FileSaveDestination overwrite consent. Source files/aliases and owned storage
 are protected. Atomic publication leaves no partial CSV on cancellation/quota failure.
+
+The guard applies to every displayed scalar, including negative numbers: an INTEGER
+`-42` appears as apostrophe-prefixed `'-42` in CSV, with an Integer type companion.
+This is spreadsheet-guarded presentation, not an unmodified raw-value interchange
+format. Ordinary CSV quoting does not prevent spreadsheet formula execution.
+`ReadRow` retains the original typed value; exact HL7 extraction retains source
+bytes. No automatic stripping of the guard is implied.
 
 For provenance-bearing columns named DocumentId and MessageId, check
 `CanIdentifyMessages`, then call `result.OpenMatchingMessagesAsync(manager, token)`.
@@ -169,3 +176,12 @@ not pushed through Core scanning. Repeated uncached path reads can rescan messag
 and hit deadlines. Initial results are bounded in parent memory before journaling.
 Accounting ceilings do not promise exact RSS/disk usage. Narrow scope/select columns
 and inspect ValueLength/HL7_STATUS before requesting large values.
+
+Measured Stage 15D example: a 10,000-message Fields join reaches the existing
+64 MiB accounted import cap even when its WHERE clause returns few rows. A 4,000
+message variant succeeds. This depends on projected structure, not an arbitrary
+message/field-size assumption. Messages plus HL7_VALUE can avoid importing the full
+Fields relation for a narrow lookup; scanning/value/deadline limits still apply.
+SQL `substr` on an oversized RawValue/DecodedValue still requires materialization
+first and fails explicitly. Use source-inspection tools for bounded source-text
+browsing. See [measured evidence and qualifications](stage15d-sql-final-acceptance.md).
