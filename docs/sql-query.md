@@ -2,7 +2,7 @@
 
 Stage 15A/15B provide isolated execution, live-document capture, selective indexing,
 path functions, bounded journals and outputs. Stage 15C exposes these through
-**View → SQL Query**, with a docked editor/results workflow and explicitly saved
+**View → Data & Query → SQL Query**, with a docked editor/results workflow and explicitly saved
 named queries. Start with [the user guide](sql-query-ui.md). Stage 15D's
 [stabilization report](stage15d-sql-final-acceptance.md) records measured workloads,
 hardening, practical limits and remaining native verification conditions.

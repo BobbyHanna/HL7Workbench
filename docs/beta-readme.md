@@ -45,7 +45,7 @@ notice with this folder; the owner's restrictions do not limit third-party right
 
 ## De-identification reports
 
-After a de-identification preset completes, open **View → De-identification Report**
+After a de-identification preset completes, open **View → Reports → De-identification Report**
 or choose **View report** in the output document's compact report row. The report is
 dockable/floating and follows the selected output document; no expanded report
 occupies RAW or Script Editor. It shows transformation/suppression counts and

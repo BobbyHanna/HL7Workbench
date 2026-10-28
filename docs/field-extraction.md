@@ -1,6 +1,6 @@
 # Field Extraction
 
-Open **View → Field Extraction**, or choose **Extract Fields** on an HL7 document.
+Open **View → Data & Query → Field Extraction**, or choose **Extract Fields** on an HL7 document.
 The document action selects that document explicitly. The tool's source selector and
 **Use active document** choose the source for the next run; changing tabs does not
 redirect existing results. Choose **Current Message** or **Whole Document**, then

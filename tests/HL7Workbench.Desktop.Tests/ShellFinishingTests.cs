@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -25,6 +26,12 @@ public sealed partial class ScriptEditorTests
         .Concat(MessageInsertionWorkflow.Choices.Select(c => MessageInsertionWorkflow.CommandName(c.Position)))
         .ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
     private static void SendShellKey(Control control, Avalonia.Input.Key key) => control.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
+    private static IEnumerable<MenuItem> ViewCommands(MenuItem parent)
+    {
+        foreach (var item in parent.Items.OfType<MenuItem>())
+            if (item.Items.Count == 0) yield return item;
+            else foreach (var command in ViewCommands(item)) yield return command;
+    }
 
     [Fact]
     public async Task ActualMainWindowHasFileSettingsViewAndHelpMenusWithExistingToolsAndShortcuts()
@@ -40,10 +47,22 @@ public sealed partial class ScriptEditorTests
                 Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menus.Select(i => i.Header));
                 Assert.Equal(new[] { "Script _API Reference", "_About Message Workbench…" }, menus[3].Items.Cast<MenuItem>().Select(i => i.Header));
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
-                Assert.Equal(new[] { "_Activity Log", "Batch _Transmission", "_Connection Manager", "Controlled _Load Testing", "_De-identification Report", "FHIR Patient _Workspace", "Field E_xtraction", "_Field Inspector", "_Find Messages", "Full _Source Viewer", "_Generation Report", "Message _Browser", "_MLLP Listener", "Script _Editor", "_Segment Navigator", "S_QL Query" },
-                    menus[2].Items.Cast<MenuItem>().Select(i => i.Header));
-                var names = menus[2].Items.Cast<MenuItem>().Select(i => i.Header!.ToString()!.Replace("_", "", StringComparison.Ordinal)).ToArray();
-                Assert.Equal(names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase), names);
+                var view = menus[2];
+                Assert.Equal(new[] { "_HL7 Inspection", "_Data & Query", "_Connectivity & Testing", "_Reports", "FHIR Patient _Workspace", "_Activity Log" },
+                    view.Items.OfType<MenuItem>().Select(i => i.Header));
+                Assert.Equal(7, view.Items.Count); Assert.IsType<Separator>(view.Items[4]);
+                var groups = new Dictionary<string, string[]>
+                {
+                    ["_HL7 Inspection"] = ["_Segment Navigator", "_Field Inspector", "Message _Browser", "Full _Source Viewer", "_Find Messages"],
+                    ["_Data & Query"] = ["S_QL Query", "Field E_xtraction", "Script _Editor"],
+                    ["_Connectivity & Testing"] = ["_Connection Manager", "_MLLP Listener", "Batch _Transmission", "Controlled _Load Testing"],
+                    ["_Reports"] = ["_Generation Report", "_De-identification Report"]
+                };
+                foreach (var (header, expected) in groups)
+                    Assert.Equal(expected, view.Items.OfType<MenuItem>().Single(i => Equals(i.Header, header)).Items.Cast<MenuItem>().Select(i => i.Header));
+                var commands = ViewCommands(view).ToArray();
+                Assert.Equal(16, commands.Length); Assert.Equal(16, commands.Select(i => i.Header).Distinct().Count());
+                Assert.All(commands, item => { Assert.Equal(MenuItemToggleType.None, item.ToggleType); Assert.False(item.IsChecked); });
                 var file = menus[0].Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(Key.S, file[1].InputGesture!.Key); Assert.Equal(KeyModifiers.Control, file[1].InputGesture!.KeyModifiers);
                 Assert.Equal(Key.S, file[2].InputGesture!.Key); Assert.Equal(KeyModifiers.Control | KeyModifiers.Shift, file[2].InputGesture!.KeyModifiers);
@@ -57,7 +76,7 @@ public sealed partial class ScriptEditorTests
         }, TestContext.Current.CancellationToken);
     }
     [Fact]
-    public async Task AlphabetizedViewMenuRetainsEveryToolCommandAndActivation()
+    public async Task GroupedViewMenuRetainsEveryToolCommandAndActivation()
     {
         await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
         await ui.Dispatch(() =>
@@ -78,7 +97,7 @@ public sealed partial class ScriptEditorTests
                     ["Script Editor"] = WorkspaceDockFactory.ScriptEditorId, ["Segment Navigator"] = WorkspaceDockFactory.NavigatorId, ["SQL Query"] = WorkspaceDockFactory.SqlQueryId
                 };
                 var view = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View"));
-                foreach (var item in view.Items.Cast<MenuItem>())
+                foreach (var item in ViewCommands(view))
                 {
                     var name = item.Header!.ToString()!.Replace("_", "", StringComparison.Ordinal);
                     Assert.True(item.IsEnabled);
@@ -95,6 +114,38 @@ public sealed partial class ScriptEditorTests
                     Assert.Equal(name == "Controlled Load Testing" ? "Load Testing" : name, tool.Title);
                     Assert.Same(tool, Assert.IsAssignableFrom<Dock.Model.Controls.IToolDock>(tool.Owner).ActiveDockable);
                 }
+            }
+            finally { window.Close(); }
+            return true;
+        }, TestContext.Current.CancellationToken);
+    }
+    [Fact]
+    public async Task OpeningSubmenuHeadersDoesNotCreateToolsOrChangeDockPlacementAndActivation()
+    {
+        await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
+        await ui.Dispatch(() =>
+        {
+            using var files = new Files(); var window = new MainWindow(files.Root); window.Show();
+            try
+            {
+                window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+                var factory = Assert.IsType<WorkspaceDockFactory>(window.FindControl<Dock.Avalonia.Controls.DockControl>("WorkspaceDock")!.Layout!.Factory);
+                var registry = (ToolWindowRegistry)typeof(MainWindow).GetField("registry", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(window)!;
+                var created = registry.Definitions.ToDictionary(d => d.Id, d => registry.IsCreated(d.Id));
+                var layout = LayoutCodec.Encode(factory.Capture());
+                var view = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View"));
+                view.IsSubMenuOpen = true; window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+                foreach (var group in view.Items.OfType<MenuItem>().Where(i => i.Items.Count > 0))
+                {
+                    Assert.Null(group.Command); Assert.Equal(MenuItemToggleType.None, group.ToggleType);
+                    group.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); group.IsSubMenuOpen = true;
+                    window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); Assert.True(group.IsSubMenuOpen);
+                    Assert.Equal(layout, LayoutCodec.Encode(factory.Capture()));
+                    Assert.All(created, entry => Assert.Equal(entry.Value, registry.IsCreated(entry.Key)));
+                    group.IsSubMenuOpen = false;
+                }
+                view.IsSubMenuOpen = false;
+                Assert.False(Directory.Exists(Path.Combine(files.Root, "Scripts")));
             }
             finally { window.Close(); }
             return true;

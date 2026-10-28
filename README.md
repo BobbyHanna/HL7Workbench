@@ -237,7 +237,7 @@ destination-version checks, transactional replacement and the final native retes
 
 ## Message search and filtering (Stages 6A–6B)
 
-Use Ctrl+F, View → Find Messages, or HL7 Tools → Find Messages for read-only literal text and
+Use Ctrl+F, View → HL7 Inspection → Find Messages, or HL7 Tools → Find Messages for read-only literal text and
 HL7 field/component searches across the current document, including unsaved edits.
 Results keep original ordinals, support double-click/Enter navigation and 200-row pages,
 and can filter the existing message navigator. Edits, switching and closure invalidate

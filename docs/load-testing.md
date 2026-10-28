@@ -1,6 +1,6 @@
 # Controlled MLLP Load Testing
 
-Open **View → Controlled Load Testing** or **TCP/MLLP → Load Testing**. Use synthetic
+Open **View → Connectivity & Testing → Controlled Load Testing** or **TCP/MLLP → Load Testing**. Use synthetic
 messages and an explicitly authorized test destination. The tool starts idle; opening,
 reconstructing or restoring it never connects or sends. Single-send and sequential
 Batch Transmission retain their separate existing workflows.

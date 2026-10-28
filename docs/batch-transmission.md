@@ -5,7 +5,7 @@ native acceptance checks. Stage 13B adds a separate [Controlled Load Testing too
 with its own authorization and hard bounds. Sequential batch behavior below remains
 unchanged; its no-concurrency statement applies to this tool.
 
-Stage 13A adds **View → Batch Transmission**, also available on the TCP/MLLP ribbon.
+Stage 13A adds Batch Transmission, now under **View → Connectivity & Testing → Batch Transmission**, also available on the TCP/MLLP ribbon.
 Use only synthetic messages and explicitly authorized test destinations. This is
 an interactive sequential tool. It has no scheduled/startup sending, automatic
 retries, persistent resume or concurrent load mode. TLS remains unavailable and

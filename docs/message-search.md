@@ -13,7 +13,7 @@ No tag, release, installer, distribution package or additional implementation is
 
 ## Opening and using search
 
-Use **View → Find Messages**, **HL7 Tools → Search → Find Messages**, or **Ctrl+F**.
+Use **View → HL7 Inspection → Find Messages**, **HL7 Tools → Search → Find Messages**, or **Ctrl+F**.
 All three use the same command: open/reveal the retained dockable/floating Find Messages
 tool and focus/select its search-value input, including from floating tool windows.
 Opening/focusing never executes a search or clears existing results/filter state. The

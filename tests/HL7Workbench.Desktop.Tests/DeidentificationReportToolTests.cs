@@ -60,7 +60,8 @@ public sealed class DeidentificationReportToolTests
                 first.IsEditMode = true; first.ReplaceWorkingText(first.EditableText + "NTE|1||SYN-LATER\r"); await first.EditRefresh; Pump(window);
                 Assert.Contains("Stale output", view.Provenance.Text); Assert.NotEmpty(view.Findings.Children);
                 factory.CloseDockable(tool); Pump(window); Assert.Null(model.Report); Assert.Null(tool.Context); Assert.NotNull(first.TransformationReport);
-                var menu = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View")).Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_De-identification Report"));
+                var reports = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View")).Items.OfType<MenuItem>().Single(m => Equals(m.Header, "_Reports"));
+                var menu = reports.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_De-identification Report"));
                 menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); Pump(window);
                 var next = Assert.IsType<DeidentificationReportViewModel>(tool.Context); Assert.NotSame(model, next); Assert.Same(first.TransformationReport, next.Report);
                 var plain = MessageFileReader.Open(documents, "Plain", Hl7Parser.Parse("MSH|^~\\&|SYN|TEST|DEST|TEST|20300101||ADT^A01|SYN|T|2.5.1\r"));

@@ -63,7 +63,7 @@ document, independent of later editor runs. It tracks captured revision and stal
 closed source without rendering arbitrary CSV cells or retaining the source owner.
 See the acceptance matrix for supported demographics/age codes and residual risks.
 
-View → Script Editor is a dockable/floating tool. Scripts ribbon → New (or editor **New**) creates an editable
+View → Data & Query → Script Editor is a dockable/floating tool. Scripts ribbon → New (or editor **New**) creates an editable
 `void Main()` starter. Name it, Save Script, choose **Apply to: Current message /
 Whole document**, and Run. The identical script works in either scope. There are
 no Message/Batch script types. Duplicate makes editable copies of immutable examples

@@ -139,7 +139,7 @@ Save As is explicit; source JSON is never rewritten.
 
 The compact **Generated from FHIR R4** row beneath RAW navigation shows the original
 generated message/patient counts. **View report** opens or focuses the dockable
-**Generation Report**; **View → Generation Report** reopens it after closing. The
+**Generation Report**; **View → Reports → Generation Report** reopens it after closing. The
 row is absent on documents without generation metadata. The full scrollable
 **Generation Report — Review required** follows the selected document, with an empty
 state for other tabs. Dock, float and resize it using the normal workspace controls.

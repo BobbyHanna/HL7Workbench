@@ -99,7 +99,8 @@ public sealed class GenerationReportToolTests
                 var plain = Plain(documents); factory.OpenDocument(plain.Id); Pump(window); Assert.Null(model.Report); Assert.True(view.EmptyState.IsVisible, "Plain document should clear the tool.");
                 factory.CloseDockable(tool); Pump(window); Assert.Null(tool.Context); Assert.Null(model.Report); Assert.Same(first.Report, first.Document.GenerationReport);
                 factory.OpenDocument(second.Document.Id);
-                var menu = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View")).Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_Generation Report"));
+                var reports = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View")).Items.OfType<MenuItem>().Single(m => Equals(m.Header, "_Reports"));
+                var menu = reports.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_Generation Report"));
                 menu.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); Pump(window);
                 var next = Assert.IsType<GenerationReportViewModel>(tool.Context); Assert.NotSame(model, next); Assert.Same(second.Report, next.Report);
                 Assert.Equal(GenerationReportView.Format(second.Report), dock.GetVisualDescendants().OfType<GenerationReportView>().Single().Details.Text);

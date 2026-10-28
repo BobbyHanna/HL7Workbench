@@ -11,7 +11,7 @@ reviewed [Batch Transmission tool](batch-transmission.md); the one-message workf
 below is unchanged. Concurrent loads/scheduling/retries remain deferred. Stage 13A
 passed native acceptance including report polish; its local checkpoint is authorized.
 
-Open **View → Connection Manager** and **View → MLLP Listener**, or the TCP/MLLP
+Open **View → Connectivity & Testing → Connection Manager** and **View → Connectivity & Testing → MLLP Listener**, or the TCP/MLLP
 ribbon tab. Both are optional dockable tools. Opening/restoring the application
 does not connect, start listening or send. Closing a tool stops its network work
 and releases its ephemeral payload history; replacing a Dock view retains the

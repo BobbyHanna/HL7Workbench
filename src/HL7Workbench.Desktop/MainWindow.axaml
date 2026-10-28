@@ -19,22 +19,31 @@
         <MenuItem Header="_Preferences…" Click="ShowPreferences" />
       </MenuItem>
       <MenuItem Header="_View">
-        <MenuItem Header="_Activity Log" Click="ShowActivity" ToolTip.Tip="Show session operation history, warnings and errors" />
-        <MenuItem Header="Batch _Transmission" Click="ShowBatchTransmission" />
-        <MenuItem Header="_Connection Manager" Click="ShowConnections" />
-        <MenuItem Header="Controlled _Load Testing" Click="ShowLoadTesting" />
-        <MenuItem Header="_De-identification Report" Click="ShowDeidentificationReport" ToolTip.Tip="Review the selected output's de-identification execution and findings" />
+        <MenuItem Header="_HL7 Inspection">
+          <MenuItem Header="_Segment Navigator" Click="ShowNavigator" ToolTip.Tip="Show segments in the active message" />
+          <MenuItem Header="_Field Inspector" Click="ShowFields" ToolTip.Tip="Inspect structural values in the selected segment" />
+          <MenuItem Header="Message _Browser" Click="ShowBrowser" />
+          <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
+          <MenuItem x:Name="FindMessagesMenu" Header="_Find Messages" InputGesture="Ctrl+F" ToolTip.Tip="Open Find Messages and focus the search value (Ctrl+F)" AutomationProperties.Name="Find Messages" />
+        </MenuItem>
+        <MenuItem Header="_Data &amp; Query">
+          <MenuItem x:Name="SqlQueryMenu" Header="S_QL Query" Click="ShowSqlQuery" ToolTip.Tip="Run local read-only SQL over loaded HL7, report to CSV or open matching messages" />
+          <MenuItem x:Name="FieldExtractionMenu" Header="Field E_xtraction" Click="ShowFieldExtraction" ToolTip.Tip="Extract fields into a read-only table and CSV" />
+          <MenuItem Header="Script _Editor" Click="ShowScripts" ToolTip.Tip="Create, save and run trusted local C# scripts" />
+        </MenuItem>
+        <MenuItem Header="_Connectivity &amp; Testing">
+          <MenuItem Header="_Connection Manager" Click="ShowConnections" />
+          <MenuItem Header="_MLLP Listener" Click="ShowListener" />
+          <MenuItem Header="Batch _Transmission" Click="ShowBatchTransmission" />
+          <MenuItem Header="Controlled _Load Testing" Click="ShowLoadTesting" />
+        </MenuItem>
+        <MenuItem Header="_Reports">
+          <MenuItem Header="_Generation Report" Click="ShowGenerationReport" ToolTip.Tip="Review the selected document's FHIR generation report" />
+          <MenuItem Header="_De-identification Report" Click="ShowDeidentificationReport" ToolTip.Tip="Review the selected output's de-identification execution and findings" />
+        </MenuItem>
+        <Separator />
         <MenuItem x:Name="SyntheticPatientsMenu" Header="FHIR Patient _Workspace" Click="ShowSyntheticPatients" ToolTip.Tip="Import local FHIR R4, inspect patient records and generate HL7" />
-        <MenuItem x:Name="FieldExtractionMenu" Header="Field E_xtraction" Click="ShowFieldExtraction" ToolTip.Tip="Extract fields into a read-only table and CSV" />
-        <MenuItem Header="_Field Inspector" Click="ShowFields" ToolTip.Tip="Inspect structural values in the selected segment" />
-        <MenuItem x:Name="FindMessagesMenu" Header="_Find Messages" InputGesture="Ctrl+F" ToolTip.Tip="Open Find Messages and focus the search value (Ctrl+F)" AutomationProperties.Name="Find Messages" />
-        <MenuItem Header="Full _Source Viewer" Click="ShowRaw" ToolTip.Tip="View complete original HL7 message" />
-        <MenuItem Header="_Generation Report" Click="ShowGenerationReport" ToolTip.Tip="Review the selected document's FHIR generation report" />
-        <MenuItem Header="Message _Browser" Click="ShowBrowser" />
-        <MenuItem Header="_MLLP Listener" Click="ShowListener" />
-        <MenuItem Header="Script _Editor" Click="ShowScripts" ToolTip.Tip="Create, save and run trusted local C# scripts" />
-        <MenuItem Header="_Segment Navigator" Click="ShowNavigator" ToolTip.Tip="Show segments in the active message" />
-        <MenuItem x:Name="SqlQueryMenu" Header="S_QL Query" Click="ShowSqlQuery" ToolTip.Tip="Run local read-only SQL over loaded HL7, report to CSV or open matching messages" />
+        <MenuItem Header="_Activity Log" Click="ShowActivity" ToolTip.Tip="Show session operation history, warnings and errors" />
       </MenuItem>
       <MenuItem Header="_Help">
         <MenuItem x:Name="ScriptApiReferenceMenu" Header="Script _API Reference" Click="ShowScriptApiReference" />

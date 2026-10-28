@@ -4,7 +4,7 @@ The permanent menu bar is **File | Settings | View**. Scripts and Window dropdow
 are removed. View retains Message Browser, Activity Log, Segment Navigator, Field
 Inspector, Script Editor and Full Source Viewer. File → Save/Save As still save HL7
 documents. Script saving is explicitly Save Script in the editor and Save in the ribbon.
-View → Script Editor and Scripts ribbon → Open Script Editor reveal/focus the retained
+View → Data & Query → Script Editor and Scripts ribbon → Open Script Editor reveal/focus the retained
 dockable/floating tool. The Scripts ribbon and editor use the same commands and model.
 Home → Workspace provides Save Layout, Restore Layout and Reset Layout / Recover Windows.
 All ten former Scripts menu commands are available in the Scripts ribbon, even when

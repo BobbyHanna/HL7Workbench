@@ -1,13 +1,13 @@
 # Use SQL Query
 
-Stage 15C adds **View → SQL Query** as an optional dockable tool. The normal default
+Stage 15C adds SQL Query as an optional dockable tool, now under **View → Data & Query → SQL Query**. The normal default
 layout is unchanged. You can dock or float the tool and resize its editor/results
 split. A saved layout can reopen the tool, but always with a fresh draft and no
 restored results. All execution stays local; no database server is required.
 
 ## Run against current or selected documents
 
-1. Open synthetic HL7 data, then choose View → SQL Query.
+1. Open synthetic HL7 data, then choose View → Data & Query → SQL Query.
 2. Use Current document, or choose Selected open documents and check the sources.
 3. Enter one read-only query and press **Ctrl+Enter** or **Run**. Ctrl+S explicitly
    saves the named SQL query when focus is in this tool; it does not save the HL7.

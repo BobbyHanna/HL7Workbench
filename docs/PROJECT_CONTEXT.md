@@ -8,6 +8,19 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## Grouped View menu (2026-10-28)
+
+After the owner checkpointed Stage 15D at a99fb2f, View groups the existing commands
+under HL7 Inspection, Data & Query, Connectivity & Testing and Reports. FHIR Patient
+Workspace and Activity Log remain directly accessible below one separator. Group
+headers have no tool-opening command; leaf handlers, shortcuts, names and docking
+identities are retained. No default/persisted layout, SQL or generation behavior
+changes. This navigation-only cleanup does not authorize Stage 16 or a commit/push.
+Verification: locked restores, Release build (0 warnings/errors), 32 focused shell
+tests and all 2,283 regular regressions passed; 14 opt-in stress cases were skipped.
+All 16 leaf attributes and 2,384 protected preview hashes are unchanged. Native
+Windows submenu/keyboard/visual checks remain manual.
+
 ## Stage 15D — SQL stabilization and final acceptance (2026-10-28)
 
 The owner checkpointed/pushed 15A–15C and UI follow-ups at fc802a8, then authorized
