@@ -14,6 +14,8 @@ public sealed class ActivityLogViewModel : IDisposable
     private bool disposed;
     private Hl7DiagnosticSeverity? severity;
     public ReadOnlyObservableCollection<ActivityEntry> Entries { get; }
+    // Opaque session sequence numbers only; no views or copied log text survive Dock retemplating.
+    internal long[] SelectedSequences { get; set; } = [];
     public event EventHandler? Updating;
     public event EventHandler? Updated;
     public Hl7DiagnosticSeverity? Severity
@@ -36,16 +38,17 @@ public sealed class ActivityLogViewModel : IDisposable
         Updating?.Invoke(this, EventArgs.Empty);
         var next = log.Snapshot().Where(e => severity is null || e.Severity == severity).ToArray();
         var identities = next.Select(e => e.Sequence).ToHashSet();
+        SelectedSequences = SelectedSequences.Where(identities.Contains).ToArray();
         for (var i = entries.Count - 1; i >= 0; i--) if (!identities.Contains(entries[i].Sequence)) entries.RemoveAt(i);
         for (var i = 0; i < next.Length; i++)
             if (i >= entries.Count || entries[i].Sequence != next[i].Sequence) entries.Insert(i, next[i]);
         Updated?.Invoke(this, EventArgs.Empty);
     }
-    public void Clear() => log.Clear();
+    public void Clear() { SelectedSequences = []; log.Clear(); }
     public static string CopyText(IEnumerable<ActivityEntry> selected) => string.Join(Environment.NewLine, selected.OrderBy(e => e.Sequence));
     public void Dispose()
     {
         if (disposed) return; disposed = true;
-        log.Changed -= Changed; Updating = null; Updated = null; entries.Clear();
+        log.Changed -= Changed; Updating = null; Updated = null; entries.Clear(); SelectedSequences = [];
     }
 }

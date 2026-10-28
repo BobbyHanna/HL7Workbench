@@ -22,6 +22,7 @@ public sealed class ScriptApiReferenceView : Grid
     private readonly Grid body = new();
     private readonly GridSplitter splitter = new();
     private readonly ScrollViewer detailHost;
+    private bool? wideLayout;
     public TextBox Search { get; } = new() { PlaceholderText = "Search class, member or keyword", MaxLength = 256 };
     public ComboBox Category { get; } = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
     public ListBox Topics { get; } = new();
@@ -41,7 +42,7 @@ public sealed class ScriptApiReferenceView : Grid
     public ScriptApiReferenceView(ScriptApiReferenceViewModel model)
     {
         this.model = model; Margin = new(8); RowDefinitions = new("Auto,Auto,Auto,*,Auto"); MinWidth = 280; MinHeight = 180;
-        var top = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var top = new AdaptiveActionBar();
         top.Children.Add(Back); top.Children.Add(Version); Children.Add(top);
         Search.Margin = new(0, 6); SetRow(Search, 1); Children.Add(Search);
         Category.ItemsSource = model.Categories; Category.Margin = new(0, 0, 0, 6); SetRow(Category, 2); Children.Add(Category);
@@ -50,7 +51,7 @@ public sealed class ScriptApiReferenceView : Grid
         Topics.ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel());
         var detail = new StackPanel { Spacing = 7, Margin = new(8, 0, 2, 0) };
         detail.Children.Add(Title); detail.Children.Add(description);
-        var actions = new WrapPanel { Orientation = Orientation.Horizontal };
+        var actions = new AdaptiveActionBar();
         foreach (var button in new[] { CopySignature, CopyExample, CreateScript }) { button.Margin = new(0, 0, 5, 3); actions.Children.Add(button); }
         detail.Children.Add(actions);
         void Section(string title, Control content)
@@ -73,6 +74,7 @@ public sealed class ScriptApiReferenceView : Grid
         Topics.SelectionChanged += (_, _) => { if (!synchronizing) model.Selected = Topics.SelectedItem as ScriptApiEntry; };
         AttachedToVisualTree += (_, _) => { model.PropertyChanged += Changed; model.Shown += FocusSearch; Refresh(); };
         DetachedFromVisualTree += (_, _) => { model.PropertyChanged -= Changed; model.Shown -= FocusSearch; };
+        ResponsiveToolSurface.Attach(this, (3, ToolLayoutMetrics.ListHeight + 150));
         SizeChanged += (_, _) => ArrangePanes(); ArrangePanes(); Refresh();
     }
     private static SelectableTextBlock Prose() => new() { TextWrapping = TextWrapping.Wrap };
@@ -88,7 +90,9 @@ public sealed class ScriptApiReferenceView : Grid
     private void Changed(object? sender, PropertyChangedEventArgs e) => Refresh();
     private void ArrangePanes()
     {
-        if (Bounds.Width >= 640)
+        var wide = Bounds.Width >= ToolLayoutMetrics.FullWidth;
+        if (wideLayout == wide) return; wideLayout = wide;
+        if (wide)
         {
             body.ColumnDefinitions = new("210,5,*"); body.RowDefinitions = new("*");
             SetColumn(Topics, 0); SetRow(Topics, 0); SetColumn(splitter, 1); SetRow(splitter, 0); SetColumn(detailHost, 2); SetRow(detailHost, 0);
@@ -97,6 +101,7 @@ public sealed class ScriptApiReferenceView : Grid
         else
         {
             body.ColumnDefinitions = new("*"); body.RowDefinitions = new("120,5,*");
+            body.RowDefinitions[2].MinHeight = ToolLayoutMetrics.ListHeight;
             SetColumn(Topics, 0); SetRow(Topics, 0); SetColumn(splitter, 0); SetRow(splitter, 1); SetColumn(detailHost, 0); SetRow(detailHost, 2);
             splitter.ResizeDirection = GridResizeDirection.Rows;
         }

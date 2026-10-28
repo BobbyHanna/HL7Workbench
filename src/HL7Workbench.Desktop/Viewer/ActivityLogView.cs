@@ -24,19 +24,27 @@ public sealed class ActivityLogView : Grid
     private long? anchor;
     private double anchorY;
     private long revision;
+    private bool restoringSelection;
     public ListBox Entries { get; } = new() { SelectionMode = SelectionMode.Multiple };
     public ComboBox Severity { get; } = new() { ItemsSource = new[] { "All severities", "Information", "Warning", "Error" }, SelectedIndex = 0, MinWidth = 150 };
     public Button Clear { get; } = new() { Content = "Clear Log", Margin = new(4, 0) };
     public Button Copy { get; } = new() { Content = "Copy Selected Entries" };
+    public ResponsiveToolSurface LayoutSurface { get; }
     public ActivityLogView(ActivityLogViewModel model)
     {
         this.model = model; RowDefinitions = new("Auto,*"); Margin = new(6);
         AutomationProperties.SetName(this, "Activity Log"); AutomationProperties.SetName(Entries, "Session activity entries");
         ToolTip.SetTip(Severity, "Show all entries or only the selected severity"); ToolTip.SetTip(Clear, "Clear session activity; retained document diagnostics are unchanged");
         ToolTip.SetTip(Copy, "Copy selected safe activity entries in chronological order");
-        var bar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new(0, 0, 0, 4) };
+        var bar = new AdaptiveActionBar();
         bar.Children.Add(Severity); bar.Children.Add(Clear); bar.Children.Add(Copy); Children.Add(bar);
         Entries.ItemsSource = model.Entries;
+        Severity.SelectedIndex = model.Severity switch { Hl7DiagnosticSeverity.Information => 1, Hl7DiagnosticSeverity.Warning => 2, Hl7DiagnosticSeverity.Error => 3, _ => 0 };
+        Entries.SelectionChanged += (_, _) =>
+        {
+            if (!restoringSelection && this.IsAttachedToVisualTree())
+                model.SelectedSequences = Entries.SelectedItems?.OfType<ActivityEntry>().Select(e => e.Sequence).ToArray() ?? [];
+        };
         Entries.ItemTemplate = new FuncDataTemplate<ActivityEntry>((entry, _) => new TextBlock { Text = entry?.ToString() ?? "", Margin = new(2), FontFamily = new("Consolas, monospace") });
         Entries.ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel());
         ScrollViewer.SetHorizontalScrollBarVisibility(Entries, ScrollBarVisibility.Auto);
@@ -49,6 +57,7 @@ public sealed class ActivityLogView : Grid
             if (e.Key == Key.C && e.KeyModifiers.HasFlag(OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control))
             { e.Handled = true; await CopyAsync(); }
         };
+        LayoutSurface = ResponsiveToolSurface.Attach(this, (1, ToolLayoutMetrics.ListHeight));
     }
     public string SelectedText() => ActivityLogViewModel.CopyText(Entries.SelectedItems?.OfType<ActivityEntry>() ?? []);
     public async Task CopyAsync()
@@ -89,6 +98,13 @@ public sealed class ActivityLogView : Grid
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e); model.Updating += Updating; model.Updated += Updated;
+        restoringSelection = true;
+        try
+        {
+            foreach (var entry in model.Entries.Where(entry => model.SelectedSequences.Contains(entry.Sequence)))
+                if (!Entries.SelectedItems!.Contains(entry)) Entries.SelectedItems.Add(entry);
+        }
+        finally { restoringSelection = false; }
         following = true; Updated(this, EventArgs.Empty);
     }
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

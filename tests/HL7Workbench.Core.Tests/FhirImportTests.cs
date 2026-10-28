@@ -16,6 +16,17 @@ public sealed class FhirImportTests
     { var root = JsonNode.Parse(Fixture())!.AsObject(); edit(root); return root.ToJsonString(); }
     private static JsonObject Resource(JsonObject bundle, string type) => bundle["entry"]!.AsArray().Select(n => n!["resource"]!.AsObject()).First(n => (string?)n["resourceType"] == type);
     [Fact]
+    public async Task ImportWithoutAcknowledgmentKeepsValidationLimitsCancellationAndContentFreeErrors()
+    {
+        var session = await FhirR4Importer.ImportAsync([Input(Fixture())], token: Token);
+        Assert.Single(session.Patients);
+        var error = await Assert.ThrowsAsync<InvalidDataException>(() => FhirR4Importer.ImportAsync([Input(Fixture())], new FhirImportLimits { FileBytes = 1 }, Token));
+        Assert.DoesNotContain("SYN-ALPHA", error.Message, StringComparison.Ordinal);
+        await Assert.ThrowsAsync<InvalidDataException>(() => FhirR4Importer.ImportAsync([Input("{invalid-synthetic-json")], token: Token));
+        using var canceled = new CancellationTokenSource(); canceled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => FhirR4Importer.ImportAsync([Input(Fixture())], token: canceled.Token));
+    }
+    [Fact]
     public async Task TransactionCollectionFullUrlsRelativeContainedAndCrossInputLinksPreserveExplicitIdentity()
     {
         var session = await FhirR4Importer.ImportAsync([Input(Fixture()), Input(Fixture("patient-beta.json"))], true, token: Token);

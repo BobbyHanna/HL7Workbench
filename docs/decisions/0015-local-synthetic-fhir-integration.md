@@ -1,5 +1,25 @@
 # ADR 0015: Session-only synthetic FHIR import and explicit v2 mapping
 
+## Stage 15UI workspace amendment (2026-10-27)
+
+The owner's explicit follow-up supersedes the per-import acknowledgment/banner
+decision below. The visible tool is **FHIR Patient Workspace**; internal classes
+and `tool.synthetic-patients` remain compatible. Desktop uses new no-acknowledgment
+import overloads through Workspace/Core, with the exact same validation, limits,
+path and publication implementation. Boolean compatibility overloads retain their
+old caller-supplied guard, but the workspace neither exposes a checkbox nor
+falsely passes a user-confirmed value. No synthetic provenance is certified.
+
+Master-detail browsing and collapsed generation reuse the finite responsive layout
+infrastructure. Selections/settings/preview stay session-owned through docking.
+The old report notice no longer asserts user-confirmed synthetic status; clinical
+mapping limitations remain. About and the data-handling reference carry factual
+responsibility/privacy information without introducing a new binding EULA.
+See [workspace guide](../fhir-patient-workspace.md) and
+[follow-up acceptance](../stage15ui-fhir-workspace-acceptance.md).
+
+The original Stage 11 decision and native acceptance record follow as history.
+
 Status: Stage 11 authorized 2026-10-21 after the successful Stage 10 checkpoint
 1b04e1849b2ba3c03d135cf324bae28b8af4cba8. These decisions precede implementation.
 Implemented under Stage 11; user native Windows acceptance confirmed 2026-10-21,
@@ -93,6 +113,16 @@ the existing output ceilings; no truncation/oversized output buffer. Scoped excl
 ADT ineligibility reasons, output limits and preview-versus-generated totals remain
 count-only. Separate per-patient documents are deferred because the publisher has
 no atomic group-of-tabs rollback; reuse its one-output boundary without redesign.
+
+Generation UX amendment (2026-10-28): Preview is optional. Workspace's settings-based
+GenerateAsync overload and PreviewAsync share off-context preparation through the
+unchanged Core plan. Reuse requires the captured session revision and all scalar
+request settings; source/scope/selection changes invalidate the revision. Generate
+prepares internally before the existing publisher checks and one-document open.
+The legacy prepared-only GenerateAsync(CancellationToken) remains for existing
+programmatic callers. No mapping, ceiling, event-selection or warning policy changed.
+Desktop seed/timestamp move to session-retained Advanced Options. Context-specific
+seed help distinguishes FHIR transport IDs from the separate synthetic PRNG.
 
 References checked 2026-10-21: [Synthea R4 exporter](https://github.com/synthetichealth/synthea/blob/master/src/main/java/org/mitre/synthea/export/FhirR4.java),
 [R4 Bundle](https://hl7.org/fhir/R4/bundle.html), [R4 references](https://hl7.org/fhir/R4/references.html),

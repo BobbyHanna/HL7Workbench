@@ -320,24 +320,28 @@
       "hl7workbench.core": {
         "type": "Project"
       },
+      "hl7workbench.querying": {
+        "type": "Project"
+      },
       "hl7workbench.scripting": {
         "type": "Project",
         "dependencies": {
-          "HL7Workbench.Core": "[1.0.0, )"
+          "HL7Workbench.Core": "[0.1.0-beta, )"
         }
       },
       "hl7workbench.transport": {
         "type": "Project",
         "dependencies": {
-          "HL7Workbench.Core": "[1.0.0, )"
+          "HL7Workbench.Core": "[0.1.0-beta, )"
         }
       },
       "hl7workbench.workspace": {
         "type": "Project",
         "dependencies": {
-          "HL7Workbench.Core": "[1.0.0, )",
-          "HL7Workbench.Scripting": "[1.0.0, )",
-          "HL7Workbench.Transport": "[1.0.0, )"
+          "HL7Workbench.Core": "[0.1.0-beta, )",
+          "HL7Workbench.Querying": "[0.1.0-beta, )",
+          "HL7Workbench.Scripting": "[0.1.0-beta, )",
+          "HL7Workbench.Transport": "[0.1.0-beta, )"
         }
       }
     }

@@ -47,8 +47,8 @@ passed native Windows acceptance and is checkpointed as
 `e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. See the [transport guide](docs/tcp-mllp.md)
 and [Stage 12 acceptance](docs/stage12-tcp-mllp-acceptance.md).
 
-Stage 11 adds optional **Synthetic Patients** from File/View: local, explicitly
-synthetic-only FHIR R4 Bundle import, bounded patient/encounter/timeline browsing,
+**FHIR Patient Workspace** (formerly Synthetic Patients) opens from File/View: local
+FHIR R4 Bundle import, bounded master-detail patient/encounter/timeline browsing,
 conservative seeded ADT A04/A01/A03 and ORU R01 generation into new unsaved HL7
 documents, and document-associated count-only Generation Reports. No server or
 manual event selection is required for the default Selected Patient history scope;
@@ -117,6 +117,10 @@ native Windows acceptance on 2026-10-20; earlier pending notes are historical.
 Choose ADT^A01 (admission), ADT^A04 (registration), ADT^A08 (update), ORM^O01 (order)
 or ORU^R01 (results). Defaults create one new unsaved ADT^A01 with seed 42,
 timestamp `2030-01-01T00:00:00+00:00` and prefix `SYN`. An empty seed also means 42.
+Hover Seed's label/input for context-specific help. This
+seed controls test-name suffixes, birth dates, numeric ORU values and derived IDs;
+identical settings repeat output for the same generator version. Fixed facilities,
+providers and configured transport timestamps do not change with the seed.
 Use a timestamp with seconds and an explicit offset (or Z); it normalizes to UTC.
 Prefixes normalize to uppercase ASCII letters/digits/hyphens/underscores, 1–12 characters.
 The preview shows configuration and the expected control-ID range without generating

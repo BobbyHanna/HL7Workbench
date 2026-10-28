@@ -63,7 +63,7 @@ public sealed class ComparisonView : Grid
         SourceA = new(model, true); SourceB = new(model, false);
         var sourceBar = new Grid { ColumnDefinitions = new("*,8,*") };
         sourceBar.Children.Add(SourceA); SetColumn(SourceB, 2); sourceBar.Children.Add(SourceB); Children.Add(sourceBar);
-        var toolbar = new WrapPanel { Orientation = Orientation.Horizontal };
+        var toolbar = new AdaptiveActionBar();
         Compare.Click += (_, _) => model.Start(); Previous.Click += (_, _) => model.Move(-1); Next.Click += (_, _) => model.Move(1);
         DifferencesMode.Click += (_, _) => { model.Presentation = ComparisonPresentation.Differences; Refresh(); };
         SideBySideMode.Click += (_, _) => { model.Presentation = ComparisonPresentation.SideBySide; Refresh(); };

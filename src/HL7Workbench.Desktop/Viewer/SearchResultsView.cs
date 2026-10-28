@@ -61,12 +61,12 @@ public sealed class SearchResultsView : Grid
     public SearchResultsView(SearchViewModel model)
     {
         this.model = model; Margin = new Thickness(8); RowDefinitions = new("Auto,3*,6,2*"); RowSpacing = 4;
-        var controls = new WrapPanel { Orientation = Orientation.Horizontal };
+        var controls = new AdaptiveActionBar();
         foreach (var control in new Control[] { BuilderMode, Search, Cancel, Clear, Filter }) { control.Margin = new Thickness(0, 0, 6, 4); controls.Children.Add(control); }
         foreach (var control in new Control[] { Mode, Value, CaseSensitive }) { control.Margin = new Thickness(0, 0, 6, 4); simpleControls.Children.Add(control); }
         fieldControls.Children.Add(new TextBlock { Text = "Field path", VerticalAlignment = VerticalAlignment.Center }); fieldControls.Children.Add(FieldPath); fieldControls.Children.Add(Comparison);
         RootEditor = new(model, model.RootGroup); advancedControls.Children.Add(RootEditor);
-        var libraryControls = new WrapPanel { Orientation = Orientation.Horizontal };
+        var libraryControls = new AdaptiveActionBar();
         foreach (var control in new Control[] { SavedSearches, LoadSearch, SearchName, SaveSearch, UpdateSearch, RenameSearch, DeleteSearch })
         { control.Margin = new Thickness(0, 0, 6, 4); libraryControls.Children.Add(control); }
         LibraryPanel.Content = new StackPanel { Spacing = 4, Children =
@@ -106,7 +106,7 @@ public sealed class SearchResultsView : Grid
         });
         ScrollViewer.SetHorizontalScrollBarVisibility(Results, ScrollBarVisibility.Auto);
         SetRow(Results, 2); ResultRegion.Children.Add(Results);
-        var footer = new WrapPanel { Orientation = Orientation.Horizontal };
+        var footer = new AdaptiveActionBar();
         foreach (var control in new Control[] { Count, Previous, page, Next }) { control.Margin = new Thickness(0, 0, 8, 0); footer.Children.Add(control); }
         SetRow(footer, 3); ResultRegion.Children.Add(footer);
         Search.Command = model.SearchCommand; Cancel.Command = model.CancelCommand; Clear.Command = model.ClearCommand;

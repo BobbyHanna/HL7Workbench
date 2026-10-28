@@ -9,6 +9,12 @@ public static class FhirPatientImport
         FhirImportLimits? limits = null, IProgress<FhirImportProgress>? progress = null, CancellationToken token = default)
     {
         if (!syntheticConfirmed) throw new InvalidOperationException("Confirm synthetic/test data before selecting an import.");
+        return FilesAsync(paths, limits, progress, token);
+    }
+    /// <summary>Reads explicitly selected local JSON files without an acknowledgment gate.</summary>
+    public static Task<FhirImportSession> FilesAsync(IEnumerable<string> paths,
+        FhirImportLimits? limits = null, IProgress<FhirImportProgress>? progress = null, CancellationToken token = default)
+    {
         limits ??= new(); CheckFileLimit(limits); var selected = paths.Take(limits.Files + 1).ToArray();
         return Task.Run(() => ImportAsync(selected, limits, progress, token), token);
     }
@@ -16,6 +22,12 @@ public static class FhirPatientImport
         FhirImportLimits? limits = null, IProgress<FhirImportProgress>? progress = null, CancellationToken token = default)
     {
         if (!syntheticConfirmed) throw new InvalidOperationException("Confirm synthetic/test data before selecting an import.");
+        return FolderAsync(directory, limits, progress, token);
+    }
+    /// <summary>Reads the top-level local folder under existing file, path and resource limits.</summary>
+    public static Task<FhirImportSession> FolderAsync(string directory,
+        FhirImportLimits? limits = null, IProgress<FhirImportProgress>? progress = null, CancellationToken token = default)
+    {
         limits ??= new(); CheckFileLimit(limits);
         return Task.Run(async () =>
         {
@@ -44,7 +56,7 @@ public static class FhirPatientImport
                 ct.ThrowIfCancellationRequested();
                 return Task.FromResult<Stream>(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, FileOptions.Asynchronous | FileOptions.SequentialScan));
             }));
-            return await FhirR4Importer.ImportAsync(inputs, true, limits, token, progress).ConfigureAwait(false);
+            return await FhirR4Importer.ImportAsync(inputs, limits, token, progress).ConfigureAwait(false);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
         { throw Unavailable(); }

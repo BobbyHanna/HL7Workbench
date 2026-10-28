@@ -40,8 +40,10 @@ public sealed partial class ScriptEditorTests
                 Assert.Equal(new[] { "_File", "_Settings", "_View", "_Help" }, menus.Select(i => i.Header));
                 Assert.Equal(new[] { "Script _API Reference", "_About Message Workbench…" }, menus[3].Items.Cast<MenuItem>().Select(i => i.Header));
                 Assert.Null(window.FindControl<MenuItem>("ScriptsMenu"));
-                Assert.Equal(new[] { "Message _Browser", "_Activity Log", "_Segment Navigator", "_Field Inspector", "Script _Editor", "Field E_xtraction", "Synthetic _Patients", "_Generation Report", "_De-identification Report", "_Connection Manager", "_MLLP Listener", "Batch _Transmission", "Controlled _Load Testing", "_Find Messages", "Full _Source Viewer" },
+                Assert.Equal(new[] { "_Activity Log", "Batch _Transmission", "_Connection Manager", "Controlled _Load Testing", "_De-identification Report", "FHIR Patient _Workspace", "Field E_xtraction", "_Field Inspector", "_Find Messages", "Full _Source Viewer", "_Generation Report", "Message _Browser", "_MLLP Listener", "Script _Editor", "_Segment Navigator", "S_QL Query" },
                     menus[2].Items.Cast<MenuItem>().Select(i => i.Header));
+                var names = menus[2].Items.Cast<MenuItem>().Select(i => i.Header!.ToString()!.Replace("_", "", StringComparison.Ordinal)).ToArray();
+                Assert.Equal(names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase), names);
                 var file = menus[0].Items.Cast<MenuItem>().ToArray();
                 Assert.Equal(Key.S, file[1].InputGesture!.Key); Assert.Equal(KeyModifiers.Control, file[1].InputGesture!.KeyModifiers);
                 Assert.Equal(Key.S, file[2].InputGesture!.Key); Assert.Equal(KeyModifiers.Control | KeyModifiers.Shift, file[2].InputGesture!.KeyModifiers);
@@ -49,6 +51,50 @@ public sealed partial class ScriptEditorTests
                 Assert.Equal(new[] { "Home", "Scripts", "HL7 Tools", "TCP/MLLP" }, ribbon.Tabs.Select(t => t.Content));
                 Assert.False(ribbon.IsExpanded);
                 Assert.False(Directory.Exists(Path.Combine(files.Root, "Scripts")));
+            }
+            finally { window.Close(); }
+            return true;
+        }, TestContext.Current.CancellationToken);
+    }
+    [Fact]
+    public async Task AlphabetizedViewMenuRetainsEveryToolCommandAndActivation()
+    {
+        await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
+        await ui.Dispatch(() =>
+        {
+            using var files = new Files(); var window = new MainWindow(files.Root); window.Show();
+            try
+            {
+                var dock = window.FindControl<Dock.Avalonia.Controls.DockControl>("WorkspaceDock")!;
+                var factory = Assert.IsType<WorkspaceDockFactory>(dock.Layout!.Factory);
+                var ids = new Dictionary<string, string>
+                {
+                    ["Activity Log"] = WorkspaceDockFactory.ActivityLogId, ["Batch Transmission"] = WorkspaceDockFactory.BatchTransmissionId,
+                    ["Connection Manager"] = WorkspaceDockFactory.ConnectionManagerId, ["Controlled Load Testing"] = WorkspaceDockFactory.LoadTestingId,
+                    ["De-identification Report"] = WorkspaceDockFactory.DeidentificationReportId, ["FHIR Patient Workspace"] = WorkspaceDockFactory.SyntheticPatientsId,
+                    ["Field Extraction"] = WorkspaceDockFactory.FieldExtractionId, ["Field Inspector"] = WorkspaceDockFactory.FieldInspectorId,
+                    ["Find Messages"] = WorkspaceDockFactory.SearchResultsId, ["Generation Report"] = WorkspaceDockFactory.GenerationReportId,
+                    ["Message Browser"] = WorkspaceDockFactory.BrowserId, ["MLLP Listener"] = WorkspaceDockFactory.MllpListenerId,
+                    ["Script Editor"] = WorkspaceDockFactory.ScriptEditorId, ["Segment Navigator"] = WorkspaceDockFactory.NavigatorId, ["SQL Query"] = WorkspaceDockFactory.SqlQueryId
+                };
+                var view = window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().Single(m => Equals(m.Header, "_View"));
+                foreach (var item in view.Items.Cast<MenuItem>())
+                {
+                    var name = item.Header!.ToString()!.Replace("_", "", StringComparison.Ordinal);
+                    Assert.True(item.IsEnabled);
+                    if (item.Command is { } command) { Assert.True(command.CanExecute(item.CommandParameter)); command.Execute(item.CommandParameter); }
+                    else item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+                    window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+                    if (name == "Full Source Viewer")
+                    {
+                        // Source viewing retains its prerequisite instead of creating a misleading empty view.
+                        Assert.Equal("Open an inspectable message first.", window.FindControl<TextBlock>("Status")!.Text); continue;
+                    }
+                    var tool = factory.GetDockable<Dock.Model.Controls.ITool>(ids[name])!;
+                    // The existing Load Testing dock title is shorter than its menu label.
+                    Assert.Equal(name == "Controlled Load Testing" ? "Load Testing" : name, tool.Title);
+                    Assert.Same(tool, Assert.IsAssignableFrom<Dock.Model.Controls.IToolDock>(tool.Owner).ActiveDockable);
+                }
             }
             finally { window.Close(); }
             return true;

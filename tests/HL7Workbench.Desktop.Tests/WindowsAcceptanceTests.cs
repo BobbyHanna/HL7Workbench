@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.LogicalTree;
 using Avalonia.Interactivity;
 using Avalonia.Input;
 using HL7Workbench.Core;
@@ -59,7 +60,7 @@ public sealed class WindowsAcceptanceTests
                     view = Assert.Single(content.GetVisualDescendants().OfType<FullRawInspectorView>()); await view.Ready;
                     Assert.Equal(new CharacterRange(0, document.TextLength), model.Session!.Scope); Assert.Equal(0, view.Position); Assert.StartsWith("MSH", view.Editor.Text);
                     await view.LoadAsync(document.TextLength - 9); Assert.Equal("FOLLOWING", view.Editor.Text);
-                    Assert.Contains("Full Source Viewer", Assert.Single(view.Children.OfType<TextBlock>()).Text!);
+                    Assert.Contains("Full Source Viewer", Assert.Single(view.GetVisualDescendants().OfType<TextBlock>(), t => t.Text?.StartsWith("Full Source Viewer", StringComparison.Ordinal) == true).Text!);
                 }
             }
             finally { window.Close(); documents.Close(document.Id); await document.Disposal; }
@@ -93,7 +94,9 @@ public sealed class WindowsAcceptanceTests
                 document.Inspection.InspectField(99); Assert.False(panes.ValueNavigation.IsVisible);
                 document.Inspection.ClearSelection(); Assert.False(panes.ValueNavigation.IsVisible);
                 using var raw = new RawInspectorSession(document); using var sourceView = new FullRawInspectorView(raw);
-                Assert.All(sourceView.Children.OfType<WrapPanel>().Single().Children.OfType<Button>(), b => Assert.NotNull(ToolTip.GetTip(b)));
+                var navigation = sourceView.GetLogicalDescendants().OfType<AdaptiveActionBar>().Single();
+                Assert.NotEmpty(navigation.Children.OfType<Button>());
+                Assert.All(navigation.Children.OfType<Button>(), b => Assert.NotNull(ToolTip.GetTip(b)));
                 var file = new FileDocumentView(document); window.Content = file; window.UpdateLayout();
                 var buttons = file.GetVisualDescendants().OfType<Button>().Where(b => b.Content is "|<" or "<" or ">" or ">|").ToArray();
                 Assert.Equal(4, buttons.Length); Assert.All(buttons, b => Assert.Contains("message", Assert.IsType<string>(ToolTip.GetTip(b))));

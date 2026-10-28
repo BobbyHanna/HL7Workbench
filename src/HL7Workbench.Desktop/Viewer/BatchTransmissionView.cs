@@ -53,8 +53,9 @@ public sealed class BatchTransmissionView : Grid
         Add("Comma-separated positions (explicit selection only)", Positions); Add("Interval after each exchange (250–60000 ms)", Interval); Add("ACK policy", Policy);
         var mode = Text(); mode.Text = "Mode: sequential, one fresh connection per message. Only correlated AA establishes application acceptance."; form.Children.Add(mode);
         var scroll = new ScrollViewer { Content = form, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; SetRow(scroll, 1); Children.Add(scroll);
-        var controls = new WrapPanel { Orientation = Orientation.Horizontal, Children = { Prepare, Review, Start, Pause, Resume, Cancel, Export, OpenMessage, OpenAck, OpenAck2 } }; SetRow(controls, 2); Children.Add(controls);
+        var controls = new AdaptiveActionBar(Cancel, Prepare, Review, Start, Pause, Resume, Export, OpenMessage, OpenAck, OpenAck2); SetRow(controls, 2); Children.Add(controls);
         SetRow(Progress, 3); Children.Add(Progress); SetRow(Results, 4); Children.Add(Results); SetRow(Status, 5); Children.Add(Status);
+        ResponsiveToolSurface.Attach(this, controls, (1, ToolLayoutMetrics.ListHeight), (4, ToolLayoutMetrics.ListHeight));
         Results.ItemTemplate = new FuncDataTemplate<BatchMessageResult>((r, _) => new TextBlock { Text = r?.ToString(), TextWrapping = TextWrapping.Wrap });
         Profiles.SelectionChanged += (_, _) => { if (!refreshing && Profiles.SelectedItem is TransportEndpoint p && model.CanConfigure) ApplyConfiguration(p); };
         Interval.TextChanged += (_, _) => ConfigurationChanged(); Policy.SelectionChanged += (_, _) => ConfigurationChanged();
@@ -128,7 +129,7 @@ public sealed class BatchTransmissionView : Grid
         OpenAck.IsEnabled = !model.IsBusy && Results.SelectedItem is BatchMessageResult { RetainedAckFrames: > 0 };
         OpenAck2.IsEnabled = !model.IsBusy && Results.SelectedItem is BatchMessageResult { RetainedAckFrames: > 1 };
     }
-    private void Add(string label, Control control) { form.Children.Add(new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap }); form.Children.Add(control); }
+    private void Add(string label, Control control) => form.Children.Add(new ResponsiveFormField(label, control));
     private static Button B(string text) => new() { Content = text, Margin = new(2) };
     private static TextBlock Text() => new() { TextWrapping = TextWrapping.Wrap };
 }

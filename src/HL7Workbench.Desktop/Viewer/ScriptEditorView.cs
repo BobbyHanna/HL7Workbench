@@ -45,7 +45,7 @@ public sealed class ScriptEditorView : Grid
     public Button Cancel { get; } = new() { Content = "Cancel" };
     public MenuItem Review { get; } = new() { Header = "Review Output" };
     public TextBlock ExecutionStatus { get; } = new() { MaxWidth = 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
-    public TextBlock Status { get; } = new() { TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
+    public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public TextBlock OutputAttribution { get; } = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
     public TextBlock Target { get; } = new() { MaxWidth = 300, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     public ListBox Diagnostics { get; } = new() { MaxHeight = 96 };
@@ -53,13 +53,13 @@ public sealed class ScriptEditorView : Grid
     public Button ZoomOut { get; } = new() { Content = "−" };
     public Button ZoomReset { get; } = new();
     public Button ZoomIn { get; } = new() { Content = "+" };
-    public ScrollViewer LibraryToolbar { get; }
-    public ScrollViewer ExecutionToolbar { get; }
+    public AdaptiveActionBar LibraryToolbar { get; }
+    public AdaptiveActionBar ExecutionToolbar { get; }
+    public ResponsiveToolSurface LayoutSurface { get; }
     public ScriptEditorView(ScriptEditorViewModel model, Func<Task<UnsavedChangesDecision>>? prompt = null)
     {
         this.model = model; if (prompt is not null) PromptUnsavedAsync = prompt;
         Margin = new(3); RowDefinitions = new("Auto,Auto,*,Auto,Auto,Auto");
-        MinWidth = 260; MinHeight = 150;
         ScriptEditorPalette.Dark.Apply(Editor);
         SymbolHighlighting = new(Editor, ScriptEditorPalette.Dark);
         AutomationProperties.SetName(New, "New script");
@@ -74,7 +74,7 @@ public sealed class ScriptEditorView : Grid
         ToolTip.SetTip(ApiReference, "Open the offline Script API Reference, searchable examples and starter templates.");
         LibraryToolbar = Toolbar(Library, nameHost, New, Save, Actions, ApiReference);
         Children.Add(LibraryToolbar);
-        ExecutionToolbar = Toolbar(ScopeLabel, ExecutionScope, Run, Cancel, ExecutionStatus);
+        ExecutionToolbar = Toolbar(Run, Cancel, ScopeLabel, ExecutionScope, ExecutionStatus);
         SetRow(ExecutionToolbar, 1); Children.Add(ExecutionToolbar);
         SetRow(Editor, 2); Children.Add(Editor);
         SetRow(OutputAttribution, 3); Children.Add(OutputAttribution);
@@ -100,6 +100,8 @@ public sealed class ScriptEditorView : Grid
         ToolTip.SetTip(Run, "Run trusted local C# with your account permissions. Results open as a new unsaved HL7 document.");
         ToolTip.SetTip(ZoomIn, "Zoom in: Ctrl+MouseWheel, Ctrl++ or Ctrl+NumPad Add in the code editor.");
         ToolTip.SetTip(ZoomOut, "Zoom out: Ctrl+MouseWheel, Ctrl+− or Ctrl+NumPad Subtract in the code editor.");
+        AutomationProperties.SetName(ZoomOut, "Decrease script font size"); AutomationProperties.SetName(ZoomIn, "Increase script font size");
+        AutomationProperties.SetName(ZoomReset, "Reset script font size");
         ZoomOut.Click += (_, _) => model.Zoom(-1); ZoomIn.Click += (_, _) => model.Zoom(1);
         ZoomReset.Click += (_, _) => model.SetFontSizePoints(ScriptEditorPreferences.DefaultPoints);
         // Handle at the editor before its ScrollViewer consumes the wheel. Ordinary
@@ -162,26 +164,36 @@ public sealed class ScriptEditorView : Grid
             if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
             { e.Handled = true; model.SaveCommand.Execute(null); }
         }, RoutingStrategies.Tunnel);
-        AttachedToVisualTree += (_, _) => { if (!subscribed) { model.PropertyChanged += ModelChanged; model.EditorShown += FocusEditor; subscribed = true; } Refresh(); SymbolHighlighting.Start(); };
-        DetachedFromVisualTree += (_, _) => { if (subscribed) { model.PropertyChanged -= ModelChanged; model.EditorShown -= FocusEditor; subscribed = false; } SymbolHighlighting.Stop(); };
-        SizeChanged += (_, _) => Target.IsVisible = Bounds.Width >= 650;
+        AttachedToVisualTree += (_, _) =>
+        {
+            synchronizing = true;
+            try { model.EditorState.Restore(Editor, model.Session.Id, model.Session.Source); }
+            finally { synchronizing = false; }
+            if (!subscribed) { model.PropertyChanged += ModelChanged; model.EditorShown += FocusEditor; subscribed = true; }
+            Refresh(); SymbolHighlighting.Start();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (subscribed) { model.PropertyChanged -= ModelChanged; model.EditorShown -= FocusEditor; subscribed = false; }
+            SymbolHighlighting.Stop(); synchronizing = true;
+            try { model.EditorState.Capture(Editor, model.Session.Id); }
+            finally { synchronizing = false; }
+        };
+        LayoutSurface = ResponsiveToolSurface.Attach(this, ExecutionToolbar, (2, ToolLayoutMetrics.EditorHeight));
         Refresh();
     }
     private void FocusEditor()
     { if (model.IsRenaming) { ScriptName.Focus(); ScriptName.SelectAll(); } else Editor.Focus(); }
-    private static ScrollViewer Toolbar(params Control[] controls)
+    private static AdaptiveActionBar Toolbar(params Control[] controls)
     {
-        var strip = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3 };
+        var strip = new AdaptiveActionBar();
         foreach (var control in controls)
         {
             if (control is TemplatedControl item)
             { item.FontSize = 12; item.MinHeight = 27; item.Padding = new(7, 2); }
             strip.Children.Add(control);
         }
-        // Horizontal scrolling keeps small tool hosts from growing extra toolbar rows
-        // until they consume the code area. Existing placements/splitters stay intact.
-        return new ScrollViewer { Content = strip, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Margin = new(0, 0, 0, 2) };
+        return strip;
     }
     private void ModelChanged(object? sender, PropertyChangedEventArgs e) => Refresh();
     private void Refresh()

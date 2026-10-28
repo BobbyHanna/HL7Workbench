@@ -135,7 +135,7 @@
       "hl7workbench.scripting": {
         "type": "Project",
         "dependencies": {
-          "HL7Workbench.Core": "[1.0.0, )"
+          "HL7Workbench.Core": "[0.1.0-beta, )"
         }
       }
     }

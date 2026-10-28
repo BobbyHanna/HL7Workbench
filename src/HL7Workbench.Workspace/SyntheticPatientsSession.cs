@@ -11,6 +11,8 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
     private CancellationTokenSource? operation;
     private bool disposed; private long revision;
     private FhirGenerationPlan? plan; private long planRevision;
+    private readonly record struct PreparationSettings(uint Seed, bool Adt, bool Oru, DateTimeOffset Timestamp);
+    private PreparationSettings? preparedSettings;
     private readonly HashSet<int> selectedEncounters = [];
     private readonly HashSet<FhirEventSelection> selectedEvents = [];
     private FhirResource[] matchingPatients = [];
@@ -31,17 +33,17 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
     public IReadOnlySet<FhirEventSelection> SelectedEvents => new HashSet<FhirEventSelection>(selectedEvents);
     public FhirGenerationReport? Preview => plan?.Preview;
     public FhirGenerationScope Scope { get; private set; } = FhirGenerationScope.SelectedPatient;
-    public string PreviewUnavailableReason => disposed ? "This synthetic session is closed." : IsBusy ? "Wait for the current operation or Cancel." :
-        Data is null ? "Import synthetic FHIR Bundles before previewing." :
+    public string PreviewUnavailableReason => disposed ? "This FHIR session is closed." : IsBusy ? "Wait for the current operation or Cancel." :
+        Data is null ? "Import FHIR Bundles before generating." :
         Scope != FhirGenerationScope.EntireImport && PatientKey is null ? "Select a patient. Selected Patient includes their complete supported history." :
         Scope == FhirGenerationScope.SelectedEvents && selectedEncounters.Count + selectedEvents.Count == 0 ? "Selected Events: select at least one encounter or timeline event." : "";
     public string GenerationUnavailableReason => PreviewUnavailableReason.Length > 0 ? PreviewUnavailableReason :
-        Preview is null ? "Preview generation to calculate eligibility and output size." :
+        Preview is null ? "" :
         Preview.Messages == 0 ? "No eligible messages. Review ineligible events and skipped/unsupported reasons." :
         Preview.Limits.Count > 0 ? "Output limit exceeded: " + string.Join(", ", Preview.Limits) + ". Narrow the scope; no partial output will be published." : "";
     public bool IsBusy { get; private set; }
     public bool LastCanceled { get; private set; }
-    public string Status { get; private set; } = "Confirm synthetic/test data, then import local FHIR R4 JSON.";
+    public string Status { get; private set; } = "Import local FHIR R4 JSON to begin.";
     public string PatientFilter { get; private set; } = "";
     public Task RunningTask { get; private set; } = Task.CompletedTask;
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -51,6 +53,10 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
         ImportAsync(ct => FhirPatientImport.FilesAsync(paths, confirmed, limits, token: ct), token);
     public Task ImportFolderAsync(string path, bool confirmed, CancellationToken token = default) =>
         ImportAsync(ct => FhirPatientImport.FolderAsync(path, confirmed, limits, token: ct), token);
+    public Task ImportFilesAsync(IEnumerable<string> paths, CancellationToken token = default) =>
+        ImportAsync(ct => FhirPatientImport.FilesAsync(paths, limits, token: ct), token);
+    public Task ImportFolderAsync(string path, CancellationToken token = default) =>
+        ImportAsync(ct => FhirPatientImport.FolderAsync(path, limits, token: ct), token);
     private Task ImportAsync(Func<CancellationToken, Task<FhirImportSession>> import, CancellationToken token)
     {
         if (disposed || IsBusy) return Task.CompletedTask;
@@ -60,7 +66,7 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
             if (disposed || captured != revision) return;
             Data = data; PatientKey = null; PatientFilter = ""; matchingPatients = data.Patients.OrderBy(p => p.Person?.DisplayName, StringComparer.OrdinalIgnoreCase).ThenBy(p => p.Id, StringComparer.Ordinal).ToArray();
             revision++; plan = null; selectedEncounters.Clear(); selectedEvents.Clear(); PatientPageIndex = EncounterPageIndex = TimelinePageIndex = 0;
-            RefreshPages(); Status = $"Imported {data.Summary.Files:N0} files, {data.Summary.Resources:N0} resources, {data.Patients.Count:N0} patients. Review reference/date/unsupported counts. Synthetic status is user-confirmed.";
+            RefreshPages(); Status = $"Imported {data.Summary.Files:N0} files, {data.Summary.Resources:N0} resources, {data.Patients.Count:N0} patients. Review reference/date/unsupported counts.";
         }, token);
     }
     public Task FilterPatientsAsync(string literal, CancellationToken token = default)
@@ -75,7 +81,7 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
             ct.ThrowIfCancellationRequested(); if (disposed) return; matchingPatients = matches; PatientFilter = literal; PatientPageIndex = 0;
             if (PatientKey is { } selected && !matches.Any(p => p.Key == selected))
             { PatientKey = null; selectedEncounters.Clear(); selectedEvents.Clear(); revision++; plan = null; }
-            RefreshPages(); Status = $"{matches.Length:N0} matching synthetic patients. Search stays in this session.";
+            RefreshPages(); Status = $"{matches.Length:N0} matching patients. Search stays in this session.";
         }, token);
     }
     public void SelectPatient(int? key)
@@ -122,26 +128,57 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
     public Task PreviewAsync(uint seed, bool adt, bool oru, DateTimeOffset transportTimestamp, CancellationToken token = default)
     {
         if (PreviewUnavailableReason.Length > 0 || Data is not { } data) return Task.CompletedTask;
-        var request = new FhirGenerationRequest { Scope = Scope, PatientKey = PatientKey ?? 0, Encounters = selectedEncounters.ToArray(), Events = selectedEvents.ToArray(), Adt = adt, Oru = oru, Seed = seed, TransportTimestamp = transportTimestamp };
-        var version = revision;
+        var settings = new PreparationSettings(seed, adt, oru, transportTimestamp); var request = CaptureRequest(settings); var version = revision;
         return RunningTask = OperateAsync("Generation preview", async ct =>
         {
-            var pending = await Task.Run(() => FhirGenerationPlan.Create(data, request, ct), ct); ct.ThrowIfCancellationRequested();
-            if (disposed || version != revision) return; plan = pending; planRevision = version;
-            Status = pending.Preview.Limits.Count > 0 ? "Output limit exceeded: " + string.Join(", ", pending.Preview.Limits) + ". Narrow the scope; no partial output published." :
-                pending.Preview.Messages == 0 ? "No eligible messages. Review ineligible events and skipped/unsupported reasons." :
-                $"Preview: {pending.Preview.Messages:N0} supported messages for {pending.Preview.PatientsIncluded:N0} patients. Review warnings before Generate.";
+            var pending = await PrepareAsync(data, request, settings, version, ct);
+            Status = BlockingReason(pending.Preview) ?? $"Preview: {pending.Preview.Messages:N0} supported messages for {pending.Preview.PatientsIncluded:N0} patients. Generate when ready; limitations remain available in the report.";
         }, token);
     }
+    /// <summary>Prepares current scope/selections off-context if needed, then atomically publishes one validated document.
+    /// A separate preview is optional. Cache reuse requires both the authoritative session revision and request settings.</summary>
+    public Task GenerateAsync(uint seed, bool adt, bool oru, DateTimeOffset transportTimestamp, CancellationToken token = default)
+    {
+        if (PreviewUnavailableReason.Length > 0 || Data is not { } data) return Task.CompletedTask;
+        var settings = new PreparationSettings(seed, adt, oru, transportTimestamp); var request = CaptureRequest(settings); var version = revision;
+        return RunningTask = OperateAsync("Generation", async ct =>
+        {
+            var captured = await PrepareAsync(data, request, settings, version, ct);
+            if (BlockingReason(captured.Preview) is { } reason) { Status = reason; return; }
+            await PublishAsync(captured, version, data.Id, ct);
+        }, token);
+    }
+    private FhirGenerationRequest CaptureRequest(PreparationSettings settings) => new()
+    {
+        Scope = Scope, PatientKey = PatientKey ?? 0, Encounters = selectedEncounters.ToArray(), Events = selectedEvents.ToArray(),
+        Adt = settings.Adt, Oru = settings.Oru, Seed = settings.Seed, TransportTimestamp = settings.Timestamp
+    };
+    private async Task<FhirGenerationPlan> PrepareAsync(FhirImportSession data, FhirGenerationRequest request, PreparationSettings settings, long version, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (plan is { } cached && planRevision == version && preparedSettings == settings) return cached;
+        Status = "Preparing generation eligibility and output size…"; Changed();
+        var pending = await Task.Run(() => FhirGenerationPlan.Create(data, request, token), token);
+        token.ThrowIfCancellationRequested();
+        if (disposed || version != revision || !ReferenceEquals(Data, data)) throw new OperationCanceledException(token);
+        plan = pending; planRevision = version; preparedSettings = settings; Changed(); return pending;
+    }
+    private static string? BlockingReason(FhirGenerationReport report) => report.Limits.Count > 0
+        ? "Output limit exceeded: " + string.Join(", ", report.Limits) + ". Narrow the scope; no partial output published."
+        : report.Messages == 0 ? "No eligible messages. Review ineligible events and skipped/unsupported reasons." : null;
+    private async Task PublishAsync(FhirGenerationPlan captured, long version, Guid? sessionId, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested(); Status = "Generating HL7…"; Changed();
+        var output = await new FhirGenerationPublisher(documents).PublishAsync(captured, token: token,
+            captureIsCurrent: () => !disposed && revision == version && Data?.Id == sessionId);
+        Status = $"Generated {output.MessageIds.Count:N0} messages into a new unsaved document. Review its Generation Report; source files unchanged."; Generated?.Invoke(output);
+    }
+    /// <summary>Publishes a previously prepared plan for compatibility with existing programmatic preview callers.</summary>
     public Task GenerateAsync(CancellationToken token = default)
     {
         if (disposed || IsBusy || plan is not { } captured || planRevision != revision || !captured.Preview.CanGenerate) return Task.CompletedTask;
         var version = revision; var sessionId = Data?.Id;
-        return RunningTask = OperateAsync("Generation", async ct =>
-        {
-            var output = await new FhirGenerationPublisher(documents).PublishAsync(captured, token: ct, captureIsCurrent: () => !disposed && revision == version && Data?.Id == sessionId);
-            Status = $"Generated {output.MessageIds.Count:N0} messages into a new unsaved document. Review its Generation Report; source files unchanged."; Generated?.Invoke(output);
-        }, token);
+        return RunningTask = OperateAsync("Generation", ct => PublishAsync(captured, version, sessionId, ct), token);
     }
     private async Task OperateAsync(string name, Func<CancellationToken, Task> action, CancellationToken token)
     {
@@ -150,7 +187,7 @@ public sealed class SyntheticPatientsSession(DocumentManager documents, FhirImpo
         try { await action(cancellation.Token); }
         catch (OperationCanceledException) { LastCanceled = true; if (!disposed) Status = name + " canceled; no partial session/output published. Prior completed session retained unless cleared."; }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or Hl7LimitException or FormatException)
-        { if (!disposed) Status = name + " failed. Review synthetic confirmation, selection, local access, supported R4 data and limits; prior session/source files retained; no partial output published."; }
+        { if (!disposed) Status = name + " failed. Review selection, local access, supported R4 data and limits; prior session/source files retained; no partial output published."; }
         finally { operation = null; IsBusy = false; if (!disposed) Changed(); }
     }
     public void Cancel() => operation?.Cancel();

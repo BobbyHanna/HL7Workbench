@@ -61,6 +61,7 @@ public sealed class FieldExtractionView : Grid
     public Expander SummaryPanel { get; } = new() { Header = "Extraction Summary", HorizontalAlignment = HorizontalAlignment.Stretch };
     public Task ActionTask { get; private set; } = Task.CompletedTask;
     public Task NavigationTask { get; private set; } = Task.CompletedTask;
+    public ResponsiveToolSurface LayoutSurface { get; }
 
     public FieldExtractionView(FieldExtractionViewModel model)
     {
@@ -133,22 +134,14 @@ public sealed class FieldExtractionView : Grid
         FilterLiteral.KeyDown += (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; ActionTask = model.ApplyViewAsync(); } };
         AttachedToVisualTree += (_, _) => { if (!subscribed) { model.PropertyChanged += Changed; model.Shown += FocusSource; subscribed = true; } Refresh(); };
         DetachedFromVisualTree += (_, _) => { model.PropertyChanged -= Changed; model.Shown -= FocusSource; subscribed = false; };
+        LayoutSurface = ResponsiveToolSurface.Attach(this, (5, ToolLayoutMetrics.ListHeight + 40));
         Refresh();
     }
     private void AddRow(int row, Control control) { SetRow(control, row); Children.Add(control); }
-    private static ScrollViewer Toolbar(params Control[] controls)
-    {
-        // The same horizontal toolbar policy as Script Editor keeps narrow floating
-        // hosts from spending their entire height on wrapped command rows.
-        var strip = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-        foreach (var control in controls) strip.Children.Add(control);
-        return new ScrollViewer { Content = strip, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
-    }
+    private static AdaptiveActionBar Toolbar(params Control[] controls) => new(controls);
     private static WrapPanel Strip(params Control[] controls)
     {
-        var panel = new WrapPanel { Orientation = Orientation.Horizontal };
-        foreach (var control in controls) { control.Margin = new(0, 0, 5, 3); panel.Children.Add(control); }
-        return panel;
+        return new AdaptiveActionBar(controls);
     }
     private void NavigateSelected() { if (Results.SelectedItem is ExtractionPreviewRow row) NavigationTask = model.Session.NavigateAsync(row); }
     private void FocusSource() => Source.Focus();
@@ -235,7 +228,6 @@ public sealed class FieldExtractionView : Grid
             PageStatus.Text = session.View is { } view ? $"Page {session.PageIndex + 1}/{view.PageCount} · {view.Count:N0} selected rows" : "No results";
             SourceStatus.Text = session.Results?.SourceDescription ?? "No completed extraction. Choose a source document and run.";
             Status.Text = (draft.IsDirty ? "* Unsaved configuration · " : "") + (model.Error.Length > 0 ? model.Error : session.Status) + " " + draft.Status;
-            SourceStatus.MaxHeight = 55; Status.MaxHeight = 55; SourceStatus.ClipToBounds = Status.ClipToBounds = true;
             ToolTip.SetTip(SourceStatus, SourceStatus.Text); ToolTip.SetTip(Status, Status.Text);
             var summary = session.Results?.Summary;
             Summary.Text = summary is null ? "No completed summary. " + session.LastOperation :

@@ -53,7 +53,8 @@ public sealed class TransportToolView : Grid
     public Task ActionTask => model.ActionTask;
     public TransportToolView(TransportToolViewModel model)
     {
-        this.model = model; Margin = new(8); MinWidth = 280; RowDefinitions = new("Auto,*,Auto,*,Auto"); RowSpacing = 5;
+        this.model = model; Margin = new(8); RowDefinitions = new("Auto,*,Auto,*,Auto"); RowSpacing = ToolLayoutMetrics.Gap;
+        TestEndpoint.Content = new TextBlock { Text = (string)TestEndpoint.Content!, TextWrapping = TextWrapping.Wrap };
         var warning = Text(); warning.Text = model.IsListener ? "Local test listener. Automatic ACKs are test responses, not evidence of clinical processing. Stop/Start to change options." : "Interactive send: exactly one message. Confirming Send opens one fresh connection to the checked address. Each exchange disconnects. No retries.";
         Children.Add(warning);
         var scroll = new ScrollViewer { Content = form, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled }; Grid.SetRow(scroll, 1); Children.Add(scroll);
@@ -73,6 +74,7 @@ public sealed class TransportToolView : Grid
         else { controls.Children.Add(Destination); controls.Children.Add(Strip(Connect, Disconnect)); controls.Children.Add(ActiveMessage); controls.Children.Add(new TextBlock { Text = "Message position (blank = active message)" }); controls.Children.Add(Position); controls.Children.Add(Send); }
         Grid.SetRow(controls, 2); Children.Add(controls); Grid.SetRow(History, 3); Children.Add(History);
         var bottom = new StackPanel { Spacing = 4, Children = { Strip(Open, OpenAck, OpenAck2, Clear), Status } }; Grid.SetRow(bottom, 4); Children.Add(bottom);
+        ResponsiveToolSurface.Attach(this, controls, (1, ToolLayoutMetrics.ListHeight), (3, ToolLayoutMetrics.ListHeight));
         History.ItemTemplate = new FuncDataTemplate<object>((r, _) => new TextBlock { Text = Row(r), TextWrapping = TextWrapping.Wrap });
         History.SelectionChanged += (_, _) => RefreshButtons();
         Profiles.SelectionChanged += (_, _) => { if (!refreshing && Profiles.SelectedItem is TransportEndpoint p) { model.SelectProfile(p); LoadDraft(); } };
@@ -140,12 +142,11 @@ public sealed class TransportToolView : Grid
         OpenAck.IsEnabled = History.SelectedItem is TransportHistoryEntry { Acknowledgments.Count: > 0 };
         OpenAck2.IsEnabled = History.SelectedItem is TransportHistoryEntry { Acknowledgments.Count: > 1 };
     }
-    private void Add(string label, Control control) { form.Children.Add(new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap }); form.Children.Add(control); }
+    private void Add(string label, Control control) => form.Children.Add(new ResponsiveFormField(label, control));
     private static TextBox Field(int maximum) => new() { MaxLength = maximum, HorizontalAlignment = HorizontalAlignment.Stretch };
     private static Button Button(string text) => new() { Content = text };
     private static TextBlock Text() => new() { TextWrapping = TextWrapping.Wrap };
-    private static Control Strip(params Control[] controls) => new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-        Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, Children = { } }.With(controls) };
+    private static Control Strip(params Control[] controls) => new AdaptiveActionBar(controls);
     private static string Row(object? value) => value is TransportReceipt r ? $"{r.Time:HH:mm:ss} · Received · {r.Remote} · {r.Status} · test ACK {string.Join(", ", r.AckCodes)} · complete payload {r.Payload.Length:N0} bytes · socket bytes read (connection total): {r.ConnectionSocketBytesRead:N0} · partial payload {r.PartialPayloadBytes:N0} bytes · {r.Duration.TotalSeconds:F2}s" : value?.ToString() ?? "";
 }
 

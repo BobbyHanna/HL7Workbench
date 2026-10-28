@@ -28,6 +28,7 @@ public sealed record ScriptReportOrigin(string ScriptName, ScriptScope Scope)
 /// <summary>Tool commands over a Workspace-owned draft and execution service; contains no Dock types.</summary>
 public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
 {
+    internal ToolEditorState EditorState { get; } = new();
     private readonly DocumentManager documents;
     private readonly ScriptExecution execution;
     private readonly CancellationTokenSource lifetime = new();
@@ -241,7 +242,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     }
     public void Dispose()
     {
-        if (disposed) return; disposed = true; lifetime.Cancel();
+        if (disposed) return; disposed = true; lifetime.Cancel(); EditorState.Close();
         reports?.Dispose(); reports = null; ReportOrigin = OutputOrigin = null; DiagnosticInput = null;
         Session.PropertyChanged -= Changed; documents.PropertyChanged -= Changed;
         ((INotifyCollectionChanged)documents.Documents).CollectionChanged -= DocumentsChanged;

@@ -38,7 +38,8 @@ public sealed class InspectionPanes : Grid
     internal Task CopyPathTask { get; private set; } = Task.CompletedTask;
     public long ValueOffset { get; private set; }
     public TextBlock ValueStatus { get; } = new();
-    public WrapPanel ValueNavigation { get; } = new() { Orientation = Orientation.Horizontal, IsVisible = false };
+    public AdaptiveActionBar ValueNavigation { get; } = new() { IsVisible = false };
+    public ResponsiveToolSurface LayoutSurface { get; }
     public NumericUpDown PreviewOffset { get; } = new() { Minimum = 0, Value = 0, Width = 150, FormatString = "0" };
     private readonly MessageDocument? document;
     private long previewRequest;
@@ -55,14 +56,15 @@ public sealed class InspectionPanes : Grid
     {
         this.inspection = inspection; this.document = document; this.kind = kind;
         ValueOffset = inspection.PreviewOffset;
-        ColumnDefinitions = new("25*,6,75*"); ColumnDefinitions[0].MinWidth = 100; ColumnDefinitions[2].MinWidth = 180;
+        ColumnDefinitions = new("25*,6,75*");
         Navigator.ItemsSource = inspection.Segments;
         Navigator.Classes.Add("workbench-surface"); Inspector.Classes.Add("workbench-surface");
         // RevealNode handles structural navigation explicitly. Framework auto-scroll
         // would also run when new parse nodes are rebound and shift the user's viewport.
         Inspector.AutoScrollToSelectedItem = false;
+        ScrollViewer.SetHorizontalScrollBarVisibility(Inspector, ScrollBarVisibility.Disabled);
         Navigator.ItemTemplate = new FuncDataTemplate(data => data is SegmentEntry,
-            (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty });
+            (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty, TextWrapping = TextWrapping.Wrap });
         Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
             (node, _) => CreateInspectorRow(node), node => node?.VisibleChildren ?? []);
         Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { CopyPath } };
@@ -84,11 +86,11 @@ public sealed class InspectionPanes : Grid
         CopyPath.Click += (_, _) => CopyPathTask = CopyStructuralPathAsync(copyTarget);
         CopySegmentPath.Click += (_, _) => CopyPathTask = CopyStructuralPathAsync(copySegmentTarget);
         var navigatorPane = Pane("Segment Navigator", Navigator);
-        var inspectorPane = new Grid { RowDefinitions = new("Auto,Auto,*,Auto,Auto,80"), Margin = new(8) };
+        var inspectorPane = new ToolContentGrid { RowDefinitions = new("Auto,Auto,*,Auto,Auto,80"), Margin = new(8) };
+        inspectorPane.RowDefinitions[2].MinHeight = ToolLayoutMetrics.InspectorHeight;
         fieldStatus.FontWeight = FontWeight.SemiBold;
         inspectorPane.Children.Add(fieldStatus);
-        var lookup = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new(0,4),
-            Children = { new TextBlock { Text = "Field number", VerticalAlignment = VerticalAlignment.Center }, FieldNumber, InspectFieldButton } };
+        var lookup = new AdaptiveActionBar(new ResponsiveFormField("Field number", FieldNumber) { Width = 155 }, InspectFieldButton);
         ToolTip.SetTip(FieldNumber, "Field number within the selected segment");
         ToolTip.SetTip(InspectFieldButton, "Inspect the numbered field in the selected segment");
         SetRow(lookup, 1);
@@ -169,6 +171,25 @@ public sealed class InspectionPanes : Grid
         RowDefinitions = new("Auto,*");
         foreach (var child in Children) SetRow(child, 1);
         SetColumnSpan(SnapshotStatus, ColumnDefinitions.Count); Children.Add(SnapshotStatus);
+        LayoutSurface = ResponsiveToolSurface.Attach(this, (1, kind == InspectionPaneKind.Navigator ? ToolLayoutMetrics.ListHeight : ToolLayoutMetrics.ListHeight + 150));
+        if (kind == InspectionPaneKind.Both)
+        {
+            var splitter = LayoutSurface.Content.Children.OfType<GridSplitter>().Single(); bool? stacked = null;
+            void Adapt()
+            {
+                var next = Bounds.Width < ToolLayoutMetrics.FullWidth; if (stacked == next) return; stacked = next;
+                var grid = LayoutSurface.Content;
+                grid.ColumnDefinitions = new(next ? "*" : "25*,6,75*");
+                grid.RowDefinitions = new(next ? "Auto,140,6,*" : "Auto,*");
+                grid.RowDefinitions[next ? 3 : 1].MinHeight = ToolLayoutMetrics.ListHeight + 150;
+                SetRow(navigatorPane, 1); SetColumn(navigatorPane, 0);
+                SetRow(splitter, next ? 2 : 1); SetColumn(splitter, next ? 0 : 1);
+                SetRow(inspectorPane, next ? 3 : 1); SetColumn(inspectorPane, next ? 0 : 2);
+                SetColumnSpan(SnapshotStatus, next ? 1 : 3);
+                splitter.ResizeDirection = next ? GridResizeDirection.Rows : GridResizeDirection.Columns;
+            }
+            SizeChanged += (_, _) => Adapt(); Adapt();
+        }
         UpdateSnapshotState();
     }
 
@@ -279,11 +300,11 @@ public sealed class InspectionPanes : Grid
     private static Control CreateInspectorRow(InspectionNode? node)
     {
         if (node is null) return new TextBlock();
-        var path = new TextBlock { Text = node.DisplayPath };
+        var path = new TextBlock { Text = node.DisplayPath, TextWrapping = TextWrapping.Wrap };
         // Keep row labels presentation-only so the normal header receives selection input.
-        return new StackPanel { IsHitTestVisible = false, Orientation = Orientation.Horizontal, Spacing = 10, Children =
+        return new StackPanel { IsHitTestVisible = false, Spacing = 2, Children =
         {
-            path, new TextBlock { Text = $"{node.PathInfo.StateLabel}   {node.Preview + (node.Range64?.Length > 100 ? "…" : "")}" }
+            path, new TextBlock { Text = $"{node.PathInfo.StateLabel}   {node.Preview + (node.Range64?.Length > 100 ? "…" : "")}", TextWrapping = TextWrapping.Wrap }
         }};
     }
 

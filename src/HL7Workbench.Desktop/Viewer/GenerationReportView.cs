@@ -16,7 +16,7 @@ public sealed class GenerationReportView : Grid
     private readonly GenerationReportViewModel model;
     private FhirGenerationReport? rendered;
     public SelectableTextBlock Details { get; } = new() { TextWrapping = TextWrapping.Wrap, Focusable = true };
-    public TextBlock EmptyState { get; } = new() { Text = "No Generation Report for the selected document. Generate HL7 from Synthetic Patients to create one.", TextWrapping = TextWrapping.Wrap };
+    public TextBlock EmptyState { get; } = new() { Text = "No Generation Report for the selected document. Generate HL7 from FHIR Patient Workspace to create one.", TextWrapping = TextWrapping.Wrap };
     public ScrollViewer ReportScroll { get; }
     public GenerationReportView(GenerationReportViewModel model)
     {

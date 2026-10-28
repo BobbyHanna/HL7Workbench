@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <InternalsVisibleTo Include="HL7Workbench.QueryHost" />
+    <InternalsVisibleTo Include="HL7Workbench.Querying.Tests" />
+  </ItemGroup>
+</Project>

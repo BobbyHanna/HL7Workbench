@@ -14,10 +14,17 @@ public sealed record FhirImportProgress(int Files, int Resources, long Bytes);
 public static partial class FhirR4Importer
 {
     public const string SyntheticWarning = "FHIR JSON may contain real PHI. Import synthetic/test data only. A filename or Synthea identifier is not proof of safety.";
+    /// <summary>Compatibility entry point for callers that still require their own acknowledgment.</summary>
     public static async Task<FhirImportSession> ImportAsync(IEnumerable<FhirImportInput> inputs, bool syntheticConfirmed,
         FhirImportLimits? limits = null, CancellationToken token = default, IProgress<FhirImportProgress>? progress = null)
     {
         if (!syntheticConfirmed) throw new InvalidOperationException("Confirm synthetic/test data before importing FHIR JSON.");
+        return await ImportAsync(inputs, limits, token, progress).ConfigureAwait(false);
+    }
+    /// <summary>Projects local FHIR data under the same validation/resource limits. Synthetic provenance is not inferred or certified.</summary>
+    public static async Task<FhirImportSession> ImportAsync(IEnumerable<FhirImportInput> inputs,
+        FhirImportLimits? limits = null, CancellationToken token = default, IProgress<FhirImportProgress>? progress = null)
+    {
         limits ??= new(); limits.Validate();
         var selected = inputs.Take(limits.Files + 1).ToArray();
         if (selected.Length == 0 || selected.Length > limits.Files) throw Failure("FileLimit");

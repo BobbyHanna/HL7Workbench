@@ -96,18 +96,19 @@ public sealed class InspectionViewTests
                 window.UpdateLayout();
                 Assert.Equal(65, view.RowDefinitions[0].Height.Value);
                 Assert.Equal(35, view.RowDefinitions[2].Height.Value);
-                Assert.Equal(25, view.LowerPane.ColumnDefinitions[0].Width.Value);
-                Assert.Equal(75, view.LowerPane.ColumnDefinitions[2].Width.Value);
+                var lowerGrid = Assert.IsType<InspectionPanes>(view.LowerPane).LayoutSurface.Content;
+                Assert.Equal(25, lowerGrid.ColumnDefinitions[0].Width.Value);
+                Assert.Equal(75, lowerGrid.ColumnDefinitions[2].Width.Value);
                 var horizontal = Assert.Single(view.Children.OfType<GridSplitter>());
-                var vertical = Assert.Single(view.LowerPane.Children.OfType<GridSplitter>());
+                var vertical = Assert.Single(lowerGrid.Children.OfType<GridSplitter>());
                 var beforeHeight = view.Editor.Bounds.Height;
-                var beforeWidth = view.LowerPane.ColumnDefinitions[0].ActualWidth;
+                var beforeWidth = lowerGrid.ColumnDefinitions[0].ActualWidth;
                 Drag(horizontal, new(0, -50));
                 window.UpdateLayout();
                 Assert.True(view.Editor.Bounds.Height < beforeHeight);
                 Drag(vertical, new(50, 0));
                 window.UpdateLayout();
-                Assert.True(view.LowerPane.ColumnDefinitions[0].ActualWidth > beforeWidth);
+                Assert.True(lowerGrid.ColumnDefinitions[0].ActualWidth > beforeWidth);
                 Assert.Equal("PID|1", view.Editor.Text);
             }
             finally { window.Close(); }

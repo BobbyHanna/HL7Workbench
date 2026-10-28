@@ -26,11 +26,11 @@ public sealed class SyntheticHistoryScopeViewTests
         {
             var root = Path.Combine(Path.GetTempPath(), "hl7-fhir-scope-view-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(root);
             var path = Path.Combine(root, "synthetic-history.json"); await File.WriteAllTextAsync(path, FhirSyntheticHistory.History(10), Token);
-            using var documents = new DocumentManager(); using var model = new SyntheticPatientsViewModel(documents); var view = new SyntheticPatientsView(model);
+            using var documents = new DocumentManager(); using var model = new SyntheticPatientsViewModel(documents); var view = new SyntheticPatientsView(model); view.GenerationPanel.IsExpanded = true;
             var window = new Window { Content = view, Width = width, Height = 850, RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light }; window.Show();
             try
             {
-                Pump(window); Assert.Equal(0, view.Scope.SelectedIndex); Assert.False(view.Preview.IsEnabled); Assert.Contains("Import synthetic", view.GenerationState.Text!);
+                Pump(window); Assert.Equal(0, view.Scope.SelectedIndex); Assert.False(view.Preview.IsEnabled); Assert.Contains("Import FHIR", view.GenerationState.Text!);
                 await model.Session.ImportFilesAsync([path], true, Token); Pump(window); Assert.False(view.Preview.IsEnabled); Assert.Contains("Select a patient", view.GenerationState.Text!);
                 view.Patients.SelectedItem = model.Session.PatientPage[0]; Pump(window); Assert.True(view.Preview.IsEnabled); Assert.Empty(model.Session.SelectedEncounters); Assert.Empty(model.Session.SelectedEvents);
                 Click(view.Preview); await view.ActionTask; Pump(window); Assert.Equal(4, model.Session.Preview!.Messages); Assert.True(view.Generate.IsEnabled); Assert.Contains("1 patients", view.GenerationState.Text!);
@@ -61,7 +61,7 @@ public sealed class SyntheticHistoryScopeViewTests
         {
             var root = Path.Combine(Path.GetTempPath(), "hl7-fhir-scope-limit-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(root);
             var path = Path.Combine(root, "synthetic-limit.json"); await File.WriteAllTextAsync(path, FhirSyntheticHistory.Observations(exceedsLimit ? 1001 : 0), Token);
-            using var documents = new DocumentManager(); using var model = new SyntheticPatientsViewModel(documents); var view = new SyntheticPatientsView(model); var window = new Window { Content = view, Width = 900, Height = 850 }; window.Show();
+            using var documents = new DocumentManager(); using var model = new SyntheticPatientsViewModel(documents); var view = new SyntheticPatientsView(model); view.GenerationPanel.IsExpanded = true; var window = new Window { Content = view, Width = 900, Height = 850 }; window.Show();
             try
             {
                 await model.Session.ImportFilesAsync([path], true, Token); view.Scope.SelectedIndex = (int)FhirGenerationScope.EntireImport; Click(view.Preview); await view.ActionTask; Pump(window);

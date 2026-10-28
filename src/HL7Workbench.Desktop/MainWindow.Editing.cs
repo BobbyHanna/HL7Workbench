@@ -62,7 +62,9 @@ public partial class MainWindow
         if (generationDialog?.Model.IsBusy == true)
         { e.Cancel = true; generationDialog.Model.Cancel(); Status.Text = "Canceling generation; close again after it finishes."; return; }
         if (documents.Documents.Any(d => d.IsSaving || d.IsPreparingInsertion)) { e.Cancel = true; Status.Text = "Wait for saving or generated-batch validation to finish before closing."; return; }
-        if (!documents.Documents.Any(d => d.IsDirty) && !scripts.Session.IsDirty && !scripts.IsBusy && !extractionDraft.IsDirty && !extractionDraft.IsBusy) { SaveLayout(this, new()); return; }
+        var sql = ActiveSql;
+        if (!documents.Documents.Any(d => d.IsDirty) && !scripts.Session.IsDirty && !scripts.IsBusy && !extractionDraft.IsDirty && !extractionDraft.IsBusy &&
+            (sql is null || sql.CanManage && !sql.IsDirty)) { SaveLayout(this, new()); return; }
         e.Cancel = true;
         if (promptingShutdown) return;
         promptingShutdown = true;
@@ -74,6 +76,8 @@ public partial class MainWindow
             var scriptVersion = scripts.Session.ContentVersion;
             if (!await extractionDraft.ConfirmChangesAsync(PromptExtractionChangesAsync, discardImmediately: false)) return;
             var extractionVersion = extractionDraft.ContentVersion;
+            if (sql is not null && !await sql.ConfirmCloseAsync(discardImmediately: false)) return;
+            var sqlVersion = sql?.ContentVersion;
             var revisions = new Dictionary<MessageDocument, long>();
             foreach (var document in documents.Documents.ToArray())
             {
@@ -81,6 +85,7 @@ public partial class MainWindow
                 revisions[document] = document.ContentVersion;
             }
             if (scripts.Session.ContentVersion != scriptVersion || scripts.IsBusy || extractionDraft.ContentVersion != extractionVersion || extractionDraft.IsBusy ||
+                ActiveSql != sql || sql?.ContentVersion != sqlVersion || sql is { CanManage: false } ||
                 documents.Documents.Any(d => !revisions.TryGetValue(d, out var version) || version != d.ContentVersion || d.IsSaving || d.IsPreparingInsertion)) return;
             if (scripts.Session.IsDirty) scripts.Session.DiscardChanges();
             shutdownApproved = true; Close();

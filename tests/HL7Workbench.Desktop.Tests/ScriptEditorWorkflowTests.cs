@@ -35,7 +35,7 @@ public sealed partial class ScriptEditorTests
                 Assert.Contains("void Main()", model.Session.Source); Assert.True(model.Session.IsDirty);
                 var selected = Assert.IsType<ScriptLibraryItem>(view.Library.SelectedItem);
                 Assert.Equal(model.Session.DisplayName, selected.Name); Assert.False(selected.Obsolete);
-                var toolbar = ((StackPanel)view.LibraryToolbar.Content!).Children;
+                var toolbar = view.LibraryToolbar.Children;
                 Assert.Equal(6, toolbar.Count); Assert.Same(view.Library, toolbar[0]); Assert.Same(view.New, toolbar[2]);
                 Assert.Same(view.Save, toolbar[3]); Assert.Same(view.Actions, toolbar[4]); Assert.NotNull(view.Actions.Flyout);
                 Assert.Same(view.ApiReference, toolbar[5]); Assert.Same(model.ApiReferenceCommand, view.ApiReference.Command);
@@ -49,7 +49,8 @@ public sealed partial class ScriptEditorTests
                 Assert.Equal(saved, files.Library.Open(id).Source);
                 window.Content = view = new ScriptEditorView(model); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
                 Assert.Equal(draft, view.Editor.Text); Assert.Equal(model.Session.DisplayName, ((ScriptLibraryItem)view.Library.SelectedItem!).Name);
-                Assert.Equal(ScrollBarVisibility.Auto, view.LibraryToolbar.HorizontalScrollBarVisibility);
+                Assert.Equal(ScrollBarVisibility.Auto, view.LayoutSurface.Scroll.VerticalScrollBarVisibility);
+                Assert.Equal(ScrollBarVisibility.Disabled, view.LayoutSurface.Scroll.HorizontalScrollBarVisibility);
             }
             finally { window.Close(); }
             return true;
@@ -131,9 +132,13 @@ public sealed partial class ScriptEditorTests
                 var reportWindow = new ScriptReportsWindow(model); reportWindow.Show();
                 Assert.True(view.Reports.IsEnabled); Assert.Equal(origin.Description, reportWindow.Origin.Text);
                 Assert.Equal(reports, reportWindow.Reports.ItemsSource); reportWindow.Close();
-                Assert.True(view.ExecutionToolbar.Extent.Width > view.ExecutionToolbar.Viewport.Width);
-                view.ExecutionToolbar.Offset = new Vector(view.ExecutionToolbar.Extent.Width, 0); window.UpdateLayout();
-                Assert.True(view.ExecutionToolbar.Offset.X > 0);
+                Assert.True(view.ExecutionToolbar.Bounds.Height >= view.Run.Bounds.Height);
+                foreach (var action in view.ExecutionToolbar.Children.Where(c => c.IsVisible))
+                {
+                    var position = action.TranslatePoint(default, view.ExecutionToolbar)!.Value;
+                    Assert.InRange(position.X, 0, view.ExecutionToolbar.Bounds.Width);
+                    Assert.InRange(position.X + action.Bounds.Width, 0, view.ExecutionToolbar.Bounds.Width + 1);
+                }
                 var path = Path.Combine(files.Root, "retained.csv"); Assert.True(await model.ExportReportAsync("counts", path));
                 Assert.False(await model.ExportReportAsync("counts", path)); Assert.Same(origin, model.ReportOrigin);
                 docs.Activate(source.Id); Assert.True(await model.Session.OpenAsync(ScriptLibrary.PatientExampleId, Cancel));

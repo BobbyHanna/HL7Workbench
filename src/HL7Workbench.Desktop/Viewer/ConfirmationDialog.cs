@@ -21,6 +21,9 @@ internal static class ConfirmationDialog
     internal static Window DeleteSearch(string name) => Create("Delete Search",
         $"Delete saved search ‘{name}’? Its local definition will be permanently removed. The current query, results and source documents are kept.",
         ("Delete Search", true), ("Cancel", false));
+    internal static Window DeleteSql(string name) => Create("Delete SQL Query",
+        $"Delete saved SQL query ‘{name}’? Its local definition will be permanently removed. Results and source documents are kept.",
+        ("Delete Query", true), ("Cancel", false));
     internal static Window DeleteExtraction(string name) => Create("Delete Extraction Configuration",
         $"Delete saved extraction configuration ‘{name}’? Its local definition will be removed; HL7 sources and exported CSV files are kept.",
         ("Delete Configuration", true), ("Cancel", false));

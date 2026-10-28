@@ -63,11 +63,11 @@ public sealed class TransformationReportView : Grid
             TransformationReport.Warning + " CSV export: Script Editor → Reports / Export CSV (last successful run only).";
         // Immutable details are rebuilt only on a document change, not every editor keystroke.
         if (!rebuild) return;
-        Categories.Children.Add(new TextBlock { Text = "Category counts — transformed / suppressed", FontWeight = FontWeight.SemiBold });
+        Categories.Children.Add(new TextBlock { Text = "Category counts — transformed / suppressed", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         foreach (var c in s.Categories)
         {
             var row = new Grid { ColumnDefinitions = new("*,Auto,Auto") };
-            row.Children.Add(new TextBlock { Text = c.Category.ToString() });
+            row.Children.Add(new TextBlock { Text = c.Category.ToString(), TextWrapping = TextWrapping.Wrap });
             var transformed = new TextBlock { Text = $"{c.Transformed:N0}", Margin = new(8, 0) }; SetColumn(transformed, 1); row.Children.Add(transformed);
             var suppressed = new TextBlock { Text = $"{c.Suppressed:N0}", Margin = new(8, 0) }; SetColumn(suppressed, 2); row.Children.Add(suppressed);
             Categories.Children.Add(row);

@@ -1,5 +1,53 @@
 # Architecture
 
+## Responsive tool content (Stage 15UI)
+
+The FHIR workspace follow-up replaces the old browser/form arrangement with
+master-detail content and a collapsed generation section. It preserves the tool's
+serialized identity. Minimal Core/Workspace no-acknowledgment overloads reuse import
+validation, while Boolean compatibility overloads retain their old guard. Desktop
+arms fresh/reset proportions after finite Dock measurement and uses root-identity
+checks to preserve saved layouts. See [follow-up acceptance](stage15ui-fhir-workspace-acceptance.md)
+for evidence and the native-review boundary.
+
+Desktop composes ordinary feature controls with native wrapping action bars,
+responsive labeled forms and finite-measured scrolling Grid surfaces. Individual
+tool dimensions drive layout in docked and floating hosts; Dock continues to own
+chrome, placement and its existing persistence schema. Nested ToolContentGrid
+compositions expose vertical overflow without giving editors/lists infinite height.
+SQL and Script Desktop models own a session-only editor-document/undo handoff for
+Dock template replacement; disposal releases it. Core/Workspace behavior and
+dependencies are unchanged. See [responsive tool layout](responsive-tool-layout.md),
+the [ADR 0003 amendment](decisions/0003-dockable-workspace.md), and
+[Stage 15UI acceptance](stage15ui-acceptance.md) for composition, audit boundaries
+and the separate native visual acceptance checklist.
+
+## Stage 15A/15B/15C local SQL workflow
+
+The post-beta SQL engine is a separate, review-gated source milestone. Querying is
+a SQLite/UI-independent transport and typed relational contract assembly; QueryHost
+alone references SQLitePCLRaw and its pinned native SQLite library. Workspace now
+captures logical live documents and projects Core structural ranges. Desktop exposes
+one optional dockable SQL editor/results tool and deploys the existing isolated
+worker under QueryHost/. Workspace owns explicitly saved named SQL definitions;
+layout persists placement only. Core/schema/native enforcement are unchanged in
+15C. Each worker owns a private
+in-memory database, Windows memory containment, native heap/page limits, a
+deny-by-default authorizer and bounded cancellation/deadline/result transfer.
+Prepare-only authorizer-protected planning discovers relations before import, without
+stepping. Execute permanently seals import before preparation/execution. Three fixed
+read-only field adapters request values lazily over bounded RPC; hidden metadata
+backing tables are never authorized by view/CTE names. MSH-only queries avoid decoding
+unused OBX values. No custom SQL parser, arbitrary import DDL, extension, disk database
+or external connection is exposed. Complete journals support paged previews, CSV
+and separately bounded all-row identity extraction into independent documents.
+Source bytes/framing remain authoritative; unsafe outputs fail without publication. See
+[ADR 0020](decisions/0020-isolated-read-only-sql.md) and
+[15C acceptance](stage15c-sql-ui-acceptance.md),
+[SQL UI guide](sql-query-ui.md) and [HL7 workflow reference](sql-hl7-workflows.md).
+15D requires owner review;
+accepted preview artifacts remain unchanged.
+
 ## Stage 14 portable beta readiness
 
 See [ADR 0019](decisions/0019-portable-beta-readiness.md). A local candidate assembles

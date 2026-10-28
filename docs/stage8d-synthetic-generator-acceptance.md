@@ -50,6 +50,16 @@ seconds and an explicit offset or Z, normalizes to UTC, and is restricted to yea
 1900–9998. Prefix trims/uppercases to 1–12 ASCII A–Z/0–9/hyphen/underscore characters.
 No clock/source-derived defaults are used. The seed is an unsigned 32-bit integer.
 
+Generation UX polish (2026-10-28): Seed label/input now expose context-specific
+themed tooltip and screen-reader help. F1 is not advertised after native review
+found it unreliable; its existing handler is retained.
+Here the seed controls test given-name suffixes, birth dates, numeric ORU values
+and seed-derived message/patient/visit/order identifiers. Changing it may change
+those values; facilities, providers, address templates and configured transport
+timestamps stay fixed. Identical normalized settings reproduce output for the
+same generator version. Blank uses 42. This differs from FHIR conversion, where
+Seed affects only MSH-10. No generator algorithm or output contract changed.
+
 | Type | Example content |
 | --- | --- |
 | ADT^A01 | EVN/PID/PV1; inpatient admission, synthetic ward/room/bed |

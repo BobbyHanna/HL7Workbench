@@ -37,7 +37,7 @@ public sealed class FullRawInspectorView : Grid, IDisposable
         RowDefinitions = new("Auto,*,Auto");
         var title = new TextBlock { Text = $"Full Source Viewer · {session.Label} · source UTF-16 {session.Scope.Offset:N0}–{session.Scope.End:N0}", Margin = new(4), FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
         Children.Add(title); SetRow(Editor, 1); Children.Add(Editor);
-        var controls = new WrapPanel { Orientation = Orientation.Horizontal };
+        var controls = new AdaptiveActionBar();
         void Button(string title, string tip, Func<long> position, bool align = false)
         { var button = new Button { Content = title, Margin = new(2) }; ToolTip.SetTip(button, tip); button.Click += async (_, _) => await LoadAsync(position(), align); controls.Children.Add(button); }
         Button("Previous Chunk", "Previous chunk within the displayed source scope", () => Math.Max(0, Position - RawInspectorSession.ChunkCharacters), true);
@@ -68,6 +68,7 @@ public sealed class FullRawInspectorView : Grid, IDisposable
             var raw = session.Scope.Offset + Position + Editor.Document.GetOffset(position.Location);
             e.Handled = true; session.Inspection?.SelectDeepestOffset(raw);
         }, RoutingStrategies.Tunnel);
+        ResponsiveToolSurface.Attach(this, (1, ToolLayoutMetrics.EditorHeight));
     }
     public async Task LoadAsync(long offset, bool align = false)
     {

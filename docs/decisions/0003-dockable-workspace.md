@@ -64,3 +64,34 @@ a live active-document mirror or claim same-file retention is implemented. See
 `../stage3-workspace-layout-acceptance.md` for evidence and the acceptance boundary.
 
 See ../docking-acceptance.md for the review gate and ../PROJECT_CONTEXT.md for orientation.
+
+## Stage 15UI amendment — responsive feature content (2026-10-27)
+
+Follow-up: FHIR Patient Workspace preserves the old tool identity while changing
+its visible name and content layout. Fresh/reset MainWindow layout paths now arm
+DefaultDockSizing once finite Dock bounds exist; no resize subscription reapplies
+defaults. The callback checks both displayed and factory root identity, so Opened
+saved-layout restoration cannot be overwritten. Valid user proportions remain
+authoritative. See the follow-up acceptance report for the limits of native evidence.
+
+Keep Dock, its layout schema, default proportions, tool registry and placement-only
+persistence. Add small native-control helpers in Desktop/Viewer: AdaptiveActionBar,
+ResponsiveFormField, ToolContentGrid and ResponsiveToolSurface, with centralized
+DIP metrics. Content adapts to its own measured viewport, including floating roots.
+Use finite Grid measurement with a visible overflow extent, rather than measuring
+editors and virtualized lists at infinity or requiring a large tool minimum.
+No dependency, Core or Workspace change is needed.
+
+Dock may replace templates in attach-before-detach order. SQL and Script Desktop
+models retain session-only editor documents/undo and selection through an internal
+handoff; old editors release their document event handlers. Model disposal clears
+that state. No document/query content enters layout persistence. Responsive resizing
+itself does not reconstruct controls or reset model selection/results.
+
+Tradeoff: severely constrained tools require vertical travel; primary action bars
+can acquire their own bounded vertical fallback. Dense data tables retain deliberate
+horizontal scrolling. Existing complex Search/Comparison split persistence is
+preserved; their action bars migrate but full extreme-height composition remains
+future work. See [developer guide](../responsive-tool-layout.md) and
+[acceptance evidence](../stage15ui-acceptance.md). Native Windows visual/DPI acceptance
+is separate from automated/headless measurement; Stage 15D is not authorized.

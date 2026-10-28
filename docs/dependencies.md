@@ -1,5 +1,30 @@
 # Dependency inventory
 
+## Stage 15A/15B/15C query worker (post-beta source milestone)
+
+QueryHost alone adds `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5. Stage 15B adds no package
+or version; Workspace references only managed Querying contracts. The fixed lazy
+field adapter uses the same e_sqlite3 C ABI because the pinned provider has no module
+registration wrapper. Transitive project-reference lock entries were refreshed for
+the current beta project versions. No accepted release notice/manifest is rebuilt.
+Stage 15C reuses AvaloniaEdit for SQL syntax coloring (a small local lexical
+definition), existing virtualized ListBox/grid controls for paged results, and the
+same worker-copy target for Desktop/tests. No grid/editor dependency is added.
+No accepted portable artifact or release notice inventory is rebuilt. The QueryHost project lock graph
+pins `SQLitePCLRaw.config.e_sqlite3`, `SQLitePCLRaw.provider.e_sqlite3` and
+`SQLitePCLRaw.core` 3.0.5, and native `SQLite` 3.53.4. Restored nuspecs declare
+Apache-2.0 for the four SQLitePCLRaw packages. The SQLite package's bundled
+LICENSE.txt states SQLite is public domain and links to sqlite.org/copyright.html.
+Preserve required notices in any future distribution; this metadata review is not
+legal clearance. No ADO.NET/EF Core or editor/grid package is added.
+
+Only the new QueryHost runtime/test worker folder receives these dependencies.
+Querying has no package dependency; existing Desktop/Workspace/Core/Scripting/
+Transport graphs are unchanged. Existing accepted beta dependency manifests,
+notices, binaries and archives are not regenerated or modified. Future worker
+deployment/packaging requires its own reviewed source/dependency inventory.
+See [ADR 0020](decisions/0020-isolated-read-only-sql.md).
+
 Stage 14's actual self-contained win-x64 candidate has a separate
 [35-entry runtime/license review](portable-dependencies.md), including .NET runtime
 10.0.12, complete bundled/pinned upstream notices and outstanding human scope review.

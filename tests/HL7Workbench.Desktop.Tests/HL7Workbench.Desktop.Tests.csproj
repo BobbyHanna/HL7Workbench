@@ -10,4 +10,5 @@
     <PackageReference Include="Avalonia.BuildServices" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <Import Project="../../build/ScriptHost.targets" />
+  <Import Project="../../build/QueryHost.targets" />
 </Project>

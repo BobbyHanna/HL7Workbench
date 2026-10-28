@@ -48,9 +48,12 @@ public sealed class LoadTestingView : Grid
     public TextBlock Status { get; } = Text();
     public ListBox Results { get; } = new() { MinHeight = 60, ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel()) };
     public Task ActionTask => model.ActionTask;
+    public ResponsiveToolSurface LayoutSurface { get; }
     public LoadTestingView(LoadTestingViewModel model)
     {
-        this.model = model; refreshing = true; Margin = new(8); MinWidth = 280; RowDefinitions = new("Auto,*,Auto,*,Auto"); RowSpacing = 6;
+        this.model = model; refreshing = true; Margin = new(8); RowDefinitions = new("Auto,*,Auto,*,Auto"); RowSpacing = ToolLayoutMetrics.Gap;
+        Synthetic.Content = new TextBlock { Text = (string)Synthetic.Content!, TextWrapping = TextWrapping.Wrap };
+        Replay.Content = new TextBlock { Text = (string)Replay.Content!, TextWrapping = TextWrapping.Wrap };
         form.Children.Add(new TextBlock { Text = "Controlled load testing · authorized test environments only. Concurrency can reorder registration/results. Limits do not guarantee receiver safety. No retries.", TextWrapping = TextWrapping.Wrap });
         form.Children.Add(Synthetic); Add("Source captured by Prepare", Source); Add("Saved endpoint (configure in Connection Manager)", Profiles); form.Children.Add(Reload); Add("Exact prepared destination", Destination);
         Profiles.ItemTemplate = new FuncDataTemplate<TransportEndpoint>((p, _) => new TextBlock { Text = p?.Name });
@@ -60,7 +63,7 @@ public sealed class LoadTestingView : Grid
         var scroll = new ScrollViewer { Content = form, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; SetRow(scroll, 1); Children.Add(scroll);
         // Keep Stop first in a fixed top toolbar, even when a short/narrow dock
         // cannot show the full form or live statistics without scrolling.
-        var actions = new WrapPanel { Orientation = Orientation.Horizontal, Children = { Stop, Prepare, Review, Start, ExportCsv, ExportSummary } }; Children.Add(actions);
+        var actions = new AdaptiveActionBar(Stop, Prepare, Review, Start, ExportCsv, ExportSummary); Children.Add(actions);
         var metrics = new StackPanel { Spacing = 5, Children = { Progress, Latency } }; var metricScroll = new ScrollViewer { Content = metrics, MaxHeight = 210 }; SetRow(metricScroll, 2); Children.Add(metricScroll);
         SetRow(Results, 3); Children.Add(Results); SetRow(Status, 4); Children.Add(Status);
         Results.ItemTemplate = new FuncDataTemplate<LoadExchangeResult>((r, _) => new TextBlock { Text = r?.ToString(), TextWrapping = TextWrapping.Wrap });
@@ -93,7 +96,9 @@ public sealed class LoadTestingView : Grid
         Concurrency.Text = model.Options.Concurrency.ToString(CultureInfo.InvariantCulture); Rate.Text = model.Options.MessagesPerSecond.ToString(CultureInfo.InvariantCulture);
         Duration.Text = model.Options.DurationSeconds.ToString(CultureInfo.InvariantCulture); Attempts.Text = model.Options.AttemptLimit.ToString(CultureInfo.InvariantCulture);
         Failures.Text = model.Options.ConsecutiveFailureLimit.ToString(CultureInfo.InvariantCulture); Rejections.Text = model.Options.RejectionPercent.ToString(CultureInfo.InvariantCulture);
-        Timeouts.Text = model.Options.TimeoutPercent.ToString(CultureInfo.InvariantCulture); Samples.Text = model.Options.MinimumOutcomeSamples.ToString(CultureInfo.InvariantCulture); Replay.IsChecked = model.Options.Replay; refreshing = false; Refresh();
+        Timeouts.Text = model.Options.TimeoutPercent.ToString(CultureInfo.InvariantCulture); Samples.Text = model.Options.MinimumOutcomeSamples.ToString(CultureInfo.InvariantCulture); Replay.IsChecked = model.Options.Replay;
+        LayoutSurface = ResponsiveToolSurface.Attach(this, actions, (1, ToolLayoutMetrics.ListHeight), (3, ToolLayoutMetrics.ListHeight));
+        refreshing = false; Refresh();
     }
     private bool Configure()
     {
@@ -126,7 +131,7 @@ public sealed class LoadTestingView : Grid
         }
         finally { refreshing = false; }
     }
-    private void Add(string label, Control control) { form.Children.Add(new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap }); form.Children.Add(control); }
+    private void Add(string label, Control control) => form.Children.Add(new ResponsiveFormField(label, control));
     private static TextBox Input(string value) => new() { Text = value, MaxLength = 8 };
     private static Button Button(string text) => new() { Content = text, Margin = new(2) };
     private static TextBlock Text() => new() { TextWrapping = TextWrapping.Wrap };

@@ -18,6 +18,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string NavigatorId = "tool.segment-navigator";
     public const string FieldInspectorId = "tool.field-inspector";
     public const string ScriptEditorId = "tool.script-editor";
+    public const string SqlQueryId = "tool.sql-query";
     public const string ScriptApiReferenceId = "tool.script-api-reference";
     public const string FieldExtractionId = "tool.field-extraction";
     public const string SyntheticPatientsId = "tool.synthetic-patients";
@@ -44,6 +45,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private readonly HashSet<string> approvedCloses = [];
     public Func<MessageDocument, Task<bool>>? ConfirmDocumentCloseAsync { get; set; }
     public Func<Task<bool>>? ConfirmScriptCloseAsync { get; set; }
+    public Func<Task<bool>>? ConfirmSqlCloseAsync { get; set; }
 
     public WorkspaceDockFactory(DocumentManager documents, ToolWindowRegistry tools)
     {
@@ -60,6 +62,12 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private void DockableClosingHandler(object? sender, Dock.Model.Core.Events.DockableClosingEventArgs e)
     {
         if (e.Dockable is ITool tool) Remember(tool);
+        if (e.Dockable is ITool { Id: SqlQueryId } sqlTool && !approvedCloses.Contains(SqlQueryId) && ConfirmSqlCloseAsync is not null)
+        {
+            e.Cancel = true;
+            if (closingDocuments.Add(SqlQueryId)) _ = ConfirmSqlCloseAsyncCore(sqlTool);
+            return;
+        }
         if (e.Dockable is ITool { Id: ScriptEditorId } scriptTool && !approvedCloses.Contains(ScriptEditorId) && ConfirmScriptCloseAsync is not null)
         {
             e.Cancel = true;
@@ -85,6 +93,19 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
             }
         }
         finally { closingDocuments.Remove(ScriptEditorId); }
+    }
+    private async Task ConfirmSqlCloseAsyncCore(ITool tool)
+    {
+        try
+        {
+            if (ConfirmSqlCloseAsync is not null && await ConfirmSqlCloseAsync() && !disposed &&
+                items.TryGetValue(SqlQueryId, out var current) && ReferenceEquals(tool, current))
+            {
+                approvedCloses.Add(SqlQueryId);
+                try { CloseDockable(tool); } finally { approvedCloses.Remove(SqlQueryId); }
+            }
+        }
+        finally { closingDocuments.Remove(SqlQueryId); }
     }
     private async Task ConfirmCloseAsync(MessageDocument document, IDockable item)
     {
@@ -212,7 +233,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
         if (disposed) return;
         disposed = true;
         foreach (var document in observedDocuments) document.PropertyChanged -= DocumentTitleChanged;
-        observedDocuments.Clear(); ConfirmDocumentCloseAsync = null; ConfirmScriptCloseAsync = null;
+        observedDocuments.Clear(); ConfirmDocumentCloseAsync = null; ConfirmScriptCloseAsync = null; ConfirmSqlCloseAsync = null;
         ActiveDockableChanged -= ActiveDockableChangedHandler;
         DockableClosed -= DockableClosedHandler;
         DockableClosing -= DockableClosingHandler;

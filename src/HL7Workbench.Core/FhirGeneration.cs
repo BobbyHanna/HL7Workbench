@@ -50,7 +50,7 @@ public sealed record FhirGenerationReport(int MappingVersion, Guid SessionId, st
         FhirGenerationScope.SelectedEvents => "Selected Events (advanced)",
         _ => throw new ArgumentOutOfRangeException(nameof(scope))
     };
-    public const string Notice = "Review required. Synthetic/test import is user-confirmed, not verified PHI-free. Complete history includes supported mappings only; clinical completeness is not claimed. Mapping is partial and may be lossy; no universal FHIR conversion, clinical or interface conformance certification. Later output edits are not reassessed.";
+    public const string Notice = "Review required. Complete history includes supported mappings only; clinical completeness is not claimed. Mapping is partial and may be lossy; no universal FHIR conversion, clinical or interface conformance certification. Later output edits are not reassessed.";
 }
 public sealed class FhirMappedBatch
 {

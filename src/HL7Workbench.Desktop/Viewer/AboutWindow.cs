@@ -24,6 +24,13 @@ internal sealed class AboutWindow : Window
                 new TextBlock { Text = "Version " + typeof(AboutWindow).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0] },
                 new TextBlock { Text = ProductBranding.Description, TextWrapping = TextWrapping.Wrap },
                 new TextBlock { Text = "HL7 v2 viewing and editing, search and extraction, scripting, de-identification, synthetic generation, FHIR R4 import and conversion, and TCP/MLLP testing.", TextWrapping = TextWrapping.Wrap },
+                new Expander { Header = "Data handling and privacy", Content = new ScrollViewer { MaxHeight = 260, Content = new TextBlock
+                {
+                    Text = "Use data you are authorized to access. Imported FHIR records are not verified as synthetic. FHIR Patient Workspace processes local files and keeps imported records in the current session; closing or clearing it releases that session.\n\n" +
+                        "There are no automatic uploads or runtime telemetry. HL7 source snapshots and query journals can use temporary local storage. Explicit saves and exports persist data; saved scripts and SQL definitions can also contain sensitive text.\n\n" +
+                        "TCP/MLLP tools transmit only through their explicit workflows. Trusted C# scripts run with your account permissions and can access files or networks. Mapping and de-identification have documented limits; review output before use.",
+                    TextWrapping = TextWrapping.Wrap
+                } } },
                 close
             }
         };

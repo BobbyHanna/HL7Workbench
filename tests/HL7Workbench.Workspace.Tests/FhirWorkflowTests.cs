@@ -21,6 +21,8 @@ public sealed class FhirWorkflowTests : IAsyncDisposable
     {
         var a=await FileCopy(); var b=await FileCopy("patient-beta.json"); var before=new[]{(a,SHA256.HashData(await File.ReadAllBytesAsync(a,Token))),(b,SHA256.HashData(await File.ReadAllBytesAsync(b,Token)))};
         var files=await FhirPatientImport.FilesAsync([b,a],true,token:Token); var folder=await FhirPatientImport.FolderAsync(root,true,token:Token);
+        var withoutAcknowledgment=await FhirPatientImport.FilesAsync([b,a],token:Token); Assert.Equal(files.Fingerprint,withoutAcknowledgment.Fingerprint);
+        Assert.Equal(folder.Fingerprint,(await FhirPatientImport.FolderAsync(root,token:Token)).Fingerprint);
         Assert.Equal(2,files.Patients.Count); Assert.Equal(files.Fingerprint,folder.Fingerprint); Assert.Equal(Plan(files).Generate(Token).GetUtf8Bytes(),Plan(folder).Generate(Token).GetUtf8Bytes());
         foreach(var (path,hash) in before) Assert.Equal(hash,SHA256.HashData(await File.ReadAllBytesAsync(path,Token)));
         await Assert.ThrowsAsync<InvalidDataException>(()=>FhirPatientImport.FilesAsync(["https://synthetic.example.invalid/patient.json"],true,token:Token));

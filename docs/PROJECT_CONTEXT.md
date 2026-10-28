@@ -8,6 +8,272 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## FHIR generation UX polish (2026-10-28)
+
+The owner reports native Windows acceptance of the preceding FHIR workspace
+redesign. This focused follow-up still needs its own native acceptance. Generate
+HL7 now prepares eligibility/output size internally through the same Workspace
+operation as optional Preview, then uses the existing atomic validated publisher.
+Cache reuse requires the session revision and seed/type/timestamp settings. No
+Core mapping, output ceiling or selection policy changed. Selected Events with
+cleared manual selections remains blocked; full-history scopes retain defaults.
+
+Generate is primary. Seed and Transport Timestamp live in initially collapsed
+Advanced Options with session state retained across resizing/docking. Desktop has
+exactly two configurable Seed inputs: FHIR affects MSH-10 only; Generate Messages
+affects test-name suffixes, birth dates, ORU numeric values and derived identifiers.
+Both label/input pairs have specific themed tooltips and accessible help text.
+F1 is not advertised after native review found it unreliable; the existing handler
+is retained. No new dependency, persistence, telemetry or tooltip framework.
+See docs/fhir-generation-ux-acceptance.md for verification and manual checks.
+Final verification passed: normal/isolated locked restores, Release solution build
+with warnings as errors (0 warnings/errors), and all 2,188 tests (0 failures/skips),
+including 25 new direct-generation/UI cases. All five requested tool viewport sizes
+pass headless checks. All 2,384 protected preview hashes remain unchanged. This
+polish changes 15 paths; combined Git state is main/f2a5cec, 59 modified tracked /
+58 untracked files, empty index. Native hover/keyboard/docking review remains pending.
+Preserve uncommitted prior work; no commit/push/package, beta artifact changes,
+Stage 15D or Stage 16 is authorized by this task.
+
+## Stage 15UI follow-up — FHIR Patient Workspace (2026-10-27)
+
+Native owner testing found UX defects after the original automated UI gate. The
+authorized follow-up renames the visible tool to **FHIR Patient Workspace**, while
+preserving `tool.synthetic-patients`, internal class names and placement-only layout
+compatibility. The toolbar now has an Import FHIR flyout, authoritative session
+counts, a secondary actions menu and a directly visible active Cancel. Empty imports
+show a compact prompt instead of a blank table. Loaded data uses patient master-detail
+browsing with Overview/Encounters/Timeline; narrow panes stack. Generate HL7 is
+collapsed by default and retains configuration/preview across collapse and docking.
+
+The owner explicitly removed the acknowledgment checkbox and persistent confidentiality
+banner. New no-acknowledgment overloads in Core/Workspace reuse the exact bounded
+validation/import implementation; legacy Boolean overloads retain their old guard
+for compatibility. The Desktop model uses the new paths, rather than passing a
+fictitious acknowledgment. No parser, clinical interpretation, mapping or publication
+semantics changed. The count-only generation notice no longer claims user-confirmed
+synthetic provenance; meaningful clinical limitations remain. About now includes an
+informational data-handling section. No new EULA, legal guarantee or compliance claim
+was introduced; see docs/data-handling.md.
+
+DefaultDockSizing arms a single fresh/reset initialization after finite Dock bounds
+exist. Root-identity checks let saved-layout startup restoration win. Ordinary resize
+and deliberately adjusted/saved proportions are untouched. Target defaults remain
+73% upper / 27% bottom and 78% document / 22% right inspection. Automated full-hierarchy
+checks cover startup, reopen, resize, reset and custom saved ratios. The exact
+reported native initial-sizing symptom could not be independently established:
+the isolated native launch was blocked by a Computer Use app-approval timeout.
+Do not claim native acceptance from the passing headless/Skia evidence.
+
+See docs/fhir-patient-workspace.md and docs/stage15ui-fhir-workspace-acceptance.md for
+current workflows, evidence, limitations and the owner native checklist. Earlier
+15UI/Stage 11 notes below are historical where superseded. Preserve all uncommitted
+15A–15UI work. Stop for native review; no Stage 15D/16, commit, push, packaging or
+protected-beta modification is authorized.
+
+Follow-up verification: normal/isolated locked restores and final Release build
+passed with 0 warnings/errors. All 2,163 tests passed; the final 438 Desktop cases
+passed again after detached demographic-text cleanup. The other four test DLLs
+remain unchanged from the full run. All 23 responsive and 10 FHIR hierarchy/state
+cases passed; 41 nonblank Skia frames are retained. All 2,384 protected preview files
+match their baseline. The follow-up changes 31 paths; the combined worktree remains
+on main at f2a5cec, index empty, 57 modified tracked / 55 new files. No commit, push,
+packaging, accepted-artifact rebuild or later-milestone work occurred.
+
+## Stage 15UI — responsive tool infrastructure (2026-10-27)
+
+The owner authorized completing the interrupted 15UI milestone, preserving all
+uncommitted 15A–15C work. Stop before 15D; no commit, push, packaging or accepted-beta
+artifact modification is authorized. Desktop now uses small native-control helpers
+in Viewer/ResponsiveTools.cs: centralized DIP metrics, AdaptiveActionBar,
+ResponsiveFormField, ToolContentGrid and ResponsiveToolSurface. Individual tool
+viewports drive wrapping/stacking. Finite Grid measurement preserves editor/list
+viewports while exposing complete vertical overflow, including nested expanded
+details. Essential bars have a bounded vertical fallback in very small hosts.
+Dock headers/tabs/default layout/schema remain unchanged. No new dependency or
+Core/Workspace change belongs to this milestone.
+
+Synthetic Patients/FHIR Import, SQL Query, Script Editor/Library, Field Inspector,
+Segment Navigator, Activity Log, Field Extraction, Full Source Viewer, transport,
+batch transmission, load testing and Script API Reference adopt the shared patterns.
+Search/Comparison action bars and de-identification report wrapping receive small
+safe fixes; their complex split compositions retain existing persistence and are
+documented as remaining extreme-height work. Layout does not alter source snapshots,
+bounded previews, SQL enforcement/results/extraction or synthetic generation.
+
+Resizing preserves controls and model state. Desktop's internal ToolEditorState
+also retains SQL/Script editor documents, undo and selection when Dock replaces a
+template, including attach-before-detach ordering; detached editors release document
+handlers, owners are weak references, and model disposal clears retained state.
+No editor content is persisted by this infrastructure.
+Activity Log retains only opaque selected entry sequence numbers and its filter
+within the current model when Dock replaces the view; disposal/clear prunes them.
+
+See docs/responsive-tool-layout.md, ADR 0003's amendment and
+docs/stage15ui-acceptance.md for the audit, matrix, verification evidence and native
+Windows checklist. Headless measurement/Skia and emulated 1.0/1.25/1.5 transforms
+are explicitly distinct from real native docking, chrome and per-monitor DPI
+acceptance. Verification totals and artifact/Git checks are recorded in the
+acceptance report; native visual acceptance remains an owner review step.
+
+Verification: normal/isolated locked restores passed; final isolated Release solution
+build passed with 0 warnings/errors. All five suites passed 2,152 tests. All 428
+Desktop tests were then rerun successfully after the final clinical layout and
+Activity Log state corrections; the other four test DLLs are unchanged. All 23
+responsive cases also passed with nonblank Skia captures. Representative frames
+were inspected; actual native Windows/DPI acceptance remains pending. All 2,384
+protected beta files match their baseline. Git remains on main at f2a5cec, index
+empty, 42 modified tracked / 49 new files across 15A–15C plus 15UI. The 29-file
+15UI inventory and retained ignored verification evidence are in the acceptance report.
+
+## Stage 15C — Docked SQL Query workflow (2026-10-27)
+
+The owner provisionally accepted 15B and authorized **15C only**. Stop before 15D;
+no commit, push, packaging or accepted-beta artifact modification is authorized.
+View → SQL Query opens a lazy dockable/floating editor with integrated paged results.
+The default layout is unchanged. AvaloniaEdit plus a small theme-aware lexical SQL
+definition provides multiline editing/highlighting, Ctrl+Enter execution and Ctrl+S
+explicit query saving. Desktop copies the existing contained worker to QueryHost/;
+no engine/schema redesign, Core change or new dependency/package is introduced.
+
+Current scope pins the active document on Run; selected scope freezes checked open
+documents. Capture/index/execute stays off-thread with progress/Cancel. Closure or
+revision changes cancel participating running queries; completed results retain
+independent captured bytes and show staleness. Captured document numbers and draft
+vs producing-query attribution remain visible. Starting a run clears old results;
+failure cannot present them as a new success. Status reports SQL/transfer and total
+capture/index/query duration plus complete row count.
+
+Results render at most 100 journal rows with 256-character previews. Cell/row/rectangle
+selection supports full-value quoted TSV copy (1 Mi UTF-16 cap), typed NULL/empty
+presentation and explicit full scalar inspection. Stable typed sorting reads one
+column and retains a bounded row permutation; text order is ordinal, not a claim
+about SQLite collations. CSV validates/exports the complete permutation across all
+pages. Go to source/double-click verifies authoritative identities and unchanged
+open revisions; selection alone never navigates or changes source content.
+Matching-message extraction still consumes the complete original journal, deduplicates
+in source order and honors all 15B byte/framing/encoding/output checks.
+
+Explicit named definitions live under the application configuration's SqlQueries/
+directory, following existing GUID JSON, bounded read, link rejection, library lock,
+revision conflict and atomic publication conventions. Persist Version/Id/Name/Sql
+only: up to 256 records, 120-character names, 65,536 SQL units, 512 KiB encoded record.
+Names/SQL literals may be sensitive and unencrypted; disclosure is visible before
+saving. No autosaved editor text, history, results, source data or document metadata.
+Session history survives tool reopen in memory only (32 entries/256 Ki SQL units).
+New/open/delete/close guard unsaved drafts; delete confirms; rename preserves stored
+SQL. Application shutdown retains discard consent until other close prompts succeed.
+Tool closure drains cancellation and disposes journal/sources; layout stores placement
+only and can restore visible tools with fresh content. SQL editors reject oversize
+paste before document mutation and retain deferred rollback for programmatic overflow,
+preserving the accepted AvaloniaEdit undo-transaction invariant.
+
+See docs/sql-query-ui.md for the user guide, ADR 0020's 15C amendment, and
+docs/stage15c-sql-ui-acceptance.md for verification, limitations, file inventory and
+native checks. Evidence/initial failures/rendered synthetic screenshots are retained
+under ignored artifacts/stage15c/. This is a source milestone pending review; 15D
+and a rebuilt release are not implied.
+
+Verification: normal/isolated locked restores passed; final isolated Release build
+passed with 0 warnings/errors. The complete run passed all 2,129 tests with no
+failures/skips (33 added 15C cases). Final review added bounded alias headers and
+caught close-time save conflicts; all 405 Desktop tests were rerun successfully
+against those guards. The other four test DLLs remain byte-identical to the complete
+run. Four nonblank light/dark compact/wide Skia frames were inspected. All 2,384
+protected preview files remain byte-identical. Git contains 22 modified tracked /
+44 new files across 15A–15C, index empty, HEAD f2a5cec unchanged. No commit, push,
+package, accepted-artifact rebuild or 15D work was performed. Native Windows
+docking/DPI/picker/clipboard checks remain in the owner checklist.
+
+## Stage 15B — historical relational/output gate (2026-10-27)
+
+The owner initially provisionally accepted 15A and authorized **15B only**. The
+subsequent 15C authorization/amendment is above. No accepted-beta change is authorized.
+Workspace now references managed Querying contracts; Core stays unchanged and
+SQLite-free. Desktop has no SQL menu/tool/grid or worker deployment yet. Saved-query
+persistence and UI belong to 15C. See docs/sql-query.md, docs/sql-hl7-workflows.md,
+docs/stage15b-hl7-query-acceptance.md and the 15B amendment in ADR 0020.
+
+Focused 15A review retained authorizer-before-prepare/reprepare, permanent Execute
+sealing, worker cancellation/crash cleanup and native/parent resource caps. Empty
+BLOB binding was corrected. A prepare-only, authorizer-protected Plan phase can
+discover relations before import; it never steps and cannot reopen sealed input.
+Source-backed field relations use three fixed read-only SQLite adapters, private
+metadata backing tables and bounded parent value RPC. No view/CTE context grants
+authority (adversarial tests caught and rejected that approach). Trusted schema,
+views/triggers/extensions stay disabled. No new dependency/version in 15B.
+
+Live logical state is frozen on the document context, copied to owned snapshots off
+thread, then live leases release. Metadata-only queries decode just bounded MSH
+headers, never unused OBX bodies. Referenced structural relations scan complete
+messages with Core; value columns materialize only on request and fail explicitly
+on oversized/unresolved decoded values. Missing, empty, null and errors remain
+distinct. Document-qualified HL7_VALUE/RAW/STATE/STATUS reuse Core paths; two-argument
+overloads exist only for one pinned document. Multi-document identity never relies
+on control/patient IDs or display positions.
+
+Complete bounded results become an owned journal with 100-row/256-character previews
+and explicit full-row reads. CSV streams all rows through Core encoding and existing
+atomic publication/source guards. Separate identity-selection queries or complete
+identity-bearing results deduplicate all rows, preserve source order and copy exact
+source/framing ranges into an independent unsaved document. No visible-page-only
+extraction or hidden truncation exists. Unsafe encoding/wrappers/framing/joins fail
+before publication; originals remain unchanged.
+
+Workspace caps: 16 documents, 100,000 scoped messages, 1 GiB captured bytes, 16 Mi
+UTF-16 frozen drafts, one decoded spool/model, 128 MiB encoded journal, 1 GiB output,
+100,000 matching messages, 256 MiB CSV and 10-minute overall run. Existing SQL caps
+remain (16 MiB/100,000 results, 250,000 metadata rows/64 MiB import, 65,536 explicitly
+materialized text units, 30s execution, 512 MiB Windows job). Source RPC is capped
+at 100,000 reads. Temporary snapshots/journals can contain sensitive content and use
+existing lease/cleanup rules; no query/history/results setting or raw disk database.
+Structural scans are relation-selective, not message-predicate-selective; metadata
+queries still copy source bytes. Convenience segment views remain deferred.
+
+Verification: normal/isolated locked restores passed; isolated Release build passed
+with 0 warnings/errors; all 2,096 regression tests passed (0 failed/skipped), including
+47 added 15B cases. All 2,384 protected preview files remain byte-identical. Full gate
+and native-review checklist are in docs/stage15b-hl7-query-acceptance.md. Evidence and
+initial failure diagnostics remain under ignored artifacts/stage15b/. Git has 13
+modified tracked / 31 new files across 15A+15B, with an empty index. This is a source
+milestone awaiting review, not a release or native SQL UI acceptance.
+
+## Stage 15A — historical engine verification (2026-10-27)
+
+The owner initially approved the four-pass post-beta Stage 15 plan and **15A only**:
+an isolated SQLite worker, deny-by-default authorization, cancellation, resource
+limits and automated tests. Stop for review before 15B. No commit, push, packaging,
+publication or change/rebuild of accepted private-preview artifacts is authorized.
+The earlier release checkpoint restrictions below describe that separate release.
+
+New Querying contains UI/SQLite-free contracts and bounded current-user pipe/client
+ownership. QueryHost alone loads pinned SQLitePCLRaw 3.0.5/native SQLite 3.53.4 into
+a private in-memory database, with a 512 MiB Windows job, 128 MiB native heap,
+64 MiB database, authorizer-before-prepare, disabled extensions/virtual tables,
+query_only, statement-tail validation, typed parameterized import and fixed
+privacy-safe errors. Complete bounded results or failure; no partial publication.
+No existing Core/Workspace/Desktop/Scripting/Transport implementation is changed.
+No live HL7 importer, SQL Dock UI, path functions, query persistence, CSV or matching
+message extraction is implemented in 15A. See ADR 0020, docs/sql-query.md and
+docs/stage15a-sql-engine-acceptance.md for exact status, tests and limits.
+
+Final 15A verification: locked restores passed; isolated Release solution build
+passed with 0 warnings/errors; all 76 new cases and all 2,049 complete regression
+cases passed, with 0 failures/skips. All 2,384 protected private-preview files
+remain byte-identical. The running app locked normal Release outputs, so fresh
+isolated binaries and byte-identical compatibility-path test copies were used;
+no test assertion was changed. Evidence and initial failure logs remain under
+artifacts/stage15a/. Current 23 paths (5 modified / 18 new) stay unstaged and
+uncommitted at that gate. The subsequent 15B authorization and amendment are above.
+
+Carry forward: the 65,536-character cap is explicitly a materialization budget,
+never an HL7 field-size assumption. Metadata queries must avoid decoding unused
+large OBX values. Referenced unavailable values must fail explicitly rather than
+silently become NULL/nonmatches. Matching-message extraction must operate on its
+own complete bounded identity selection, not visible/truncated report rows.
+Document-qualified functions remain authoritative; plan a convenient pinned
+Current document scope and consider single-document-only overloads in 15B.
+
 ## Final private-preview checkpoint
 
 The accepted binary checkpoint is af06e576a0a761f092db6ea7047b488570c0ee06. The user

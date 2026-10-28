@@ -1,7 +1,7 @@
-# Synthetic Patients: local Synthea/FHIR import
+# FHIR Patient Workspace: local Synthea/FHIR import
 
-Stage 11 adds **File → Import Synthetic Patient FHIR…** and **View → Synthetic Patients**.
-Both open the same optional dock tool. This is a synthetic interface-development aid,
+Open **File → Import Patient FHIR…** or **View → FHIR Patient Workspace**.
+Both open the same optional dock tool (formerly Synthetic Patients). This is a bounded developer aid,
 not a general FHIR converter or clinical conformance product. No Synthea installation,
 FHIR server, network connection or new package is required to run Workbench.
 
@@ -24,18 +24,17 @@ their README explains provenance. Do not use or open the excluded `_TEST.hl7`.
 
 ## Import and browse
 
-1. Open Synthetic Patients. Read **FHIR JSON may contain real PHI** and confirm the
-   files contain synthetic/test data only. Confirmation is required for each picker
-   operation and resets afterward. Filenames and Synthea identifiers prove nothing
-   about whether a file contains PHI.
-2. Choose **Import FHIR Bundles…** for one/multiple JSON files, or **Import folder…**
+1. Open FHIR Patient Workspace. Import does not require an acknowledgment checkbox.
+   See **Help → About → Data handling and privacy** for responsibility/storage behavior;
+   imported data is not verified as synthetic.
+2. Choose **Import FHIR ▾ → Import FHIR Bundles…** for one/multiple JSON files, or **Import folder…**
    for JSON files directly in a folder. Discovery does not recurse. Collection and
    transaction Bundles are supported; transaction requests are never executed.
 3. Review resource, reference, date and unsupported counts. A failed/canceled import
    retains the last completed session; successful import replaces it atomically.
    Sources are read-only. UNC/network drives and reparse-point paths are refused;
    a local copy is required. Cloud-only storage providers are unsupported.
-4. Search by source resource ID, selected synthetic identifier or display name.
+4. Search by source resource ID, patient identifier or display name.
    Press Enter or **Find patients**. Select a patient, then inspect **Encounters** or
    **Clinical timeline**. Same-name patients remain distinct. Pages contain at most
    100 rows; Previous/Next browse the complete bounded result. A selected patient
@@ -60,13 +59,13 @@ available precision remain visible. Partial dates sort at their available precis
 by UTC instant. Missing/invalid dates appear last; inconsistent periods are counted.
 No absent date, patient or clinical grouping is inferred.
 
-## Choose a scope, preview and generate
+## Choose a scope and generate (preview optional)
 
-The prominent **Generation scope** control has three choices:
+Expand **Generate HL7** to configure output. The **Generation scope** control has three choices:
 
 | Scope | What is included |
 | --- | --- |
-| **Selected Patient** — default | Select a patient and Preview. All their supported history is considered, with no encounter/event selection required. Includes eligible encounters, reports and observations, including observations without an encounter. |
+| **Selected Patient** — default | Select a patient and Generate HL7. All their supported history is considered, with no encounter/event selection required. Includes eligible encounters, reports and observations, including observations without an encounter. |
 | **Entire Import** | All imported patients and supported histories, independent of patient search, active patient and manual selections. No patient/event selection required. |
 | **Selected Events (advanced)** | The existing targeted encounter/timeline workflow. Select encounters and/or timeline events, accumulating selections across pages. |
 
@@ -84,17 +83,29 @@ outside included report groups produce standalone ORUs, never an invented panel.
 An observation explicitly linked to two distinct reports can occur in each report's
 ORU; the reports represent distinct groups under the existing mapping.
 
-Choose **ADT and ORU**, **ADT only** or **ORU only**. Enter an unsigned 32-bit seed
+Choose **ADT and ORU**, **ADT only** or **ORU only**. In initially collapsed
+**Advanced Options**, optionally change the unsigned 32-bit seed
 (default 42) and an explicit complete transport timestamp with offset (default
 `2030-01-01T00:00:00+00:00`). The transport timestamp normalizes to UTC whole seconds,
 years 1900–9998. It is generated message metadata; clinical timestamps are never
-filled from it. Select **Preview generation**, review event/warning counts, then
-**Generate HL7**. Preview shows patients included, encounters considered, eligible ADT
+filled from it. Choose **Generate HL7** directly; preparation runs in the background
+with Cancel available. **Preview generation** optionally reviews counts/limits
+without opening a document. Both use the same preparation. Preview shows patients
+included, encounters considered, eligible ADT
 events by type, ORU/message/OBX totals, skipped/unsupported/ineligible categories,
 warnings and output size/limits. Changing scope, patient, selections or options
 invalidates the preview. Disabled actions have a visible explanation: import needed,
-patient/advanced selection needed, preview needed, no eligible messages or an output
+patient/advanced selection needed, invalid settings, no eligible messages or an output
 limit. No-eligible and over-limit previews remain available for review/retry.
+
+Clear Event Selection empties manual selections. In Selected Events this blocks
+generation until you select again; it never means “include everything.” Full-history
+scopes keep their documented meaning. Advanced values and expansion survive collapse,
+resize and docking within this session. Hover Seed's label/input for help;
+screen readers receive the same explanation.
+This seed changes only MSH-10; copied values, patient/visit IDs and event order remain
+unchanged. Identical inputs/settings/mapping version reproduce bytes and deliberately
+repeat transport IDs; changing seed does not randomize FHIR.
 
 **Combined document** is the output organization for every scope. Separate documents
 by patient are deferred: the current publisher atomically opens one completed
@@ -146,8 +157,8 @@ patient names, source identifiers, values or filenames. It survives tool closure
 document-view reconstruction during this application session. It is not serialized
 into the HL7 file or retained across application restarts, and does not reassess
 later manual edits. Saved layouts contain placement/visibility only. The generated HL7 itself
-contains the selected source demographics/clinical data, so synthetic-only input
-confirmation remains essential.
+contains the selected source demographics/clinical data. Use only data you are
+authorized to handle; review output before explicit saving or transmission.
 
 Identical source bytes, scope/selections, options and mapping version produce identical
 UTF-8/CR output, independent of clock and active tabs. Seed changes message control
@@ -189,7 +200,7 @@ stress regression exercises 10,000 observations, not every maximum combination.
 **Cancel** stops the current background operation and preserves completed work.
 **Clear session**, closing the tool or Reset Layout cancels work, releases imported
 projections, search, selections and previews, and prevents an outstanding picker
-from later importing. Reopening starts empty and requires confirmation again.
+from later importing. Reopening starts empty, without a new acknowledgment gate.
 Previously generated documents remain independent. Moving/floating reconstructs
 the view over the live session; layout persistence stores placement only. Restart
 does not restore patient data or an imported session.

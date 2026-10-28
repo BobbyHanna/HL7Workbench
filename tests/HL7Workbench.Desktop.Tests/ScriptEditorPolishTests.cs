@@ -70,7 +70,7 @@ public sealed class ScriptEditorPolishTests
 
     [Theory]
     [InlineData(900, 300)] [InlineData(320, 300)] [InlineData(260, 220)]
-    public async Task CompactToolbarsLeaveCodeSpaceAndScrollRatherThanClipAtNarrowWidths(double width, double height)
+    public async Task AdaptiveToolbarsLeavePracticalCodeSpaceAndVerticalAccessAtNarrowWidths(double width, double height)
     {
         await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
         await ui.Dispatch(() =>
@@ -88,11 +88,11 @@ public sealed class ScriptEditorPolishTests
                 Assert.True(view.Save.IsVisible && view.Run.IsVisible && view.ExecutionScope.IsVisible);
                 if (width < 600)
                 {
-                    Assert.True(view.LibraryToolbar.Extent.Width > view.LibraryToolbar.Viewport.Width);
-                    view.LibraryToolbar.Offset = new(view.LibraryToolbar.Extent.Width, 0); window.UpdateLayout();
-                    Assert.True(view.LibraryToolbar.Offset.X > 0);
+                    Assert.True(view.LibraryToolbar.Bounds.Height > view.New.Bounds.Height);
+                    view.Save.BringIntoView(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
                     var saveRight = view.Save.TranslatePoint(new(view.Save.Bounds.Width, 0), view.LibraryToolbar)!.Value.X;
                     Assert.InRange(saveRight, 0, view.LibraryToolbar.Bounds.Width + 1);
+                    Assert.True(view.LayoutSurface.Scroll.Extent.Height > view.LayoutSurface.Scroll.Viewport.Height);
                 }
                 return true;
             }

@@ -24,6 +24,7 @@ public partial class MainWindow : Window
     private bool opening;
     private CancellationTokenSource? openingCancellation;
     private readonly string layoutPath;
+    private Action? cancelDefaultSizing;
 
     public MainWindow() : this(Path.GetDirectoryName(EditorPreferences.DefaultPath)!) { }
     internal MainWindow(string configurationDirectory)
@@ -31,6 +32,7 @@ public partial class MainWindow : Window
         preferences = new(Path.Combine(configurationDirectory, "editor-preferences.json"));
         layoutPath = Path.Combine(configurationDirectory, "workspace-layout.json");
         transportProfilesPath = Path.Combine(configurationDirectory, "transport-endpoints.json");
+        sqlLibraryDirectory = Path.Combine(configurationDirectory, "SqlQueries");
         InitializeComponent();
         browser = new MessageBrowserViewModel(documents);
         navigator = new(documents, true); fields = new(documents, false);
@@ -45,10 +47,11 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.FieldInspectorId, "Field Inspector", () => fields));
         // Retain the draft model when the tool closes or Dock reconstructs its view.
         registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
+        registry.Register(new(WorkspaceDockFactory.SqlQueryId, "SQL Query", CreateSqlQuery, Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ScriptApiReferenceId, "Script API Reference", () => scriptReference, Optional: true, RestoreVisibility: true));
         scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
         registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
-        registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "Synthetic Patients", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));
+        registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "FHIR Patient Workspace", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.GenerationReportId, "Generation Report", () => new GenerationReportViewModel(documents), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.DeidentificationReportId, "De-identification Report", () => new DeidentificationReportViewModel(documents), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ConnectionManagerId, "Connection Manager", () => CreateTransport(false), Optional: true, ReleaseOnClose: true));
@@ -60,6 +63,7 @@ public partial class MainWindow : Window
         factory = new(documents, registry);
         factory.ConfirmDocumentCloseAsync = ConfirmDocumentCloseAsync;
         factory.ConfirmScriptCloseAsync = () => scripts.ConfirmCloseAsync(PromptUnsavedScriptAsync);
+        factory.ConfirmSqlCloseAsync = ConfirmSqlCloseAsync;
         scripts.ReviewRequested += factory.OpenDocument;
         search.Session.NavigationRequested += factory.OpenDocument;
         LoadEditPreferences();
@@ -96,7 +100,7 @@ public partial class MainWindow : Window
             if (!documents.Documents.Contains(e.Document)) return;
             factory.OpenDocument(e.Document.Id); ShowDeidentificationReport(this, e); e.Handled = true;
         });
-        WorkspaceDock.Layout = factory.CreateLayout();
+        SetDefaultLayout();
         InitializeShell();
         ActivityIndicatorHost.Content = new Viewer.ActivityStatusIndicator(documents.Activity, () => factory.ShowTool(WorkspaceDockFactory.ActivityLogId));
         documents.Activity.Record(ActivityKind.ApplicationReady);
@@ -104,12 +108,14 @@ public partial class MainWindow : Window
         Closing += ConfirmWindowClose;
         Closed += (_, _) =>
         {
+            cancelDefaultSizing?.Invoke();
             lifetime.Cancel();
             foreach (var model in transportModels.ToArray()) model.Dispose();
             foreach (var model in batchModels.ToArray()) model.Dispose();
             foreach (var model in loadModels.ToArray()) model.Dispose();
             lifetime.Dispose();
             factory.Dispose();
+            sqlHistory.Clear();
             browser.Dispose();
             navigator.Dispose(); fields.Dispose();
             scripts.Dispose();
@@ -232,13 +238,14 @@ public partial class MainWindow : Window
             catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
         }
     }
-    private void RestoreLayout(object? sender, RoutedEventArgs e)
+    private async void RestoreLayout(object? sender, RoutedEventArgs e)
     {
         try
         {
             if (!File.Exists(layoutPath)) { Status.Text = "No saved layout. Use Save Layout first."; return; }
             if (new FileInfo(layoutPath).Length > LayoutCodec.MaxBytes) throw new InvalidDataException("Oversized layout.");
             var saved = LayoutCodec.Decode(File.ReadAllText(layoutPath));
+            if (!await ConfirmSqlCloseAsync()) return;
             CloseFloatingWindows();
             var screens = Screens.All.Select(s => new ScreenArea(s.WorkingArea.X, s.WorkingArea.Y, s.WorkingArea.Width, s.WorkingArea.Height)).ToArray();
             WorkspaceDock.Layout = factory.Restore(saved, screens);
@@ -246,20 +253,28 @@ public partial class MainWindow : Window
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
         {
+            if (!await ConfirmSqlCloseAsync()) return;
             CloseFloatingWindows();
-            WorkspaceDock.Layout = factory.CreateLayout();
+            SetDefaultLayout();
             Status.Text = "Saved layout unavailable or invalid; default workspace restored.";
             documents.Activity.Record(ActivityKind.LayoutFailed, failure: ActivityLog.Classify(error));
         }
     }
-    private void ResetLayout(object? sender, RoutedEventArgs e)
+    private async void ResetLayout(object? sender, RoutedEventArgs e)
     {
+        if (!await ConfirmSqlCloseAsync()) return;
         CloseFloatingWindows();
-        WorkspaceDock.Layout = factory.CreateLayout();
+        SetDefaultLayout();
         Status.Text = "Default workspace restored. Save Layout to keep it.";
     }
     private void CloseFloatingWindows()
     {
         factory.CloseFloatingWindows();
+    }
+    private void SetDefaultLayout()
+    {
+        cancelDefaultSizing?.Invoke();
+        WorkspaceDock.Layout = factory.CreateLayout();
+        cancelDefaultSizing = DefaultDockSizing.Arm(WorkspaceDock, factory);
     }
 }
