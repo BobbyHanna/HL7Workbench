@@ -55,7 +55,17 @@ public sealed class BatchTransmissionViewTests
                 Pump(window); Assert.Equal("1000", view.Interval.Text); Assert.Equal(0, view.Policy.SelectedIndex); Assert.Empty(listener.Receipts);
                 view.Interval.Text = "250"; Click(view.Prepare); await view.ActionTask; Pump(window); Assert.Equal(2, view.Results.ItemCount); Assert.Empty(listener.Receipts);
                 Click(view.Start); await view.ActionTask; Assert.Empty(listener.Receipts); Assert.Contains("review", model.Status);
-                Click(view.Review); await view.ActionTask; Click(view.Start); Click(view.Start); await view.ActionTask; await model.Session.Execution; Pump(window);
+                Click(view.Review); await view.ActionTask;
+                using var completionCancellation = CancellationTokenSource.CreateLinkedTokenSource(Token);
+                var completion = ObservableCompletion.WaitAsync(model,
+                    () => model.Status.StartsWith("Completed:", StringComparison.Ordinal) && view.Export.IsEnabled && !model.Session.IsActive,
+                    () => $"Batch state {model.Session.Progress.State}; active {model.Session.IsActive}; busy {model.IsBusy}; export enabled {view.Export.IsEnabled}", completionCancellation.Token);
+                try
+                {
+                    Click(view.Start); Click(view.Start); await view.ActionTask;
+                    await completion; await model.Session.Execution; Pump(window);
+                }
+                finally { completionCancellation.Cancel(); }
                 Assert.Equal(2, listener.Receipts.Count); Assert.Equal(2, model.Session.Progress.Accepted); Assert.Equal(2, prompts.Count);
                 Assert.All(prompts, p => { Assert.Contains("127.0.0.1", p); Assert.Contains("Messages: 2", p); Assert.Contains("250 ms", p); Assert.Contains("StopOnUnsuccessful", p); });
                 Assert.True(view.Export.IsEnabled); Assert.Contains("application accepted 2", view.Progress.Text);

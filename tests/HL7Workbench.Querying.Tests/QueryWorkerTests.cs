@@ -232,17 +232,38 @@ public sealed class QueryWorkerTests
         Assert.Equal(QueryError.ImportRejected, (await Assert.ThrowsAsync<QueryException>(() => orphan.ImportAsync([Message(1)], Token))).Code);
     }
     [Fact]
-    public async Task CancellationAndParentDeadlineInterruptNativeExecutionAndReapWorker()
+    public async Task CancellationInterruptsNativeExecutionAndReapsWorkerAndCanRecover()
     {
         await using (var session = await Start())
         {
             var id = session.ProcessId; using var cancel = CancellationTokenSource.CreateLinkedTokenSource(Token); cancel.CancelAfter(100);
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.ExecuteAsync(Slow, token: cancel.Token)); Assert.True(Exited(id));
         }
+        await using var recovery = await Start();
+        Assert.Single((await recovery.ExecuteAsync("SELECT 1", token: Token)).Rows);
+    }
+    [Fact]
+    public async Task ParentDeadlineInterruptsNativeExecutionAfterReadinessAndReapsWorkerAndCanRecover()
+    {
+        // Start returns only after Ready. Initialization gets its own budget;
+        // the 100 ms exchange deadline still applies to native query execution.
         await using var timed = await Start(options: new() { OperationTimeout = TimeSpan.FromMilliseconds(100) });
         var timedId = timed.ProcessId;
         Assert.Equal(QueryError.Timeout, (await Assert.ThrowsAsync<QueryException>(() => timed.ExecuteAsync(Slow, token: Token))).Code);
         Assert.True(Exited(timedId));
+        await using var recovery = await Start();
+        Assert.Single((await recovery.ExecuteAsync("SELECT 1", token: Token)).Rows);
+    }
+    [Fact]
+    public async Task InitializationUsesStartupBudgetEvenWithMinimalPostReadinessExchangeBudget()
+    {
+        // No query is run with this deliberately unusable exchange budget. Ready
+        // must be governed by StartupTimeout, independently of later operations.
+        await using var session = await Start(options: new() { OperationTimeout = TimeSpan.FromTicks(1) });
+        Assert.Equal("3.53.4", session.EngineVersion);
+        var id = session.ProcessId;
+        await session.DisposeAsync();
+        Assert.True(Exited(id));
     }
     [Fact]
     public async Task SqliteDeadlineAndInstructionBudgetAreIndependentOfResultSize()

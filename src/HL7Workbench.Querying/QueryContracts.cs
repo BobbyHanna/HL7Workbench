@@ -141,7 +141,9 @@ public sealed record QueryBudgets
 
 public sealed record QueryWorkerOptions
 {
+    /// <summary>Total allowance for pipe connection and initialization through Ready.</summary>
     public TimeSpan StartupTimeout { get; init; } = TimeSpan.FromSeconds(30);
+    /// <summary>Per-exchange allowance after the worker has reported Ready.</summary>
     public TimeSpan OperationTimeout { get; init; } = TimeSpan.FromSeconds(30);
     public TimeSpan SessionTimeout { get; init; } = TimeSpan.FromMinutes(10);
     internal void Validate()

@@ -8,6 +8,29 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## CI stabilization (2026-10-28)
+
+Started from clean main at 45394c9 after owner acceptance of Stage 15D and the View
+menu cleanup. SQL worker initialization now uses the existing StartupTimeout for
+connection through Ready, independently of the post-readiness OperationTimeout.
+Default deadlines and all SQL/security/resource limits are unchanged. A minimal
+exchange-budget regression reproduced the startup failure before this correction;
+separate cancellation/deadline tests retain reaping and fresh-query recovery checks.
+Headless batch/load workflow tests now await the final observable model/view update:
+awaiting Session.Execution alone does not drain its UI observation continuation.
+They keep all consent, duplicate-start, count, export and narrow-layout assertions.
+No Desktop production behavior or workflow concurrency setting changed. README's
+testing guidance documents the synchronization contract. Hosted CI remains the
+final acceptance gate; local success does not establish a passing GitHub Actions run.
+Local gate: both locked restores and Release build passed (0 warnings/errors).
+Five fixed repetitions passed 69 worker / 14 batch / 20 load cases each (515 passes).
+Standalone Querying passed 160 with 5 explicit skips; Desktop passed all 452.
+All five projects then overlapped in the full regular run: 2,285 passed, 0 failed,
+14 explicit skips (2,299 total, 3m 52.753s). The original three failures did not
+reproduce in five baseline class repetitions; the added startup regression failed
+before its production correction. No hosted workflow was dispatched. All 2,384
+protected preview files remain unchanged. No commit, push, packaging or Stage 16 work.
+
 ## Grouped View menu (2026-10-28)
 
 After the owner checkpointed Stage 15D at a99fb2f, View groups the existing commands

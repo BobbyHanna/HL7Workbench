@@ -54,7 +54,9 @@ public sealed class QueryWorkerSession : IAsyncDisposable
             startup.CancelAfter(options.StartupTimeout);
             await pipe.WaitForConnectionAsync(startup.Token);
             if (currentDocumentId is not null && (sourceRead is null || currentDocumentId.Length is < 1 or > 128)) throw new QueryException(QueryError.InvalidRequest);
-            var ready = await session.ExchangeAsync(new(QueryFrameKind.Initialize, Budgets: budgets, SourceBacked: sourceRead is not null, CurrentDocumentId: currentDocumentId), QueryFrameKind.Ready, startup.Token);
+            // The same startup token bounds connection plus initialization. A short
+            // post-readiness exchange budget must not time out native engine setup.
+            var ready = await session.ExchangeAsync(new(QueryFrameKind.Initialize, Budgets: budgets, SourceBacked: sourceRead is not null, CurrentDocumentId: currentDocumentId), QueryFrameKind.Ready, startup.Token, options.StartupTimeout);
             if (ready.EngineVersion is not { Length: > 0 and <= 32 } || ready.EngineVersion.Any(c => !char.IsAsciiDigit(c) && c != '.'))
                 throw new QueryException(QueryError.ProtocolError);
             session.EngineVersion = ready.EngineVersion;
@@ -186,10 +188,10 @@ public sealed class QueryWorkerSession : IAsyncDisposable
         if (stopping is not null) throw new ObjectDisposedException(nameof(QueryWorkerSession));
         if (lifetime.IsCancellationRequested) throw new QueryException(QueryError.Timeout);
     }
-    private async Task<QueryFrame> ExchangeAsync(QueryFrame request, QueryFrameKind expected, CancellationToken token)
+    private async Task<QueryFrame> ExchangeAsync(QueryFrame request, QueryFrameKind expected, CancellationToken token, TimeSpan? timeout = null)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token, lifetime.Token);
-        deadline.CancelAfter(options.OperationTimeout);
+        deadline.CancelAfter(timeout ?? options.OperationTimeout);
         try
         {
             await QueryProtocol.WriteAsync(pipe, request, deadline.Token);

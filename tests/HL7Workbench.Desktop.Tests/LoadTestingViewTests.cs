@@ -78,7 +78,17 @@ public sealed class LoadTestingViewTests
                 Click(view.Prepare); await view.ActionTask; Assert.Null(model.Session.Prepared); view.Synthetic.IsChecked = true; view.Rate.Text = "20"; view.Duration.Text = "5"; view.Attempts.Text = "2";
                 Click(view.Prepare); await view.ActionTask; Pump(window); Assert.NotNull(model.Session.Prepared); Assert.Empty(listener.Receipts);
                 Click(view.Start); await view.ActionTask; Assert.Contains("review", model.Status); Assert.Empty(listener.Receipts);
-                Click(view.Review); await view.ActionTask; Click(view.Start); Click(view.Start); await view.ActionTask; await model.Session.Execution; Pump(window);
+                Click(view.Review); await view.ActionTask;
+                using var completionCancellation = CancellationTokenSource.CreateLinkedTokenSource(Token);
+                var completion = ObservableCompletion.WaitAsync(model,
+                    () => model.Status.StartsWith("Completed:", StringComparison.Ordinal) && view.ExportCsv.IsEnabled && !model.Session.IsActive,
+                    () => $"Load state {model.Session.Progress.State}; active {model.Session.IsActive}; busy {model.IsBusy}; export enabled {view.ExportCsv.IsEnabled}", completionCancellation.Token);
+                try
+                {
+                    Click(view.Start); Click(view.Start); await view.ActionTask;
+                    await completion; await model.Session.Execution; Pump(window);
+                }
+                finally { completionCancellation.Cancel(); }
                 Assert.Equal(2, listener.Receipts.Count); Assert.Equal(2, model.Session.Progress.ApplicationAccepted); Assert.Equal(2, prompts.Count);
                 Assert.All(prompts, p => { Assert.Contains("127.0.0.1", p); Assert.Contains("Global target: 20", p); Assert.Contains("authorized to load-test", p); Assert.Contains("identical MSH-10", p); });
                 Assert.Contains("Target 20.00/s", view.Progress.Text); Assert.Contains("Application accepted 2", view.Progress.Text); Assert.Contains("p99", view.Latency.Text); Assert.Equal(2, view.Results.ItemCount);

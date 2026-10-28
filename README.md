@@ -355,6 +355,15 @@ supplied transitively by xUnit. See the [dependency inventory](docs/dependencies
 
 ## Testing
 
+CI allows test projects to overlap. Desktop and Workspace already disable parallel
+collections within their own processes; other projects retain xUnit's defaults.
+Headless transport tests must await the final model notification and visible controls,
+not just `Session.Execution`: its UI observer is a separate continuation. Use the
+bounded, event-based `ObservableCompletion` helper rather than fixed sleeps or
+retries. SQL worker `StartupTimeout` covers connection and initialization through
+Ready; `OperationTimeout` applies afterward. Keep short execution-deadline tests
+independent of startup speed and verify worker reaping and fresh-query recovery.
+
 The setup commands run the full automated suite. For the additional Workspace
 stress cases, use the same telemetry opt-outs and completed Release build:
 
