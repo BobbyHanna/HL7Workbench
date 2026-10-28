@@ -26,49 +26,120 @@ public sealed class QueryWorkerSession : IAsyncDisposable
     public int ProcessId { get; }
     public string EngineVersion { get; private set; } = "";
     private QueryWorkerSession(Process process, NamedPipeServerStream pipe, QueryBudgets budgets, QueryWorkerOptions options,
-        Func<QuerySourceRead, CancellationToken, Task<QueryCell>>? sourceRead)
+        Func<QuerySourceRead, CancellationToken, Task<QueryCell>>? sourceRead, TimeProvider sessionClock)
     {
         this.process = process; this.pipe = pipe; this.budgets = budgets; this.options = options;
         this.sourceRead = sourceRead;
         ProcessId = process.Id;
         stdout = DiscardAsync(process.StandardOutput); stderr = DiscardAsync(process.StandardError);
-        _ = ReapAtDeadlineAsync();
+        _ = ReapAtDeadlineAsync(sessionClock);
     }
-    public static async Task<QueryWorkerSession> StartAsync(string executable, QueryBudgets? budgets = null,
+    public static Task<QueryWorkerSession> StartAsync(string executable, QueryBudgets? budgets = null,
         QueryWorkerOptions? options = null, CancellationToken token = default,
-        Func<QuerySourceRead, CancellationToken, Task<QueryCell>>? sourceRead = null, string? currentDocumentId = null)
+        Func<QuerySourceRead, CancellationToken, Task<QueryCell>>? sourceRead = null, string? currentDocumentId = null) =>
+        StartCoreAsync(executable, budgets, options, token, sourceRead, currentDocumentId, TimeProvider.System, TimeProvider.System);
+
+    // Only tests substitute clocks/checkpoints. Public callers always use real
+    // timers; query/exchange deadlines and containment have no test override.
+    internal static async Task<QueryWorkerSession> StartCoreAsync(string executable, QueryBudgets? budgets, QueryWorkerOptions? options,
+        CancellationToken token, Func<QuerySourceRead, CancellationToken, Task<QueryCell>>? sourceRead, string? currentDocumentId,
+        TimeProvider sessionClock, TimeProvider startupClock,
+        Func<QueryStartupPhase, int, CancellationToken, Task>? checkpoint = null)
     {
-        budgets ??= new(); options ??= new(); budgets.Validate(); options.Validate(); token.ThrowIfCancellationRequested();
-        if (!File.Exists(executable)) throw new QueryException(QueryError.WorkerUnavailable);
-        var name = "hl7-query-" + Guid.NewGuid().ToString("N");
-        var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
-        var process = new Process { StartInfo = StartInfo(executable, name) };
+        budgets ??= new(); options ??= new();
+        var watch = Stopwatch.StartNew(); var phase = QueryStartupPhase.Validation;
+        NamedPipeServerStream? pipe = null; Process? process = null; var launched = false; var startupExpired = false;
         QueryWorkerSession? session = null;
         try
         {
-            if (!process.Start()) throw new IOException();
-            session = new(process, pipe, budgets, options, sourceRead);
+            budgets.Validate(); options.Validate(); token.ThrowIfCancellationRequested();
+            phase = QueryStartupPhase.ProcessLaunch;
+            if (!File.Exists(executable)) throw new QueryException(QueryError.WorkerUnavailable);
+            var name = "hl7-query-" + Guid.NewGuid().ToString("N");
+            pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+            process = new Process { StartInfo = StartInfo(executable, name) };
+            if (!(launched = process.Start())) throw new IOException();
+            session = new(process, pipe, budgets, options, sourceRead, sessionClock);
+            phase = QueryStartupPhase.Containment;
+            if (checkpoint is not null) await checkpoint(phase, session.ProcessId, token);
             // The worker waits for Initialize, so no SQL/native allocation precedes job assignment.
-            session.containment = new(process, QueryLimits.WorkerMemoryBytes);
-            using var startup = CancellationTokenSource.CreateLinkedTokenSource(token);
-            startup.CancelAfter(options.StartupTimeout);
-            await pipe.WaitForConnectionAsync(startup.Token);
-            if (currentDocumentId is not null && (sourceRead is null || currentDocumentId.Length is < 1 or > 128)) throw new QueryException(QueryError.InvalidRequest);
-            // The same startup token bounds connection plus initialization. A short
-            // post-readiness exchange budget must not time out native engine setup.
-            var ready = await session.ExchangeAsync(new(QueryFrameKind.Initialize, Budgets: budgets, SourceBacked: sourceRead is not null, CurrentDocumentId: currentDocumentId), QueryFrameKind.Ready, startup.Token, options.StartupTimeout);
-            if (ready.EngineVersion is not { Length: > 0 and <= 32 } || ready.EngineVersion.Any(c => !char.IsAsciiDigit(c) && c != '.'))
-                throw new QueryException(QueryError.ProtocolError);
-            session.EngineVersion = ready.EngineVersion;
-            return session;
+            session.CheckOpen();
+            var containment = new QueryWorkerLifetime(process, QueryLimits.WorkerMemoryBytes);
+            // The lifetime timer remains armed during OS attachment. Publish the
+            // job under the same gate as Stop; a late attachment must be disposed
+            // locally rather than installed after StopCoreAsync has drained.
+            lock (session.stopGate)
+            {
+                try { session.CheckOpen(); session.containment = containment; }
+                catch { containment.Dispose(); throw; }
+            }
+            using var startupDeadline = new CancellationTokenSource(options.StartupTimeout, startupClock);
+            using var startup = CancellationTokenSource.CreateLinkedTokenSource(token, startupDeadline.Token, session.lifetime.Token);
+            using var monitoring = new CancellationTokenSource();
+            var monitor = CancelStartupOnExitAsync(process, startup, monitoring.Token);
+            try
+            {
+                phase = QueryStartupPhase.Handshake;
+                if (checkpoint is not null) await checkpoint(phase, session.ProcessId, startup.Token);
+                await pipe.WaitForConnectionAsync(startup.Token);
+                phase = QueryStartupPhase.Initialization;
+                if (checkpoint is not null) await checkpoint(phase, session.ProcessId, startup.Token);
+                if (currentDocumentId is not null && (sourceRead is null || currentDocumentId.Length is < 1 or > 128)) throw new QueryException(QueryError.InvalidRequest);
+                // The same startup token bounds connection plus initialization.
+                var ready = await session.ExchangeAsync(new(QueryFrameKind.Initialize, Budgets: budgets, SourceBacked: sourceRead is not null, CurrentDocumentId: currentDocumentId), QueryFrameKind.Ready, startup.Token, options.StartupTimeout);
+                if (ready.EngineVersion is not { Length: > 0 and <= 32 } || ready.EngineVersion.Any(c => !char.IsAsciiDigit(c) && c != '.'))
+                    throw new QueryException(QueryError.ProtocolError);
+                if (process.HasExited) throw new QueryException(QueryError.WorkerStopped);
+                session.EngineVersion = ready.EngineVersion;
+                return session;
+            }
+            finally
+            {
+                startupExpired = startupDeadline.IsCancellationRequested;
+                await monitoring.CancelAsync(); await monitor;
+            }
         }
         catch (Exception error)
         {
-            if (session is not null) await session.DisposeAsync(); else { pipe.Dispose(); process.Dispose(); }
-            token.ThrowIfCancellationRequested();
-            if (error is QueryException) throw;
-            throw new QueryException(error is OperationCanceledException ? QueryError.Timeout : QueryError.WorkerUnavailable);
+            var sessionExpired = session?.expired == true;
+            var exited = launched && process!.HasExited;
+            var failure = token.IsCancellationRequested ? QueryStartupFailure.ParentCancellation :
+                sessionExpired ? QueryStartupFailure.SessionDeadline :
+                startupExpired || error is QueryException { Code: QueryError.Timeout } ? QueryStartupFailure.StartupTimeout :
+                error is QueryException { Code: QueryError.ProtocolError } ? QueryStartupFailure.ProtocolFailure :
+                phase == QueryStartupPhase.Validation || error is QueryException { Code: QueryError.InvalidRequest } ? QueryStartupFailure.RequestRejected :
+                error is QueryException { Code: not (QueryError.WorkerStopped or QueryError.WorkerUnavailable) } ? QueryStartupFailure.InitializationFailure :
+                exited || error is QueryException { Code: QueryError.WorkerStopped } ? QueryStartupFailure.WorkerExit :
+                phase == QueryStartupPhase.ProcessLaunch ? QueryStartupFailure.LaunchFailure :
+                phase == QueryStartupPhase.Containment ? QueryStartupFailure.ContainmentFailure : QueryStartupFailure.InitializationFailure;
+            var diagnostic = new QueryStartupDiagnostic(phase, failure, watch.ElapsedMilliseconds);
+            if (session is not null) await session.DisposeAsync();
+            else
+            {
+                pipe?.Dispose();
+                if (launched)
+                {
+                    try { if (!process!.HasExited) process.Kill(true); await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5)); } catch (Exception) { }
+                }
+                process?.Dispose();
+            }
+            if (token.IsCancellationRequested)
+            {
+                var canceled = new OperationCanceledException(token);
+                canceled.Data[nameof(QueryStartupDiagnostic)] = diagnostic;
+                throw canceled;
+            }
+            var code = sessionExpired ? QueryError.Timeout : error is QueryException known ? known.Code :
+                failure == QueryStartupFailure.WorkerExit ? QueryError.WorkerStopped : error is OperationCanceledException ? QueryError.Timeout : QueryError.WorkerUnavailable;
+            if (error is QueryException original && original.Code == code) { original.Startup = diagnostic; throw; }
+            throw new QueryException(code) { Startup = diagnostic };
         }
+    }
+
+    private static async Task CancelStartupOnExitAsync(Process process, CancellationTokenSource startup, CancellationToken token)
+    {
+        try { await process.WaitForExitAsync(token); if (!token.IsCancellationRequested) startup.Cancel(); }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
     }
     /// <summary>SQLite prepares but does not step a query to discover referenced relations. Only available before input is sealed.</summary>
     public async Task<QueryPlan> PlanAsync(string sql, IReadOnlyList<QueryParameter>? parameters = null, CancellationToken token = default)
@@ -239,9 +310,9 @@ public sealed class QueryWorkerSession : IAsyncDisposable
         }
     }
     private Task StopAsync() { lock (stopGate) return stopping ??= StopCoreAsync(); }
-    private async Task ReapAtDeadlineAsync()
+    private async Task ReapAtDeadlineAsync(TimeProvider clock)
     {
-        try { await Task.Delay(options.SessionTimeout, lifetime.Token); }
+        try { await Task.Delay(options.SessionTimeout, clock, lifetime.Token); }
         catch (OperationCanceledException) { return; }
         expired = true;
         await StopAsync();

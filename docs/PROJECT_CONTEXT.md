@@ -8,6 +8,44 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## CI stabilization Round 3 — SQL worker startup (2026-10-28)
+
+Started from clean main at 36b561f. The owner reports all Desktop/Core/Workspace/
+Scripting hosted tests passed; one idle-reap test failed during SQL initialization.
+Its real SessionTimeout=1s was a total lifetime, already ticking before Ready, not
+an idle-only clock. Five local baseline runs passed; a controlled initialization
+checkpoint now demonstrates that cap aborting startup with SessionDeadline metadata.
+The exact hosted scheduling delay and any antivirus influence remain unmeasured.
+
+Production keeps the same startup/exchange/query/session caps and read-only/native
+limits. The lifetime timer remains armed through job attachment; publication of
+the job is synchronized with termination and late attachments are disposed. An
+exit watcher ends dead-worker startup promptly and is
+canceled/drained before returning Ready. Optional QueryException.Startup metadata
+identifies phase/reason/elapsed time; codes/messages remain fixed, early worker exit
+reports WorkerStopped, and parent cancellation retains its type/token with safe Data.
+Only enums/timing enter these diagnostics. Public startup always uses real clocks.
+
+Test-only clock/checkpoint injection separates slow real startup from deliberate
+session expiration. The idle test advances its one-second session clock after Ready
+and awaits OS exit; explicit idempotent disposal is tested independently. Startup
+regressions cover both pending phases, startup vs total-session expiry, parent
+cancellation, early exit, expiration during pending containment, active reads, safe launch errors
+and preservation of known exception contracts. ADR 0020 and README clarify the
+absolute lifetime contract. No workflow/parallelism/retry/dependency changes or
+Stage 16 work is included; hosted GitHub Actions remains the acceptance gate.
+Final normal-path locked restore and Release build passed (0 warnings/errors).
+The corrected idle/disposal cases each passed five standalone repetitions. Final
+Release worker/startup classes each passed five repetitions (70 / 14 cases per
+round), including concurrent ordinary solution activity. Full Querying passed 175
+with 5 explicit skips. The exact CI command passed all 2,306 ordinary cases with
+0 failures and the same 14 explicit skips (2,320 total; 3m 49.716s). Two preliminary
+concurrent runs also passed before final containment handoff refinement. Fifteen
+ordinary cases were added; no stress classification changed. All 2,384 protected
+preview hashes remain unchanged. Audit, inventories, logs and verification binaries
+are retained under artifacts/ci-stabilization-round3. No hosted workflow was run;
+no commit, push, packaging or Stage 16 work occurred.
+
 ## CI stabilization Round 2 — Desktop lifecycle tests (2026-10-28)
 
 Started from clean main at 11d90b1. The owner reports the SQL worker correction now

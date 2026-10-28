@@ -74,6 +74,34 @@ cooperation before kill/reap. The parent terminates failed workers, discards all
 locally accumulated pages, and never publishes a partial result. Disposal is
 idempotent; a session deadline also reaps idle workers.
 
+### Startup reliability clarification (CI Round 3)
+
+`SessionTimeout` is an absolute lifetime from session creation, including startup,
+imports and active/idle execution. It is not an inactivity timer and does not reset
+at Ready or on requests. Its existing 10-minute cap remains intact. The parent now
+keeps that timer armed throughout job attachment. Publishing the new job uses the
+same gate as termination; a late attachment is disposed instead of being installed
+after cleanup. `StartupTimeout` independently bounds pipe connection and Initialize/Ready
+(30 seconds); post-readiness exchanges and whole queries retain their own clocks.
+Synchronous OS process creation/job attachment are not made cancellable by these
+timers. No startup retry or production budget increase is introduced.
+
+Early process exit cancels the pending startup wait, reporting WorkerStopped rather
+than waiting for an apparent handshake timeout. QueryException retains Code and
+Message and adds optional `Startup` metadata: parent-observed phase, fixed failure
+reason and elapsed milliseconds at failure detection. ToString includes that safe
+record for CI diagnostics; original executable/native exceptions are not retained.
+Parent cancellation remains OperationCanceledException with its original token;
+the same record is available in Data["QueryStartupDiagnostic"]. No SQL, values,
+source/executable paths or native error text enters this metadata.
+
+Internal test seams control only startup/session timers and phase checkpoints.
+Public callers always use TimeProvider.System; native/query/exchange enforcement
+and containment are unchanged. Idle-reap tests advance their controlled session
+clock after Ready, then await actual process exit and cleanup. Separate controlled
+cases expire the total cap before Ready, verifying that this restriction still
+applies rather than accidentally extending the production lifetime.
+
 Diagnostics are fixed QueryError codes and descriptions. SQLite errmsg, SQL,
 parameter names/values, aliases and exception messages are not sent as diagnostics
 or logged. stdout/stderr are drained and discarded. SQL and values travel only over

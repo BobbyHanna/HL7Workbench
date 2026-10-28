@@ -71,10 +71,20 @@ public enum QueryError
     Timeout, WorkerUnavailable, WorkerStopped, ProtocolError
 }
 
+/// <summary>Parent-observed startup phases; no executable, source or SQL details.</summary>
+public enum QueryStartupPhase { Validation, ProcessLaunch, Containment, Handshake, Initialization }
+/// <summary>Fixed startup causes. SessionDeadline is the absolute lifetime cap, not an inactivity timeout.</summary>
+public enum QueryStartupFailure { RequestRejected, LaunchFailure, ContainmentFailure, StartupTimeout, SessionDeadline, WorkerExit, ParentCancellation, ProtocolFailure, InitializationFailure }
+/// <summary>PHI-safe startup metadata. Elapsed time ends at failure detection, before cleanup.</summary>
+public sealed record QueryStartupDiagnostic(QueryStartupPhase Phase, QueryStartupFailure Failure, long ElapsedMilliseconds);
+
 /// <summary>Fixed diagnostics deliberately exclude SQLite error text, SQL, parameters, names, and result values.</summary>
 public sealed class QueryException(QueryError code) : Exception(Describe(code))
 {
     public QueryError Code { get; } = code;
+    /// <summary>Set only for startup failures. Codes and Message remain unchanged.</summary>
+    public QueryStartupDiagnostic? Startup { get; internal set; }
+    public override string ToString() => Startup is { } diagnostic ? base.ToString() + Environment.NewLine + diagnostic : base.ToString();
     private static string Describe(QueryError code) => code switch
     {
         QueryError.InvalidSql => "SQL could not be prepared. Check syntax and the documented schema.",
@@ -145,6 +155,7 @@ public sealed record QueryWorkerOptions
     public TimeSpan StartupTimeout { get; init; } = TimeSpan.FromSeconds(30);
     /// <summary>Per-exchange allowance after the worker has reported Ready.</summary>
     public TimeSpan OperationTimeout { get; init; } = TimeSpan.FromSeconds(30);
+    /// <summary>Absolute lifetime from session creation, including startup and active/idle work. It never resets on activity.</summary>
     public TimeSpan SessionTimeout { get; init; } = TimeSpan.FromMinutes(10);
     internal void Validate()
     {

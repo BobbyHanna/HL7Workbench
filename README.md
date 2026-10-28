@@ -363,6 +363,11 @@ bounded, event-based `ObservableCompletion` helper rather than fixed sleeps or
 retries. SQL worker `StartupTimeout` covers connection and initialization through
 Ready; `OperationTimeout` applies afterward. Keep short execution-deadline tests
 independent of startup speed and verify worker reaping and fresh-query recovery.
+`SessionTimeout` is a total lifetime including startup, not an inactivity timeout.
+Do not use a one-second real lifetime to arrange an idle-worker test: control the
+test session clock, reach Ready, advance its deadline, then await actual process
+exit. Startup phase/reason diagnostics and timer boundaries are documented in
+[ADR 0020](docs/decisions/0020-isolated-read-only-sql.md#startup-reliability-clarification-ci-round-3).
 
 For Desktop batch/load lifecycle tests, use the completion signal for the operation:
 

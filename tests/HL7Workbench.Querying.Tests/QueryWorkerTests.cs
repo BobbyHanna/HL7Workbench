@@ -322,16 +322,29 @@ public sealed class QueryWorkerTests
         await using var fresh = await Start(); Assert.Single((await fresh.ExecuteAsync("SELECT 1", token: Token)).Rows);
     }
     [Fact]
-    public async Task IdleSessionDeadlineAndExplicitDisposalReapWorkers()
+    public async Task IdleSessionDeadlineReapsReadyWorkerAndCanRecover()
     {
-        var session = await Start(options: new() { SessionTimeout = TimeSpan.FromSeconds(1) });
+        var clock = new ManualDeadlineClock();
+        var session = await QueryWorkerSession.StartCoreAsync(Host, null, new() { SessionTimeout = TimeSpan.FromSeconds(1) },
+            Token, null, null, clock, TimeProvider.System);
         var id = session.ProcessId;
         try
         {
-            await Task.Delay(1500, Token); Assert.True(Exited(id));
+            Assert.Equal("3.53.4", session.EngineVersion); Assert.Equal(TimeSpan.FromSeconds(1), clock.DueTime);
+            using var worker = Process.GetProcessById(id);
+            // The total lifetime deliberately includes startup. Advance only after
+            // Ready, so CI scheduling cannot spend a real 1 s cap during setup.
+            clock.Expire(); await worker.WaitForExitAsync(Token).WaitAsync(TimeSpan.FromSeconds(5), Token);
+            Assert.True(Exited(id));
             Assert.Equal(QueryError.Timeout, (await Assert.ThrowsAsync<QueryException>(() => session.ExecuteAsync("SELECT 1", token: Token))).Code);
         }
         finally { await session.DisposeAsync(); }
+        Assert.True(clock.TimerDisposed);
+        await using var recovery = await Start(); Assert.Single((await recovery.ExecuteAsync("SELECT 1", token: Token)).Rows);
+    }
+    [Fact]
+    public async Task ExplicitDisposalReapsReadyWorkerAndIsIdempotent()
+    {
         var other = await Start(); var otherId = other.ProcessId; await other.DisposeAsync(); await other.DisposeAsync(); Assert.True(Exited(otherId));
     }
     [Fact]
