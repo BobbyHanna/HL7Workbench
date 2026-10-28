@@ -364,6 +364,24 @@ retries. SQL worker `StartupTimeout` covers connection and initialization throug
 Ready; `OperationTimeout` applies afterward. Keep short execution-deadline tests
 independent of startup speed and verify worker reaping and fresh-query recovery.
 
+For Desktop batch/load lifecycle tests, use the completion signal for the operation:
+
+| Operation | Completion required before assertions |
+| --- | --- |
+| Prepare, review, export, rejected Start | Returned command task; model status is assigned before it returns. |
+| Run or cancellation with a retained view | Engine task plus final model notification and visible export/results state. |
+| View reconstruction | Same prepared run and execution task; configuration remains locked until that run ends. |
+| Tool close or layout reset | Model disposal drain; detached views do not own or cancel the run. |
+| Application window close | `Window.Closed`, then model disposal; visibility alone is insufficient. |
+
+`ObservableCompletion.RunAsync` bounds waits for action plus observation to 10 seconds and
+removes subscriptions on failure/cancellation. Listener snapshots lack change events;
+their condition polling retains the existing 5-second deadline with count/state
+diagnostics. `UiObservationBarrier` tests intentionally delay the run's UI observer
+while real engine cancellation drains, then release it to the dispatcher. These
+controlled schedules demonstrate the completion contract, not a reproduced hosted
+runner schedule. Keep the deferred case alongside the ordinary execution case.
+
 The setup commands run the full automated suite. For the additional Workspace
 stress cases, use the same telemetry opt-outs and completed Release build:
 

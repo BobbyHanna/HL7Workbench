@@ -8,6 +8,40 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## CI stabilization Round 2 — Desktop lifecycle tests (2026-10-28)
+
+Started from clean main at 11d90b1. The owner reports the SQL worker correction now
+passes hosted CI; two remaining batch/load reconstruction/cancellation assertions
+still equated engine completion plus one dispatcher pump with final UI observation.
+Workspace commits terminal state/results before Execution returns, but each model's
+ObserveAsync continuation publishes final Status separately. Tests now require that
+terminal notification and the appropriate export/results controls. Both retain
+their ordinary schedule and add a controlled deferred-observer case: real TCP
+cancellation drains first, the model remains unobserved, then the observer is
+released to the original dispatcher. Prepared-run and execution-task identities,
+active configuration locks, exact counts and source ownership remain asserted.
+
+All 15 method groups across both classes were audited. Short commands/disposals
+are bounded; window shutdown awaits Closed before reading model.Disposal; listener
+snapshots retain their existing 5-second condition budget with diagnostics. Restored
+empty owners explicitly drain at teardown. Shared RunAsync owns a 10-second action
+plus notification deadline and always removes subscriptions; helper regressions
+cover late observation, action failure, action cancellation and caller cancellation.
+README documents the completion contracts. There are no production, dependency,
+workflow, retry, stress-classification or parallelism changes. Five baseline runs
+of each reported test passed; controlled deferral demonstrates the ordering gap,
+not the exact hosted failure. GitHub Actions remains the final acceptance gate.
+Final locked restore and full Release build passed with 0 warnings/errors. Each
+complete workflow class passed five fresh repetitions (15 batch / 21 load cases),
+and all four helper regressions passed. Final standalone Desktop: 458 passed,
+0 failed/skipped. The exact CI solution command passed 2,291 regular cases with
+0 failures and the same 14 explicit skips (2,305 total; 4m 11.713s). Two preliminary
+concurrent solution runs also passed all 2,290 regular cases before the last helper
+cancellation regression/refinements. Six ordinary cases were added in total. All
+2,384 protected preview files remain unchanged; no commit, push, packaging or
+Stage 16 work occurred. Audit and ignored verification evidence are retained under
+artifacts/ci-stabilization-round2; no hosted workflow or native UI run was performed.
+
 ## CI stabilization (2026-10-28)
 
 Started from clean main at 45394c9 after owner acceptance of Stage 15D and the View

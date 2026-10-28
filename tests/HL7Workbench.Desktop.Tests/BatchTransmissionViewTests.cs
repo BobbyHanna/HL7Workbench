@@ -35,8 +35,8 @@ public sealed class BatchTransmissionViewTests
         using var input = new MemoryStream(Encoding.UTF8.GetBytes(Message + Message.Replace("SYN-BATCH-UI", "SYN-BATCH-UI-2")));
         return await MessageFileReader.OpenFileAsync(documents, "synthetic.hl7", input, Token);
     }
-    private static async Task Wait(Func<bool> condition)
-    { using var deadline = CancellationTokenSource.CreateLinkedTokenSource(Token); deadline.CancelAfter(5000); while (!condition()) await Task.Delay(10, deadline.Token); }
+    private static Task Done(Task task) => ObservableCompletion.TaskAsync(task, "Batch command/execution/disposal", Token);
+    private static Task Wait(Func<bool> condition, Func<string> diagnostic) => ObservableCompletion.UntilAsync(condition, diagnostic, Token);
     [Theory]
     [InlineData(false, 390)] [InlineData(true, 1100)]
     public async Task ThemedControlsPrepareReviewConfirmRunAndExportWithoutDuplicateStart(bool dark, int width)
@@ -53,32 +53,27 @@ public sealed class BatchTransmissionViewTests
             try
             {
                 Pump(window); Assert.Equal("1000", view.Interval.Text); Assert.Equal(0, view.Policy.SelectedIndex); Assert.Empty(listener.Receipts);
-                view.Interval.Text = "250"; Click(view.Prepare); await view.ActionTask; Pump(window); Assert.Equal(2, view.Results.ItemCount); Assert.Empty(listener.Receipts);
-                Click(view.Start); await view.ActionTask; Assert.Empty(listener.Receipts); Assert.Contains("review", model.Status);
-                Click(view.Review); await view.ActionTask;
-                using var completionCancellation = CancellationTokenSource.CreateLinkedTokenSource(Token);
-                var completion = ObservableCompletion.WaitAsync(model,
+                view.Interval.Text = "250"; Click(view.Prepare); await Done(view.ActionTask); Pump(window); Assert.Equal(2, view.Results.ItemCount); Assert.Empty(listener.Receipts);
+                Click(view.Start); await Done(view.ActionTask); Assert.Empty(listener.Receipts); Assert.Contains("review", model.Status);
+                Click(view.Review); await Done(view.ActionTask);
+                await ObservableCompletion.RunAsync(model, async () =>
+                    { Click(view.Start); Click(view.Start); await Done(view.ActionTask); await model.Session.Execution; },
                     () => model.Status.StartsWith("Completed:", StringComparison.Ordinal) && view.Export.IsEnabled && !model.Session.IsActive,
-                    () => $"Batch state {model.Session.Progress.State}; active {model.Session.IsActive}; busy {model.IsBusy}; export enabled {view.Export.IsEnabled}", completionCancellation.Token);
-                try
-                {
-                    Click(view.Start); Click(view.Start); await view.ActionTask;
-                    await completion; await model.Session.Execution; Pump(window);
-                }
-                finally { completionCancellation.Cancel(); }
+                    () => $"Batch state {model.Session.Progress.State}; active {model.Session.IsActive}; busy {model.IsBusy}; export enabled {view.Export.IsEnabled}", Token);
+                Pump(window);
                 Assert.Equal(2, listener.Receipts.Count); Assert.Equal(2, model.Session.Progress.Accepted); Assert.Equal(2, prompts.Count);
                 Assert.All(prompts, p => { Assert.Contains("127.0.0.1", p); Assert.Contains("Messages: 2", p); Assert.Contains("250 ms", p); Assert.Contains("StopOnUnsuccessful", p); });
                 Assert.True(view.Export.IsEnabled); Assert.Contains("application accepted 2", view.Progress.Text);
                 Assert.Contains("completed exchanges 2", view.Progress.Text); Assert.Contains("unsuccessful completed exchanges 0", view.Progress.Text);
                 Assert.Contains("transport failures 0", view.Progress.Text); Assert.Contains("not attempted/skipped 0", view.Progress.Text);
-                view.Results.SelectedIndex = 0; Pump(window); Click(view.OpenAck); await view.ActionTask; Assert.Equal(2, documents.Documents.Count); Assert.True(documents.ActiveDocument!.IsDirty);
-                Click(view.OpenMessage); await view.ActionTask; Assert.Equal(3, documents.Documents.Count); Assert.Equal(Message, documents.ActiveDocument!.Message.RawText);
+                view.Results.SelectedIndex = 0; Pump(window); Click(view.OpenAck); await Done(view.ActionTask); Assert.Equal(2, documents.Documents.Count); Assert.True(documents.ActiveDocument!.IsDirty);
+                Click(view.OpenMessage); await Done(view.ActionTask); Assert.Equal(3, documents.Documents.Count); Assert.Equal(Message, documents.ActiveDocument!.Message.RawText);
                 model.Resume(); Assert.Equal(2, model.Session.Progress.Accepted); Assert.Contains("no longer paused", model.Status);
                 model.ChooseExportAsync = () => Task.FromResult<FileSaveDestination?>(FileSaveDestination.NewFile(Path.Combine(files.Root, "report.csv")));
-                Click(view.Export); await view.ActionTask; Assert.DoesNotContain("SYN-", await File.ReadAllTextAsync(Path.Combine(files.Root, "report.csv"), Token));
+                Click(view.Export); await Done(view.ActionTask); Assert.DoesNotContain("SYN-", await File.ReadAllTextAsync(Path.Combine(files.Root, "report.csv"), Token));
                 Assert.True(view.Prepare.Bounds.Width > 20); Assert.True(view.Results.Bounds.Height >= 80);
             }
-            finally { window.Close(); model.Dispose(); await model.Disposal; }
+            finally { window.Close(); model.Dispose(); await Done(model.Disposal); }
             return true;
         }, Token);
     }
@@ -92,14 +87,14 @@ public sealed class BatchTransmissionViewTests
             using var files = new Files(); using var documents = new DocumentManager(); var source = await Source(documents);
             await using var listener = new MllpListener(); listener.Start(new() { Port = 0 }, false);
             using var model = new BatchTransmissionViewModel(documents, files.Profiles); model.Configure(new() { Port = listener.LocalEndpoint!.Port }, new() { IntervalMilliseconds = 250 }); model.ConfirmAsync = (_, _) => Task.FromResult(true);
-            await model.PrepareAsync(); await model.ReviewAsync();
+            await Done(model.PrepareAsync()); await Done(model.ReviewAsync());
             if (change == "switch") MessageFileReader.Open(documents, "other.hl7", Hl7Parser.Parse(Message));
-            if (change == "edit") { source.IsEditMode = true; source.ReplaceWorkingText(Message + "NTE|1||SYN-EDIT\r"); await source.EditRefresh; }
+            if (change == "edit") { source.IsEditMode = true; source.ReplaceWorkingText(Message + "NTE|1||SYN-EDIT\r"); await Done(source.EditRefresh); }
             if (change == "endpoint") model.Configure(model.Endpoint with { Port = listener.LocalEndpoint.Port + (listener.LocalEndpoint.Port == 65535 ? -1 : 1) }, model.Options);
             if (change == "selection") model.InvalidateSelection();
-            if (change == "new-batch") await model.PrepareAsync(1, 1);
-            await model.StartAsync(); Assert.Equal(0, model.Session.Progress.Attempted); Assert.Empty(listener.Receipts); Assert.Contains("review", model.Status);
-            model.Dispose(); await model.Disposal; return true;
+            if (change == "new-batch") await Done(model.PrepareAsync(1, 1));
+            await Done(model.StartAsync()); Assert.Equal(0, model.Session.Progress.Attempted); Assert.Empty(listener.Receipts); Assert.Contains("review", model.Status);
+            model.Dispose(); await Done(model.Disposal); return true;
         }, Token);
     }
     [Theory]
@@ -110,12 +105,12 @@ public sealed class BatchTransmissionViewTests
         await ui.Dispatch(async () =>
         {
             using var files = new Files(); using var documents = new DocumentManager(); await Source(documents);
-            using var model = new BatchTransmissionViewModel(documents, files.Profiles); await model.PrepareAsync();
+            using var model = new BatchTransmissionViewModel(documents, files.Profiles); await Done(model.PrepareAsync());
             var prompt = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously); var reply = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             model.ConfirmAsync = (_, _) => { prompt.TrySetResult(); return reply.Task; };
             var reviewing = model.ReviewAsync(); await prompt.Task.WaitAsync(TimeSpan.FromSeconds(5), Token);
-            if (close) model.Dispose(); else model.Cancel(); await reviewing; reply.TrySetResult(true); await model.StartAsync();
-            Assert.Equal(0, model.Session.Progress.Attempted); model.Dispose(); await model.Disposal; return true;
+            if (close) model.Dispose(); else model.Cancel(); await Done(reviewing); reply.TrySetResult(true); await Done(model.StartAsync());
+            Assert.Equal(0, model.Session.Progress.Attempted); model.Dispose(); await Done(model.Disposal); return true;
         }, Token);
     }
     [Fact]
@@ -127,14 +122,15 @@ public sealed class BatchTransmissionViewTests
             using var files = new Files(); using var documents = new DocumentManager(); await Source(documents);
             using var model = new BatchTransmissionViewModel(documents, files.Profiles); model.Configure(new() { Host = "192.0.2.1", TestEndpoint = true }, new());
             var prompts = new List<string>(); model.ConfirmAsync = (title, prompt) => { prompts.Add(title + " " + prompt); return Task.FromResult(!title.Contains("non-loopback")); };
-            await model.PrepareAsync(); await model.ReviewAsync(); await model.StartAsync(); Assert.Equal(0, model.Session.Progress.Attempted); Assert.Equal(3, prompts.Count);
+            await Done(model.PrepareAsync()); await Done(model.ReviewAsync()); await Done(model.StartAsync()); Assert.Equal(0, model.Session.Progress.Attempted); Assert.Equal(3, prompts.Count);
             Assert.Contains("192.0.2.1", prompts[2]); Assert.Contains("do not prove nonproduction", prompts[2]);
-            model.Configure(model.Endpoint with { Security = TransportSecurity.TlsUnavailable }, new()); await model.PrepareAsync(); Assert.Equal(0, model.Session.Progress.Attempted);
-            model.Dispose(); await model.Disposal; return true;
+            model.Configure(model.Endpoint with { Security = TransportSecurity.TlsUnavailable }, new()); await Done(model.PrepareAsync()); Assert.Equal(0, model.Session.Progress.Attempted);
+            model.Dispose(); await Done(model.Disposal); return true;
         }, Token);
     }
-    [Fact]
-    public async Task DetachedViewsKeepLiveOwnershipAndCloseCancelsAnActiveExchange()
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task DetachedViewsKeepLiveOwnershipAndCloseCancelsAnActiveExchange(bool deferObservation)
     {
         await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
         await ui.Dispatch(async () =>
@@ -142,19 +138,38 @@ public sealed class BatchTransmissionViewTests
             using var files = new Files(); using var documents = new DocumentManager(); await Source(documents);
             await using var listener = new MllpListener(); listener.Start(new() { Port = 0, AckMode = TestAckMode.None }, false);
             using var model = new BatchTransmissionViewModel(documents, files.Profiles); model.Configure(new() { Port = listener.LocalEndpoint!.Port, AckTimeoutSeconds = 10 }, new()); model.ConfirmAsync = (_, _) => Task.FromResult(true);
+            using var observation = new UiObservationBarrier();
             var view = new BatchTransmissionView(model); var window = new Window { Content = view, Width = 700, Height = 850 }; window.Show();
             try
             {
-                await model.PrepareAsync(); await model.ReviewAsync(); await model.StartAsync(); await Wait(() => listener.Receipts.Count == 1);
+                await Done(model.PrepareAsync()); await Done(model.ReviewAsync());
+                await Done(deferObservation ? observation.Start(model.StartAsync) : model.StartAsync());
+                await Wait(() => listener.Receipts.Count == 1, () => $"Batch receipts {listener.Receipts.Count}; state {model.Session.Progress.State}");
+                var execution = model.Session.Execution; var prepared = model.Session.Prepared;
                 model.Pause(); Assert.Equal(BatchTransmissionState.PausePending, model.Session.Progress.State);
                 window.Content = new TextBlock(); Pump(window); Assert.Equal(0, view.Results.ItemCount); Assert.True(model.Session.IsActive);
                 var replacement = new BatchTransmissionView(model); window.Content = replacement; Pump(window); Assert.True(replacement.Resume.IsEnabled); Assert.False(replacement.Prepare.IsEnabled);
+                Assert.Same(execution, model.Session.Execution); Assert.Same(prepared, model.Session.Prepared); Assert.Single(listener.Receipts);
                 Assert.Throws<InvalidOperationException>(() => model.Configure(model.Endpoint with { Port = 2576 }, model.Options));
-                Click(replacement.Cancel); await model.Session.Execution; Pump(window); Assert.Equal(1, model.Session.Progress.Canceled); Assert.Equal(1, model.Session.Progress.NotAttempted);
+                await ObservableCompletion.RunAsync(model, async () =>
+                {
+                    Click(replacement.Cancel); await model.Session.Execution;
+                    if (deferObservation)
+                    {
+                        await observation.Queued.WaitAsync(TimeSpan.FromSeconds(5), Token);
+                        Assert.Equal(BatchTransmissionState.Canceled, model.Session.Progress.State);
+                        Assert.False(model.Status.StartsWith("Canceled:", StringComparison.Ordinal));
+                        observation.Dispose();
+                    }
+                }, () => model.Status.StartsWith("Canceled:", StringComparison.Ordinal) && !model.Session.IsActive && replacement.Export.IsEnabled,
+                    () => $"Batch state {model.Session.Progress.State}; active {model.Session.IsActive}; canceled {model.Session.Progress.Canceled}; export enabled {replacement.Export.IsEnabled}", Token);
+                Pump(window); Assert.Equal(1, model.Session.Progress.Canceled); Assert.Equal(1, model.Session.Progress.NotAttempted);
+                Assert.Equal(BatchTransmissionState.Canceled, model.Session.Progress.State); Assert.True(replacement.Prepare.IsEnabled);
+                Assert.Same(execution, model.Session.Execution); Assert.Same(prepared, model.Session.Prepared); Assert.False(replacement.Start.IsEnabled);
                 Assert.Contains("unsuccessful completed exchanges 1", replacement.Progress.Text); Assert.Contains("not attempted/skipped 1", replacement.Progress.Text);
-                Assert.Single(listener.Receipts); await Wait(() => listener.Clients.Count == 0);
+                Assert.Single(listener.Receipts); await Wait(() => listener.Clients.Count == 0, () => $"Batch connected clients {listener.Clients.Count}");
             }
-            finally { window.Close(); model.Dispose(); await model.Disposal; }
+            finally { observation.Dispose(); window.Close(); model.Dispose(); await Done(model.Disposal); }
             return true;
         }, Token);
     }
@@ -172,7 +187,8 @@ public sealed class BatchTransmissionViewTests
             await using var listener = new MllpListener(); listener.Start(new() { Port = 0, AckMode = TestAckMode.None }, false);
             factory.ShowTool(WorkspaceDockFactory.BatchTransmissionId); Pump(window); var model = Assert.IsType<BatchTransmissionViewModel>(tool.Context);
             model.Configure(new() { Port = listener.LocalEndpoint!.Port, AckTimeoutSeconds = 10 }, new()); model.ConfirmAsync = (_, _) => Task.FromResult(true);
-            await model.PrepareAsync(); await model.ReviewAsync(); await model.StartAsync(); await Wait(() => listener.Receipts.Count == 1);
+            await Done(model.PrepareAsync()); await Done(model.ReviewAsync()); await Done(model.StartAsync());
+            await Wait(() => listener.Receipts.Count == 1, () => $"Batch receipts {listener.Receipts.Count}; state {model.Session.Progress.State}");
             var layout = LayoutCodec.Encode(factory.Capture()); Assert.DoesNotContain("127.0.0.1", layout); Assert.DoesNotContain(model.Session.Prepared!.Id.ToString(), layout); Assert.DoesNotContain("SYN-BATCH", layout);
             if (action == "close-tool") factory.CloseDockable(tool);
             if (action == "reset")
@@ -181,10 +197,13 @@ public sealed class BatchTransmissionViewTests
             }
             // Window close first cancels/drains, then reaches Closed and disposes the
             // models. Disposal is still the initial completed task before Closed.
-            if (action == "close-window") { window.Close(); await Wait(() => !window.IsVisible); }
-            await model.Disposal; await Wait(() => listener.Clients.Count == 0); Assert.Single(listener.Receipts); Assert.Equal(BatchTransmissionState.Disposed, model.Session.Progress.State);
+            if (action == "close-window") await ObservableCompletion.CloseAsync(window, Token);
+            await Done(model.Disposal);
+            await Wait(() => listener.Clients.Count == 0, () => $"Batch connected clients {listener.Clients.Count}");
+            Assert.Single(listener.Receipts); Assert.Equal(BatchTransmissionState.Disposed, model.Session.Progress.State);
             if (action == "close-tool") { factory.ShowTool(WorkspaceDockFactory.BatchTransmissionId); Pump(window); var replacement = Assert.IsType<BatchTransmissionViewModel>(tool.Context); Assert.NotSame(model, replacement); Assert.Equal(BatchTransmissionState.Empty, replacement.Session.Progress.State); }
-            window.Close(); await Wait(() => !window.IsVisible); return true;
+            if (action != "close-window") await ObservableCompletion.CloseAsync(window, Token);
+            return true;
         }, Token);
     }
 }
