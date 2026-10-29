@@ -114,16 +114,46 @@ native Windows acceptance on 2026-10-20; earlier pending notes are historical.
 ### Editing scope and limits
 
 **Generate Messages** in Home or File opens the local synthetic HL7 v2.5.1 generator.
+Stage 16 also offers **Admission to discharge**, **Order to result** and
+**Combined encounter**, sharing fictional patients, visits, providers, orders and
+results across related messages. Choose patient/encounter/order/report quantities,
+review the exact message estimate, and optionally configure transfer events or
+collapsed Advanced options. Inpatient admission and outpatient registration
+are separate variations. Reports progress from preliminary to final by default.
+Both modes default to **Realistic Synthetic**: plausible fictional American-style
+patients/providers, marked synthetic addresses, reserved example phones, named
+fictional facility codes and coherent MEDSURG/OUTPATIENT locations. Choose
+**Obvious Placeholders** to reproduce original standalone v1 or scenario placeholder bytes.
+Advanced application/facility fields use automatic defaults when blank; explicit
+codes always take precedence in realistic standalone output and scenarios. Both
+realistic generators use v2 and remain deterministic for the same settings, seed,
+base time and demographic style. Realistic names and addresses
+can coincide with real identities; the test marker is not a reserved postal space.
+Seed starts blank in both standalone and scenario modes: each Generate selects one cryptographically random seed.
+Generation Report shows that actual value and provides **Copy seed** for replay with
+the same settings. Explicit seeds, including 0 and 42, remain deterministic. Scenario
+and standalone seed drafts are separate; resolved seeds never fill either editable field.
+The existing Generation Report tool summarizes each successful batch without patient
+details. See [scenario generation](docs/stage16-synthetic-generation.md) for settings,
+validated shared overrides, deterministic seeds, limits and native acceptance steps.
+
+In **Standalone messages**, realistic generator v2 reuses the original v1 message structures.
+Select **Obvious Placeholders** to retain version-1 explicit-seed output byte-for-byte.
 Choose ADT^A01 (admission), ADT^A04 (registration), ADT^A08 (update), ORM^O01 (order)
-or ORU^R01 (results). Defaults create one new unsaved ADT^A01 with seed 42,
-timestamp `2030-01-01T00:00:00+00:00` and prefix `SYN`. An empty seed also means 42.
+or ORU^R01 (results). Defaults create one new unsaved ADT^A01 with an automatic seed,
+timestamp `2030-01-01T00:00:00+00:00` and prefix `SYN`. Explicit 42 reproduces the former
+default bytes when Obvious Placeholders is selected; blank no longer means 42.
+Seeds are unsigned integers, so negatives are unsupported.
 Hover Seed's label/input for context-specific help. This
-seed controls test-name suffixes, birth dates, numeric ORU values and derived IDs;
-identical settings repeat output for the same generator version. Fixed facilities,
-providers and configured transport timestamps do not change with the seed.
+seed controls realistic profiles/providers/facilities, birth dates, numeric ORU
+values and synthetic IDs; identical settings repeat output for the same generator
+version and style. Explicit facility/application settings and configured times stay
+fixed. Standalone transport/patient-prefix overrides require realistic style; clear
+them when selecting legacy placeholders. Old style-less Core configurations keep
+their original v1 meaning.
 Use a timestamp with seconds and an explicit offset (or Z); it normalizes to UTC.
 Prefixes normalize to uppercase ASCII letters/digits/hyphens/underscores, 1–12 characters.
-The preview shows configuration and the expected control-ID range without generating
+The preview shows configuration and, for explicit seeds, the expected control-ID range without generating
 message bodies. Data is conspicuously fictional, generated entirely locally, and
 never derived from the active patient or an external dataset.
 

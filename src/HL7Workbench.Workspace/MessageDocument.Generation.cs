@@ -10,11 +10,15 @@ public sealed partial class MessageDocument
         MessageInsertionPosition position, IProgress<DocumentSaveProgress>? progress, CancellationToken token) =>
         InsertValidatedGeneratedMessagesAsync(batch.Messages, position, progress, token);
 
+    internal Task<IReadOnlyList<MessageId>> InsertGeneratedMessagesAsync(SyntheticScenarioBatch batch,
+        MessageInsertionPosition position, IProgress<DocumentSaveProgress>? progress, CancellationToken token) =>
+        InsertValidatedGeneratedMessagesAsync(batch.Messages, position, progress, token);
+
     internal Task<IReadOnlyList<MessageId>> InsertMappedFhirMessagesAsync(FhirMappedBatch batch,
         IProgress<DocumentSaveProgress>? progress, CancellationToken token) =>
         InsertValidatedGeneratedMessagesAsync(batch.Messages, MessageInsertionPosition.End, progress, token);
 
-    // Both closed Core batch types enforce the same injection/size bounds. Keep one
+    // Closed Core batch types enforce the same injection/size bounds. Keep one
     // prospective save/index/byte-proof and publication authority for generated output.
     private async Task<IReadOnlyList<MessageId>> InsertValidatedGeneratedMessagesAsync(IReadOnlyList<string> messages,
         MessageInsertionPosition position, IProgress<DocumentSaveProgress>? progress, CancellationToken token)

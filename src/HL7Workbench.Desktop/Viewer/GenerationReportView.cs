@@ -1,12 +1,15 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using System.ComponentModel;
+using System.Globalization;
 using HL7Workbench.Core;
 using HL7Workbench.Desktop.ViewModels;
+using HL7Workbench.Workspace;
 
 namespace HL7Workbench.Desktop.Viewer;
 
@@ -15,21 +18,41 @@ public sealed class GenerationReportView : Grid
 {
     private readonly GenerationReportViewModel model;
     private FhirGenerationReport? rendered;
+    private SyntheticGenerationReport? renderedSynthetic;
     public SelectableTextBlock Details { get; } = new() { TextWrapping = TextWrapping.Wrap, Focusable = true };
-    public TextBlock EmptyState { get; } = new() { Text = "No Generation Report for the selected document. Generate HL7 from FHIR Patient Workspace to create one.", TextWrapping = TextWrapping.Wrap };
+    public TextBlock EmptyState { get; } = new() { Text = "No Generation Report for the selected document. Use Generate Messages or generate HL7 from FHIR Patient Workspace to create one.", TextWrapping = TextWrapping.Wrap };
     public ScrollViewer ReportScroll { get; }
+    public Button CopySeed { get; } = new() { Content = "Copy seed" };
+    public TextBlock CopyStatus { get; } = new() { TextWrapping = TextWrapping.Wrap, IsVisible = false };
+    internal Task ClipboardTask { get; private set; } = Task.CompletedTask;
     public GenerationReportView(GenerationReportViewModel model)
     {
         this.model = model; RowDefinitions = new("Auto,*"); Margin = new(8);
-        Children.Add(new TextBlock { Text = "Generation Report — Review required", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new(0, 0, 0, 8) });
-        var body = new StackPanel { Spacing = 8 }; body.Children.Add(EmptyState); body.Children.Add(Details);
+        Children.Add(new AdaptiveActionBar(new TextBlock { Text = "Generation Report — Review required", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap }, CopySeed));
+        ToolTip.SetTip(CopySeed, "Copy the actual synthetic generation seed. Paste it into Seed with the same settings to reproduce output.");
+        Avalonia.Automation.AutomationProperties.SetName(CopySeed, "Copy generation seed");
+        CopySeed.Click += (_, _) => ClipboardTask = CopySeedAsync();
+        var body = new StackPanel { Spacing = 8 }; body.Children.Add(EmptyState); body.Children.Add(CopyStatus); body.Children.Add(Details);
         ReportScroll = new() { Content = body, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = true };
         SetRow(ReportScroll, 1); Children.Add(ReportScroll);
         AttachedToVisualTree += (_, _) => { model.PropertyChanged += Changed; model.Shown += FocusReport; Refresh(); if (model.FocusRequested) FocusReport(); };
-        DetachedFromVisualTree += (_, _) => { model.PropertyChanged -= Changed; model.Shown -= FocusReport; rendered = null; Details.Text = ""; };
+        DetachedFromVisualTree += (_, _) => { model.PropertyChanged -= Changed; model.Shown -= FocusReport; rendered = null; renderedSynthetic = null; Details.Text = ""; CopySeed.IsEnabled = false; CopyStatus.IsVisible = false; };
         Refresh();
     }
     private void Changed(object? sender, PropertyChangedEventArgs e) => Refresh();
+    public async Task CopySeedAsync()
+    {
+        if (model.SyntheticReport is not { } report) return;
+        var text = report.Seed.ToString(CultureInfo.InvariantCulture);
+        try
+        {
+            if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) throw new NotSupportedException();
+            await clipboard.SetTextAsync(text);
+            CopyStatus.Text = "Seed copied. Paste into Seed using the same settings to reproduce output.";
+        }
+        catch (Exception) { CopyStatus.Text = "Clipboard unavailable. Select the seed in the report text to copy it manually."; }
+        CopyStatus.IsVisible = true;
+    }
     private void FocusReport() => Dispatcher.UIThread.Post(() =>
     {
         // An explicit open can precede Dock attaching this projection. Retain that
@@ -40,10 +63,22 @@ public sealed class GenerationReportView : Grid
     private void Refresh()
     {
         var report = model.Report;
-        if (!ReferenceEquals(rendered, report)) { ReportScroll.Offset = default; rendered = report; }
-        Details.Text = report is null ? "" : Format(report);
-        Details.IsVisible = report is not null; EmptyState.IsVisible = report is null;
+        var synthetic = model.SyntheticReport;
+        if (!ReferenceEquals(rendered, report) || !ReferenceEquals(renderedSynthetic, synthetic))
+        { ReportScroll.Offset = default; rendered = report; renderedSynthetic = synthetic; CopyStatus.IsVisible = false; }
+        CopySeed.IsVisible = synthetic is not null; CopySeed.IsEnabled = synthetic is not null;
+        Details.Text = string.Join("\n\n", new[] { synthetic is null ? "" : Format(synthetic), report is null ? "" : Format(report) }.Where(t => t.Length > 0));
+        Details.IsVisible = report is not null || synthetic is not null; EmptyState.IsVisible = !Details.IsVisible;
     }
+    public static string Format(SyntheticGenerationReport report) =>
+        $"Synthetic HL7 v2.5.1 · {report.Scenario} · generator v{report.GeneratorVersion} · {report.DemographicStyleLabel}\n" +
+        $"Seed: {report.Seed.ToString(CultureInfo.InvariantCulture)} ({(report.SeedWasAutomatic ? "automatic" : "explicit")}) · Base timestamp: {report.BaseTimestamp:O}\n" +
+        $"Patients: {report.Patients:N0} · Encounters: {report.Encounters:N0} · Orders: {report.Orders:N0}\n" +
+        $"Result reports: {report.Results:N0} · OBX observations: {report.Observations:N0} · Total messages: {report.Messages:N0}\n" +
+        string.Join(" · ", report.MessageTypes.Select(t => $"{t.Key}: {t.Value:N0}")) + "\n" +
+        $"Generation: {report.GenerationTime.TotalMilliseconds:N0} ms · Publication validation: {report.PublicationTime.TotalMilliseconds:N0} ms\n" +
+        $"Output: {(report.IsNewDocument ? "new unsaved document" : "existing document insertion")} · Cancellation: no (successful atomic batch).\n" +
+        "Warnings: " + (report.Warnings.Count == 0 ? "none" : string.Join(" · ", report.Warnings)) + "\n" + SyntheticGenerationReport.Notice;
     public static string Format(FhirGenerationReport report)
     {
         var imported = report.Imported;

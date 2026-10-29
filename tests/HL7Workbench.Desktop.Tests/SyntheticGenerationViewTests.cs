@@ -26,14 +26,15 @@ public sealed class SyntheticGenerationViewTests
     public void DefaultsAndThousandMessagePreviewAreFixedAndDoNotGenerateOutput()
     {
         using var documents = new DocumentManager(); var model = new SyntheticGenerationViewModel(documents, null);
-        Assert.Equal(SyntheticMessageType.AdtA01, model.MessageType); Assert.Equal("1", model.Count); Assert.Equal("42", model.Seed);
+        Assert.Equal(SyntheticMessageType.AdtA01, model.MessageType); Assert.Equal("1", model.Count); Assert.Equal("", model.Seed);
         Assert.Equal("2030-01-01T00:00:00+00:00", model.Timestamp); Assert.Equal("SYN", model.Prefix); Assert.False(model.InsertIntoTarget);
         Assert.True(model.CanGenerate); Assert.False(model.HasTarget); model.Count = "1000";
+        Assert.Contains("Seed: automatic", model.Preview); model.Seed = "42";
         var allocated = GC.GetAllocatedBytesForCurrentThread(); var preview = model.Preview;
         Assert.Contains("ADT^A01", preview); Assert.Contains("1000 message", preview); Assert.Contains("New unsaved document", preview);
-        Assert.Contains("SYN-0000002A-A01-0001", preview); Assert.Contains("SYN-0000002A-A01-1000", preview);
+        Assert.Contains("SYN2-0000002A-0001", preview); Assert.Contains("SYN2-0000002A-1000", preview);
         Assert.True(GC.GetAllocatedBytesForCurrentThread() - allocated < 128 * 1024); Assert.Empty(documents.Documents);
-        model.Seed = ""; Assert.True(model.CanGenerate); Assert.Contains("0000002A", model.Preview);
+        model.Seed = ""; Assert.True(model.CanGenerate); Assert.Contains("Seed: automatic", model.Preview); Assert.DoesNotContain("0000002A", model.Preview);
     }
     [Theory]
     [InlineData("count", "0")] [InlineData("count", "1001")] [InlineData("count", "1.5")] [InlineData("count", "-1")]

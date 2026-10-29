@@ -94,8 +94,8 @@ public sealed class FhirGenerationUxTests
             {
                 Pump(dialog); var seed = Assert.Single(dialog.GetVisualDescendants().OfType<TextBox>(), t => AutomationProperties.GetLabeledBy(t) is TextBlock { Text: "Seed (optional)" });
                 CheckHelp(seed, AutomationProperties.GetLabeledBy(seed)!, SyntheticGenerationDialog.SeedHelp);
-                Assert.Contains("birth dates", SyntheticGenerationDialog.SeedHelp); Assert.Contains("Blank uses 42", SyntheticGenerationDialog.SeedHelp);
-                seed.Text = ""; Assert.True(dialog.Model.CanGenerate); Assert.Contains("0000002A", dialog.Model.Preview);
+                Assert.Contains("birth dates", SyntheticGenerationDialog.SeedHelp); Assert.Contains("Explicit 0 and 42", SyntheticGenerationDialog.SeedHelp);
+                seed.Text = ""; Assert.True(dialog.Model.CanGenerate); Assert.Contains("Seed: automatic", dialog.Model.Preview);
             }
             finally { dialog.Close(); }
         }, Token);

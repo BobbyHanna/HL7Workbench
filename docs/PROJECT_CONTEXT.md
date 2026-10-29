@@ -8,6 +8,161 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## Stage 16D — realistic standalone demographics (2026-10-29)
+
+Current request extends Realistic Synthetic to standalone ADT A01/A04/A08, ORM O01
+and ORU R01. New dialog configurations in both modes default realistic/blank Seed;
+Obvious Placeholders explicitly retains original standalone v1 bytes. The versioned
+standalone v2 projection reuses unchanged v1 templates/clinical output and the same
+Core demographic component as scenarios. Existing scenario goldens stay fixed.
+Distinct MR/VN/MSH/PO/FO/PRV/facility namespaces, typed authorities, bounded Core
+parsing/escaping/validation and existing atomic publication/history are preserved.
+No new fields, panels, versions of HL7, datasets, dependencies, network calls or
+transmission are introduced. The existing dialog/report exposes both styles and
+versions, actual seeds and Copy seed. Application/facility and patient-prefix
+advanced overrides apply to realistic standalone output and are validated; legacy
+unsupported overrides are rejected clearly. Scenario clinical overrides stay intact.
+
+There is no persisted generator preset store. Old style-less Core options/JSON keep
+legacy placeholders and explicit default 42; the dialog explicitly selects realistic
+for new configurations. Shared operation-scoped automatic uint seeds and separate
+editable seed drafts are unchanged. Names/addresses/facilities can coincide with
+real entities; synthetic markers do not guarantee a non-real postal address.
+See [Stage 16D guide](stage16-synthetic-generation.md) and
+[ADR 0012](decisions/0012-deterministic-synthetic-generation.md).
+Prior uncommitted work remains. No commit, push, publication, package, protected-beta
+changes or Stage 17 are authorized. Stop for native Windows acceptance.
+
+Final normal/independent locked restores and Release build passed (0 warnings/errors).
+Focused Core/Workspace/Desktop suites passed 132/133/108, with no failures/skips.
+The exact full regular solution suite passed 2,547, failed 0, skipped the same
+14 opt-ins (2,561 total; 4m 47.113s). Added 58 permanent ordinary cases (39 Core /
+11 Workspace / 8 Desktop). Original standalone renderer/observation and PRNG/helper
+bodies match HEAD; all standalone/scenario goldens pass. All 2,384 protected beta
+hashes are unchanged. Stage 16D has 22 delta paths (17 updated / 5 new); combined
+state is 36 unstaged paths (17 modified tracked / 19 new), with empty index and
+unchanged main/HEAD a5a982d. Evidence, baseline/delta hashes, reviewed failure logs
+and isolated restore metadata remain under ignored artifacts/stage16d. Six redundant
+intermediate logs were removed; no probes or generated HL7/CSV exports were created.
+Native clipboard/focus/high-DPI and visual acceptance remains pending.
+
+## Stage 16C — consistent automatic HL7 seeds (2026-10-29)
+
+The owner extends automatic seeds to all five standalone types. Both UI modes now
+default blank and resolve one cryptographic uint through the shared Stage 16B
+coordinator after preflight. Explicit 0/42/all uint values remain deterministic;
+negatives are unsupported by the existing type. Standalone v1 Core algorithm,
+templates, formatting, IDs and demographic style remain unchanged. Core/direct
+programmatic defaults remain explicit 42 unless automaticSeed is requested.
+Reports/Copy seed already support both modes and now retain the actual automatic
+standalone seed. Separate editable drafts never receive resolved seeds. Cancellation,
+validation, retry and atomic publication semantics are preserved. See the updated
+[Stage 16 guide](stage16-synthetic-generation.md) and [ADR 0012](decisions/0012-deterministic-synthetic-generation.md).
+Prior uncommitted work is retained. No commit, push, package, beta modification or
+Stage 17 work is authorized; stop for native Windows acceptance after verification.
+Final normal/isolated locked restores and Release build passed (0 warnings/errors).
+Focused Core/Workspace/Desktop generation suites passed 93/122/100 cases, with no
+failures/skips. The full regular solution passed 2,489, failed 0, skipped the same
+14 opt-ins (2,503 total; 4m 56.459s). 43 permanent cases were added (30 Workspace /
+13 Desktop). All 2,384 protected beta hashes and Core generator sources are unchanged.
+Stage 16C has 14 delta paths (12 updated / 2 new); combined state has 30 unstaged
+paths (16 modified / 14 new), empty index and unchanged main/HEAD a5a982d. Final
+evidence remains under ignored artifacts/stage16c; native acceptance is pending.
+
+## Stage 16B — automatic scenario seeds (2026-10-29)
+
+The owner requests automatic seeds before Stage 16 acceptance. Scenario Seed is
+blank by default; one cryptographic uint is selected in Workspace after preflight,
+then passed explicitly through the existing deterministic engine and report.
+Explicit 0/42/all uint values bypass selection. Preview/validation never draws;
+canceled operations do not redraw, and user retries start fresh operations. Separate
+UI drafts retain standalone v1 default/blank 42 behavior. Automatic drafts remain
+unresolved through validation so their facility defaults follow the actual seed.
+Reports show actual seed/provenance and provide Copy seed for replay. Core algorithms,
+versions, goldens, demographic styles and publication/history limits are unchanged.
+See [guide](stage16-synthetic-generation.md) and [ADR 0012](decisions/0012-deterministic-synthetic-generation.md).
+Prior uncommitted Stage 16/16A work is preserved. No commit, push, packaging,
+protected-beta edit or Stage 17 work is authorized. Native acceptance remains pending.
+Final normal/independent locked restores and Release build passed (0 warnings/errors).
+Focused Core/Workspace/Desktop generation suites passed 93/92/87, with no failures
+or skips. The exact full regular command passed 2,446 cases, failed 0, skipped the
+unchanged 14 opt-ins (2,460 total; 4m 16.336s). 23 permanent cases were added (14
+Workspace / 9 Desktop). All 2,384 protected beta hashes and four Core generator
+source hashes are unchanged. There are 12 Stage 16B delta paths (10 updated / 2 new);
+combined status is 26 unstaged paths (14 modified / 12 new), empty index, unchanged
+main/HEAD a5a982d. Evidence is retained under ignored artifacts/stage16b.
+
+## Stage 16A — realistic synthetic demographics (2026-10-28)
+
+The owner's Stage 16A request extends the existing uncommitted Stage 16 implementation;
+all 21 prior path hashes matched its saved manifest before edits. Main/HEAD remains
+a5a982d. No unrelated changes, commit, push, packaging, beta edits or Stage 17 are
+authorized. Native acceptance remains an owner gate.
+
+Scenario generator version 2 defaults new configurations to Realistic Synthetic,
+using small original ordered name/street/locality/facility pools and independent
+seeded profile/provider/facility/location streams in the same Core engine. Patients
+retain plausible adult DOB/sex, names, marked American-style addresses and optional
+reserved 555-01xx phones across related encounters. Distinct local MR/VN/message/
+placer/filler/provider/facility identifiers and routine MEDSURG/OUTPATIENT locations
+remain coherent. Unknown explicit facilities keep their own codes; explicit
+application/facility overrides always win, even when equal to old defaults.
+
+Obvious Placeholders preserves the original scenario golden bytes. Standalone v1,
+Scripting identity output and both clinical panels/ranges/values remain unchanged.
+The existing dialog adds a style selector and automatic-default hints; reports add
+style metadata without retaining patient data. No new generator, service, dataset,
+package, serializer, worker API or document publication path is added. Names and
+addresses can coincide with real identities; the address marker is not reserved
+postal space. See [Stage 16A guide and native checklist](stage16-synthetic-generation.md)
+and [ADR 0012](decisions/0012-deterministic-synthetic-generation.md).
+Final locked restores and Release build passed (0 warnings/errors). All 2,423
+ordinary solution cases passed, with the unchanged 14 opt-in stress skips (2,437
+total). Focused Core/Workspace/Desktop generation suites passed 93/78/78 cases.
+32 permanent ordinary cases were added. The 1,000-message realistic Core batch
+measured 859,510 characters, 315,546,208 cumulative allocated bytes and 213.5 ms
+(local observation, not peak-memory or throughput guarantees). All 2,384 protected
+preview hashes are unchanged. Stage 16A has 17 delta paths (14 updated / 3 new);
+combined Stage 16/16A has 24 unstaged paths (14 modified / 10 new), empty index and
+unchanged main/HEAD a5a982d. Evidence is retained under ignored artifacts/stage16a.
+
+## Stage 16 — coherent synthetic generation (2026-10-28)
+
+The owner's new Stage 16 request authorizes this implementation and verification,
+superseding historical no-Stage-16 statements below. Started from clean main at
+a5a982d with Stage 15D and all CI stabilization rounds present. No commit, push,
+publication, packaging, protected-preview change or Stage 17 work is authorized.
+
+Core adds a separately versioned scenario generator for admission/discharge,
+order/result and combined encounters. Fictional identity, visit/provider/order
+context, ordered clinical times, preliminary/final report updates and paired
+chemistry/blood-count examples are shared across related messages. Standalone
+version-1 APIs and golden output remain unchanged. Validated counts/dates/structured
+overrides retain the 1,000-message / 4 Mi-character ceilings and v2.5.1 scope.
+Seeded content never reads clock, machine identity, source records or external data.
+
+Workspace reuses the existing captured-target prospective-save/index/byte proof and
+single atomic insertion/history operation for every output destination/position.
+Generate Messages adds mode/quantity controls, exact estimates and collapsed advanced
+settings. A count-only synthetic document report projects through the existing
+Generation Report tool/indicator alongside preserved FHIR reports. Reports describe
+the latest successful batch through later edits/undo; failures/cancellation retain
+the previous report and publish no partial output. Layout remains placement-only.
+No dependency, Dock identity, View menu or script-engine change participates.
+Generation-time scripting is deferred; explicit post-generation Script Editor
+execution keeps its existing worker/security/publication limits.
+
+See [guide and native checklist](stage16-synthetic-generation.md), [architecture](architecture.md)
+and the [ADR 0012 amendment](decisions/0012-deterministic-synthetic-generation.md).
+Final verification results are recorded in the guide. Native Windows owner
+acceptance remains pending; headless checks do not establish native acceptance.
+Final locked restores and Release build passed (0 warnings/errors). All 2,391
+ordinary solution cases passed, with the same 14 opt-in stress skips (2,405 total).
+Focused Core/Workspace/Desktop generation suites passed 71/76/70 cases respectively.
+85 permanent regressions were added. All 2,384 protected preview SHA-256 hashes are
+unchanged. There are 21 Stage 16 paths (14 modified / 7 new), empty index, unchanged
+main/HEAD a5a982d; final evidence is retained under ignored artifacts/stage16.
+
 ## CI stabilization Round 3 — SQL worker startup (2026-10-28)
 
 Started from clean main at 36b561f. The owner reports all Desktop/Core/Workspace/

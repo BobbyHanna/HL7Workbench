@@ -25,7 +25,7 @@ public partial class MainWindow
         if (!documents.Documents.Contains(result.Document)) return;
         factory.OpenDocument(result.Document.Id);
         Activate();
-        Status.Text = $"Generated {result.MessageIds.Count} synthetic {result.Options.TypeLabel} message(s). Use Save As to keep new output.";
+        Status.Text = $"Generated {result.MessageIds.Count} synthetic {result.ScenarioOptions?.Label ?? result.Options.TypeLabel} message(s). Review Generation Report; use Save As to keep new output.";
         // Dock can mount a new tab after modal dismissal and the first dispatcher
         // layout pass. Wait for the actual host, rather than guessing a delay.
         await WaitForGeneratedViewAsync(result.Document, result.MessageIds[0]);

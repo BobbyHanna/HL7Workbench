@@ -1,5 +1,44 @@
 # Architecture
 
+## Stage 16 coherent synthetic scenarios
+
+Stage 16D shares the Stage 16A ordered demographic catalogs and deterministic
+profile/provider/facility/location logic in internal Core SyntheticDemographics.
+Both dialog modes default Realistic Synthetic and expose Obvious Placeholders.
+Standalone v2 renders the unchanged v1 clinical template, replaces only existing
+demographic fields using bounded Core-parsed materialized ranges, and verifies the
+complete result through Core's parser/validator/serializer. Explicit placeholder
+style retains original standalone v1 bytes; scenario-v2 realistic/placeholder bytes
+are unchanged. Old style-less standalone Core options/JSON retain legacy meaning;
+new dialog configurations select realistic explicitly. No preset store exists.
+Unset versus explicit transport values stay distinct until the operation's single
+automatic seed is resolved after preflight. Normalization captures replay settings.
+The same dialog exposes transport/patient overrides and style/version reporting;
+all content enters the existing prospective publication/history transaction.
+Core remains independent of Workspace/UI/Dock. No new templates, fields, dataset,
+dependency, publication route or network service is added. See the
+[Stage 16 guide/compatibility boundaries](stage16-synthetic-generation.md).
+
+Core adds separately versioned immutable scenario options, bounded structured
+overrides and fictional patient/encounter/order contexts. It shares version 1's
+specified PRNG/segment construction helpers without changing standalone golden
+bytes. A small ordered clinical event sequence renders the existing supported
+families plus ADT transfer/discharge, and validates one message at a time through
+the established parser/serializer. Quantity/date preflight and targeted shared-ID/
+timeline checks precede publication; no schema engine or clinical inference enters
+Core. Workspace's existing captured-target generation transaction accepts the new
+closed Core batch through the same prospective-save/index/exact-byte proof and
+single insertion/history authority.
+
+Generate Messages adds a mode selector, exact estimate and collapsed scenario
+customization. A count-only SyntheticGenerationReport belongs to MessageDocument,
+is attached before new-document open and notifies same-tab insertions. The existing
+Generation Report tool/indicator project it alongside unchanged FHIR report contracts.
+Report views follow active documents and release subscriptions on disposal; layout
+still persists placement only. There are no new packages, Dock identities, editors,
+external services or script-execution hooks. See [ADR 0012 amendment](decisions/0012-deterministic-synthetic-generation.md)
+and [Stage 16 guide/acceptance](stage16-synthetic-generation.md).
+
 ## Responsive tool content (Stage 15UI)
 
 The FHIR workspace follow-up replaces the old browser/form arrangement with

@@ -4,9 +4,12 @@ using System.Text;
 namespace HL7Workbench.Core;
 
 /// <summary>Versioned, bounded synthetic HL7 v2.5.1 examples. This is not clinical or implementation-guide conformance validation.</summary>
-public static class SyntheticMessageGenerator
+public static partial class SyntheticMessageGenerator
 {
+    /// <summary>Original placeholder algorithm, retained byte-for-byte for explicit legacy style.</summary>
     public const int Version = 1;
+    /// <summary>Shared realistic demographic projection of the unchanged standalone templates.</summary>
+    public const int RealisticVersion = 2;
     public const int MaximumCount = 1000;
     public const int MaximumCharacters = 4 * 1024 * 1024;
     public const int MaximumMessageCharacters = 1024 * 1024;
@@ -24,7 +27,8 @@ public static class SyntheticMessageGenerator
         for (var i = 0; i < messages.Length; i++)
         {
             token.ThrowIfCancellationRequested();
-            var text = Message(options, i + 1, ref random);
+            var text = options.DemographicStyle == SyntheticDemographicStyle.RealisticSynthetic
+                ? RealisticMessage(options, i + 1, ref random) : Message(options, i + 1, ref random);
             if (text.Length > Math.Min(budget.Message, MaximumMessageCharacters)) throw new Hl7LimitException("GeneratedMessageCharacters");
             var line = 0;
             foreach (var character in text)
@@ -41,14 +45,14 @@ public static class SyntheticMessageGenerator
 
     // xorshift32 is specified here rather than System.Random's runtime-dependent
     // implementation. All arithmetic wraps as unsigned 32-bit values; zero has a fixed mapping.
-    private struct StableRandom(uint seed)
+    internal struct StableRandom(uint seed)
     {
         private uint state = (seed ^ 0x9E3779B9u) is 0 ? 0x6D2B79F5u : seed ^ 0x9E3779B9u;
         public uint Next() { state ^= state << 13; state ^= state >> 17; state ^= state << 5; return state; }
         public int Below(int maximum) => (int)(Next() % (uint)maximum);
     }
-    private static string Timestamp(DateTimeOffset value) => value.ToUniversalTime().ToString("yyyyMMddHHmmss'+0000'", CultureInfo.InvariantCulture);
-    private static string Segment(string name, params (int Field, string Value)[] fields)
+    internal static string Timestamp(DateTimeOffset value) => value.ToUniversalTime().ToString("yyyyMMddHHmmss'+0000'", CultureInfo.InvariantCulture);
+    internal static string Segment(string name, params (int Field, string Value)[] fields)
     {
         var values = new string[fields.Max(f => f.Field) + 1]; values[0] = name;
         foreach (var (field, value) in fields) values[field] = value;

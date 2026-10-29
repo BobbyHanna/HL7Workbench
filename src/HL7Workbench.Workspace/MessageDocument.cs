@@ -40,6 +40,10 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     public TransformationReport? TransformationReport { get; internal set; }
     /// <summary>Count-only captured FHIR generation provenance; independent of imported-session/tool lifetime.</summary>
     public FhirGenerationReport? GenerationReport { get; internal set; }
+    /// <summary>Original counts for the most recent successful synthetic batch, independent of later history and tool lifetime.</summary>
+    public SyntheticGenerationReport? SyntheticGenerationReport { get; private set; }
+    internal void SetSyntheticGenerationReport(SyntheticGenerationReport report)
+    { SyntheticGenerationReport = report; PropertyChanged?.Invoke(this, new(nameof(SyntheticGenerationReport))); }
     public MessageFileIndex? Index { get; }
     public Hl7Message Message => message ?? throw new InvalidOperationException("Active content is source-backed or unavailable.");
     public Hl7Message? MaterializedMessage => message;
