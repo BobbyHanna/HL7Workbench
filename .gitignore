@@ -39,3 +39,4 @@ test-data/generated/
 # Only reviewed synthetic fixtures may be tracked here.
 !/samples/synthetic-only/**/*.hl7
 !/samples/synthetic-only/**/*.HL7
+!/docs/examples/stage17-synthetic-message.hl7

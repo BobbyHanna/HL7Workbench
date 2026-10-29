@@ -22,7 +22,7 @@ namespace HL7Workbench.Desktop.Tests;
 public sealed partial class ScriptEditorTests
 {
     private static Dictionary<string, ICommand> RibbonActions() => new[] { "Open File…", "Save HL7", "Save HL7 As…", "Save Layout", "Restore Layout", "Reset Layout / Recover Windows", "Preferences…", "Generate Messages",
-        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator", "Message Comparison", "Compare With Original", "Connection Manager", "MLLP Listener", "Batch Transmission", "Load Testing" }
+        "Message Browser", "Segment Navigator", "Field Inspector", "Full Source Viewer", "Activity Log", "Find Messages", "Clear Search / Restore Navigator", "Message Comparison", "Compare With Original", "Connection Manager", "MLLP Listener", "Batch Transmission", "Load Testing", "Apply/Change Schema", "Remove Schema", "Import Schema", "Manage Schemas", "Previous Issue", "Next Issue" }
         .Concat(MessageInsertionWorkflow.Choices.Select(c => MessageInsertionWorkflow.CommandName(c.Position)))
         .ToDictionary(n => n, _ => (ICommand)new UiCommand(() => Task.CompletedTask));
     private static void SendShellKey(Control control, Avalonia.Input.Key key) => control.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
@@ -244,7 +244,7 @@ public sealed partial class ScriptEditorTests
         }, TestContext.Current.CancellationToken);
     }
     [Fact]
-    public async Task PreferencesApplyAndCancelAreExplicitAndSchemaControlsAreReserved()
+    public async Task PreferencesApplyAndCancelAreExplicitAndValidationDefaultsAreAvailable()
     {
         await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
         await ui.Dispatch(() =>
@@ -255,7 +255,7 @@ public sealed partial class ScriptEditorTests
             Assert.False(state.Current.StartInEditMode); Assert.False(state.Current.RibbonExpanded);
             window.ApplyButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Assert.True(state.Current.StartInEditMode); Assert.True(state.Current.RibbonExpanded);
-            window.Categories.SelectedIndex = 1; Assert.False(window.SchemaMode.IsEnabled); Assert.False(window.TargetSchema.IsEnabled);
+            window.Categories.SelectedIndex = 3; Assert.True(window.SchemaMode.IsEnabled); Assert.False(window.DefaultValidationProfile.IsEnabled);
             Assert.Equal(2, window.SchemaMode.ItemCount); Assert.Equal(0, window.SchemaMode.SelectedIndex);
             window.EditByDefault.IsChecked = false; window.RibbonVisibility.SelectedIndex = 0;
             window.CancelButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

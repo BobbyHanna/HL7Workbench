@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace HL7Workbench.Workspace;
 
-/// <summary>Reserved interpretation choices. Current structural parsing does not consume this setting.</summary>
+/// <summary>Initial selection in explicit Apply Schema only; never activates validation or changes structural parsing.</summary>
 public enum SchemaInterpretationMode { MessageDeclared, SelectedTarget }
 public enum ApplicationThemePreference { FollowSystem, Light, Dark }
 
@@ -13,7 +13,7 @@ public sealed record EditorPreferences(bool StartInEditMode = false, bool Ribbon
 {
     public static string DefaultPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HL7Workbench", "editor-preferences.json");
     // Preserve settings from a newer app when saving known preferences. Schema choices
-    // are metadata reserved for a future interpreter; they never affect source bytes.
+    // select explicit validation defaults; they never affect source bytes.
     [System.Text.Json.Serialization.JsonExtensionData]
     public Dictionary<string, JsonElement>? AdditionalSettings { get; init; }
     public SearchPaneLayout? SearchLayout { get; init; }

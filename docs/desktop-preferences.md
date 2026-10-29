@@ -10,6 +10,13 @@ Home → Workspace provides Save Layout, Restore Layout and Reset Layout / Recov
 All ten former Scripts menu commands are available in the Scripts ribbon, even when
 the editor is hidden; scope and Reports / Export CSV remain there too.
 
+HL7 Tools → Schema Validation provides Apply/Change Schema, Remove Schema,
+Import Schema, Manage Schemas and Previous/Next Issue (Shift+F8/F8). Application
+and removal target the active message, including floating editors. Import/Manage
+reuse the local profile dialog and work without an open document. The raw editor
+retains compact read-only profile/counts/state status and inline diagnostics;
+editing, message navigation and validation status wrap in separate layout rows.
+
 The utility ribbon starts collapsed, with Home, Scripts, HL7 Tools and TCP/MLLP tabs.
 A selected tab opens compact grouped commands in a light-dismiss overlay, preserving
 the dock viewport. Click outside or press Escape to dismiss. Left/Right/Home/End select
@@ -26,7 +33,7 @@ dynamically to the attached window's dark/light variant, including changes while
 Script Library, Execution and Results use aligned icon controls, subtle dividers and an
 accent Run tile. Standard Fluent control themes retain hover/press/focus/disabled states.
 
-Settings → Preferences opens a dedicated window with General/HL7/Appearance category navigation.
+Settings → Preferences opens a dedicated window with General/HL7/Appearance/Validation category navigation.
 Apply saves without closing; OK saves and closes only on success; Cancel/close abandons
 changes since the last Apply. General contains two fully functional preferences:
 
@@ -114,22 +121,22 @@ current session and reports failure through existing Preferences feedback; resta
 the last successfully saved value. Hide/reopen/float/reset retain the shared model's split,
 and old placement-only layouts remain compatible with tool.search-results.
 
-## Declared version and future schema choices
+## Declared version and explicit schema validation
 
 | Concept | Meaning | Current capability |
 | --- | --- | --- |
 | Declared HL7 version | Each message's original MSH-12 | Read from Core's structural message model |
-| Selected target schema | A user's independent target for inspection, potentially different from MSH-12 | Reserved metadata; no supplied schema catalog |
-| Interpretation mode | Use message-declared schema or selected target schema | Reserved enum; both choices shown in a disabled control |
+| Selected target schema | Initial profile selection when Apply Schema is invoked | Built-in or imported local profile; unavailable IDs are retained explicitly |
+| Interpretation mode | Auto-detect a built-in from declarations, or select a default profile | Active choice in Preferences → Validation |
 
-Inspection uses the lossless delimiter-based Core scanner/parser, with structural/
-encoding diagnostics. It has no target-schema interpreter, profile validator or
-version-conflict highlighting. The HL7 category explains the distinction and disables
-schema controls. It does not invent supported versions or imply validation is active.
-SchemaMode and nullable TargetSchema are future settings metadata only; no current
-processing path consumes them. A future interpreter may intentionally inspect mixed-
-declaration batches against a target; it must never implicitly rewrite MSH-12,
-normalize values or alter original bytes.
+Inspection continues to use the lossless delimiter-based Core scanner/parser.
+Stage 17 activates SchemaMode/TargetSchema only as the initial Apply Schema picker
+choice. It never validates a newly opened message automatically or rewrites MSH-12,
+values or source bytes. Auto-detection matches MSH-9.1/2/3 and MSH-12.1 to built-ins;
+trading-partner profiles require explicit selection. Applied state is per message,
+session-only, with inline findings and automatic edit refresh after application.
+Unsupported coverage remains Incomplete. See the [Stage 17 guide](stage17-hl7-schema-validation.md)
+for the local library, import formats, provenance, limits and acceptance checklist.
 
 ## Persistence and failure handling
 

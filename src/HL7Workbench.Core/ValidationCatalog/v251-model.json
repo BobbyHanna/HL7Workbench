@@ -1,0 +1,9271 @@
+{
+  "datatypes": {
+    "AD": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 6,
+        "table": "399"
+      },
+      {
+        "dataType": "ID",
+        "position": 7,
+        "table": "190"
+      },
+      {
+        "dataType": "ST",
+        "position": 8,
+        "table": null
+      }
+    ],
+    "AUI": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "CCD": [
+      {
+        "dataType": "ID",
+        "position": 1,
+        "table": "100"
+      },
+      {
+        "dataType": "TS",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "CE": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "396"
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 6,
+        "table": "396"
+      }
+    ],
+    "CNE": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "396"
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 6,
+        "table": "396"
+      },
+      {
+        "dataType": "ST",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 9,
+        "table": null
+      }
+    ],
+    "CNN": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 7,
+        "table": "360"
+      },
+      {
+        "dataType": "IS",
+        "position": 8,
+        "table": "297"
+      },
+      {
+        "dataType": "IS",
+        "position": 9,
+        "table": "363"
+      },
+      {
+        "dataType": "ST",
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 11,
+        "table": "301"
+      }
+    ],
+    "CP": [
+      {
+        "dataType": "MO",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "205"
+      },
+      {
+        "dataType": "NM",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 6,
+        "table": "298"
+      }
+    ],
+    "CQ": [
+      {
+        "dataType": "NM",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "CWE": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "396"
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 6,
+        "table": "396"
+      },
+      {
+        "dataType": "ST",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 9,
+        "table": null
+      }
+    ],
+    "CX": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "61"
+      },
+      {
+        "dataType": "HD",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 5,
+        "table": "203"
+      },
+      {
+        "dataType": "HD",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 10,
+        "table": null
+      }
+    ],
+    "DDI": [
+      {
+        "dataType": "NM",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "MO",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "DLD": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "113"
+      },
+      {
+        "dataType": "TS",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "DLN": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "333"
+      },
+      {
+        "dataType": "DT",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "DR": [
+      {
+        "dataType": "TS",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "DTN": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "149"
+      },
+      {
+        "dataType": "NM",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "EI": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "363"
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 4,
+        "table": "301"
+      }
+    ],
+    "EIP": [
+      {
+        "dataType": "EI",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "FC": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "64"
+      },
+      {
+        "dataType": "TS",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "FN": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      }
+    ],
+    "HD": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "300"
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "301"
+      }
+    ],
+    "ICD": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "150"
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "136"
+      },
+      {
+        "dataType": "TS",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "JCC": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "327"
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "328"
+      },
+      {
+        "dataType": "TX",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "LA1": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "302"
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "303"
+      },
+      {
+        "dataType": "IS",
+        "position": 3,
+        "table": "304"
+      },
+      {
+        "dataType": "HD",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 5,
+        "table": "306"
+      },
+      {
+        "dataType": "IS",
+        "position": 6,
+        "table": "305"
+      },
+      {
+        "dataType": "IS",
+        "position": 7,
+        "table": "307"
+      },
+      {
+        "dataType": "IS",
+        "position": 8,
+        "table": "308"
+      },
+      {
+        "dataType": "AD",
+        "position": 9,
+        "table": null
+      }
+    ],
+    "MO": [
+      {
+        "dataType": "NM",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "0"
+      }
+    ],
+    "MOC": [
+      {
+        "dataType": "MO",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "MOP": [
+      {
+        "dataType": "ID",
+        "position": 1,
+        "table": "148"
+      },
+      {
+        "dataType": "NM",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "0"
+      }
+    ],
+    "MSG": [
+      {
+        "dataType": "ID",
+        "position": 1,
+        "table": "76"
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "3"
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "354"
+      }
+    ],
+    "NDL": [
+      {
+        "dataType": "CNN",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 4,
+        "table": "302"
+      },
+      {
+        "dataType": "IS",
+        "position": 5,
+        "table": "303"
+      },
+      {
+        "dataType": "IS",
+        "position": 6,
+        "table": "304"
+      },
+      {
+        "dataType": "HD",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 8,
+        "table": "306"
+      },
+      {
+        "dataType": "IS",
+        "position": 9,
+        "table": "305"
+      },
+      {
+        "dataType": "IS",
+        "position": 10,
+        "table": "307"
+      },
+      {
+        "dataType": "IS",
+        "position": 11,
+        "table": "308"
+      }
+    ],
+    "OCD": [
+      {
+        "dataType": "CNE",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "OSD": [
+      {
+        "dataType": "ID",
+        "position": 1,
+        "table": "524"
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 3,
+        "table": "363"
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 5,
+        "table": "363"
+      },
+      {
+        "dataType": "ST",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 9,
+        "table": "301"
+      },
+      {
+        "dataType": "ST",
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 11,
+        "table": "301"
+      }
+    ],
+    "OSP": [
+      {
+        "dataType": "CNE",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "PL": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "302"
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "303"
+      },
+      {
+        "dataType": "IS",
+        "position": 3,
+        "table": "304"
+      },
+      {
+        "dataType": "HD",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 5,
+        "table": "306"
+      },
+      {
+        "dataType": "IS",
+        "position": 6,
+        "table": "305"
+      },
+      {
+        "dataType": "IS",
+        "position": 7,
+        "table": "307"
+      },
+      {
+        "dataType": "IS",
+        "position": 8,
+        "table": "308"
+      },
+      {
+        "dataType": "ST",
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "position": 11,
+        "table": null
+      }
+    ],
+    "PLN": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "338"
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "position": 4,
+        "table": null
+      }
+    ],
+    "PRL": [
+      {
+        "dataType": "CE",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "TX",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "PT": [
+      {
+        "dataType": "ID",
+        "position": 1,
+        "table": "103"
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "207"
+      }
+    ],
+    "PTA": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "147"
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "193"
+      },
+      {
+        "dataType": "NM",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "MOP",
+        "position": 4,
+        "table": null
+      }
+    ],
+    "RI": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "335"
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "RMC": [
+      {
+        "dataType": "IS",
+        "position": 1,
+        "table": "145"
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "146"
+      },
+      {
+        "dataType": "NM",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "MOP",
+        "position": 4,
+        "table": null
+      }
+    ],
+    "RPT": [
+      {
+        "dataType": "CWE",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "527"
+      },
+      {
+        "dataType": "NM",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 6,
+        "table": "0"
+      },
+      {
+        "dataType": "ID",
+        "position": 7,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "position": 8,
+        "table": "528"
+      },
+      {
+        "dataType": "NM",
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 10,
+        "table": "0"
+      },
+      {
+        "dataType": "GTS",
+        "position": 11,
+        "table": null
+      }
+    ],
+    "SAD": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "SPS": [
+      {
+        "dataType": "CWE",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "TX",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 7,
+        "table": null
+      }
+    ],
+    "TQ": [
+      {
+        "dataType": "CQ",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "RI",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "TX",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 9,
+        "table": "472"
+      },
+      {
+        "dataType": "OSD",
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 12,
+        "table": null
+      }
+    ],
+    "TS": [
+      {
+        "dataType": "DTM",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "529"
+      }
+    ],
+    "UVC": [
+      {
+        "dataType": "CNE",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "MO",
+        "position": 2,
+        "table": null
+      }
+    ],
+    "VID": [
+      {
+        "dataType": "ID",
+        "position": 1,
+        "table": "104"
+      },
+      {
+        "dataType": "CE",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "position": 3,
+        "table": null
+      }
+    ],
+    "XAD": [
+      {
+        "dataType": "SAD",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 6,
+        "table": "399"
+      },
+      {
+        "dataType": "ID",
+        "position": 7,
+        "table": "190"
+      },
+      {
+        "dataType": "ST",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 9,
+        "table": "289"
+      },
+      {
+        "dataType": "IS",
+        "position": 10,
+        "table": "288"
+      },
+      {
+        "dataType": "ID",
+        "position": 11,
+        "table": "465"
+      },
+      {
+        "dataType": "DR",
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 14,
+        "table": null
+      }
+    ],
+    "XCN": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "FN",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 7,
+        "table": "360"
+      },
+      {
+        "dataType": "IS",
+        "position": 8,
+        "table": "297"
+      },
+      {
+        "dataType": "HD",
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 10,
+        "table": "200"
+      },
+      {
+        "dataType": "ST",
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 12,
+        "table": "61"
+      },
+      {
+        "dataType": "ID",
+        "position": 13,
+        "table": "203"
+      },
+      {
+        "dataType": "HD",
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 15,
+        "table": "465"
+      },
+      {
+        "dataType": "CE",
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "DR",
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 18,
+        "table": "444"
+      },
+      {
+        "dataType": "TS",
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "position": 23,
+        "table": null
+      }
+    ],
+    "XON": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 2,
+        "table": "204"
+      },
+      {
+        "dataType": "NM",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 5,
+        "table": "61"
+      },
+      {
+        "dataType": "HD",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 7,
+        "table": "203"
+      },
+      {
+        "dataType": "HD",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 9,
+        "table": "465"
+      },
+      {
+        "dataType": "ST",
+        "position": 10,
+        "table": null
+      }
+    ],
+    "XPN": [
+      {
+        "dataType": "FN",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "position": 6,
+        "table": "360"
+      },
+      {
+        "dataType": "ID",
+        "position": 7,
+        "table": "200"
+      },
+      {
+        "dataType": "ID",
+        "position": 8,
+        "table": "465"
+      },
+      {
+        "dataType": "CE",
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "DR",
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 11,
+        "table": "444"
+      },
+      {
+        "dataType": "TS",
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 14,
+        "table": null
+      }
+    ],
+    "XTN": [
+      {
+        "dataType": "ST",
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "position": 2,
+        "table": "201"
+      },
+      {
+        "dataType": "ID",
+        "position": 3,
+        "table": "202"
+      },
+      {
+        "dataType": "ST",
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "position": 12,
+        "table": null
+      }
+    ]
+  },
+  "license": "MPL-2.0",
+  "segments": {
+    "ACC": [
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 5,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 6,
+        "table": "136"
+      },
+      {
+        "dataType": "XCN",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 10,
+        "table": "136"
+      },
+      {
+        "dataType": "XAD",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      }
+    ],
+    "AL1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": null,
+        "maxLength": 15,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 6,
+        "table": null
+      }
+    ],
+    "BLG": [
+      {
+        "dataType": "CCD",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 50,
+        "min": 0,
+        "position": 2,
+        "table": "122"
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 100,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 4,
+        "table": null
+      }
+    ],
+    "CTD": [
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "PLN",
+        "max": null,
+        "maxLength": 100,
+        "min": 0,
+        "position": 7,
+        "table": null
+      }
+    ],
+    "CTI": [
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 60,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      }
+    ],
+    "DB1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 2,
+        "table": "334"
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 4,
+        "table": "136"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 8,
+        "table": null
+      }
+    ],
+    "DG1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 2,
+        "table": "53"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 1,
+        "position": 6,
+        "table": "52"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 9,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 10,
+        "table": "56"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 15,
+        "table": "359"
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 17,
+        "table": "228"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 18,
+        "table": "136"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 427,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 21,
+        "table": "206"
+      }
+    ],
+    "DRG": [
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 3,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 4,
+        "table": "56"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 8,
+        "table": "229"
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 9,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 10,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 21,
+        "min": 0,
+        "position": 11,
+        "table": "415"
+      }
+    ],
+    "DSC": [
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 180,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 2,
+        "table": "398"
+      }
+    ],
+    "EVN": [
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 1,
+        "table": "3"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 1,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 4,
+        "table": "62"
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "max": 1,
+        "maxLength": 241,
+        "min": 0,
+        "position": 7,
+        "table": null
+      }
+    ],
+    "FT1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "DR",
+        "max": 1,
+        "maxLength": 53,
+        "min": 1,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 8,
+        "min": 1,
+        "position": 6,
+        "table": "17"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 6,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 17,
+        "table": "24"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 18,
+        "table": "18"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 22,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "CNE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "SI",
+        "max": null,
+        "maxLength": 4,
+        "min": 0,
+        "position": 31,
+        "table": null
+      }
+    ],
+    "GT1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 9,
+        "table": "1"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 10,
+        "table": "68"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 11,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 20,
+        "table": "66"
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 22,
+        "table": "136"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 25,
+        "table": "136"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 31,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 32,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 33,
+        "table": "223"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 34,
+        "table": "9"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 35,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 36,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 37,
+        "table": "220"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 39,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 40,
+        "table": "231"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 41,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 42,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 43,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 44,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 45,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 46,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 47,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 48,
+        "table": "63"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 49,
+        "table": null
+      },
+      {
+        "dataType": "JCC",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 50,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 51,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 52,
+        "table": "295"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 53,
+        "table": "311"
+      },
+      {
+        "dataType": "FC",
+        "max": 1,
+        "maxLength": 50,
+        "min": 0,
+        "position": 54,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 55,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 56,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 57,
+        "table": "99"
+      }
+    ],
+    "IN1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "AUI",
+        "max": 1,
+        "maxLength": 239,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 15,
+        "table": "86"
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 20,
+        "table": "135"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 21,
+        "table": "173"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 23,
+        "table": "136"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 25,
+        "table": "136"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 27,
+        "table": "93"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 15,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 31,
+        "table": "98"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 32,
+        "table": "22"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 34,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 35,
+        "table": "42"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 15,
+        "min": 0,
+        "position": 36,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 37,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 39,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 40,
+        "table": null
+      },
+      {
+        "dataType": "CP",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 41,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 42,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 43,
+        "table": "1"
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 44,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 45,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 46,
+        "table": "72"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 47,
+        "table": "309"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 48,
+        "table": "295"
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 49,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 50,
+        "table": "535"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 51,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 52,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 53,
+        "table": "99"
+      }
+    ],
+    "IN2": [
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 11,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 4,
+        "table": "139"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 1,
+        "min": 0,
+        "position": 5,
+        "table": "137"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 15,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 15,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 14,
+        "min": 0,
+        "position": 14,
+        "table": "140"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 15,
+        "table": "141"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 16,
+        "table": "142"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 18,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 19,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 20,
+        "table": "136"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 30,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 8,
+        "min": 0,
+        "position": 24,
+        "table": "143"
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 27,
+        "table": "144"
+      },
+      {
+        "dataType": "RMC",
+        "max": null,
+        "maxLength": 82,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "PTA",
+        "max": null,
+        "maxLength": 56,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "DDI",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 31,
+        "table": "223"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 32,
+        "table": "9"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 34,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 35,
+        "table": "220"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 36,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 37,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 38,
+        "table": "231"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 39,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 40,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 41,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 42,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 43,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 44,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 45,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 46,
+        "table": null
+      },
+      {
+        "dataType": "JCC",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 47,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 48,
+        "table": "311"
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 49,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 50,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 51,
+        "table": "222"
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 52,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 53,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 54,
+        "table": "222"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 55,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": null,
+        "maxLength": 8,
+        "min": 0,
+        "position": 56,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 57,
+        "table": "232"
+      },
+      {
+        "dataType": "XTN",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 58,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 59,
+        "table": "312"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 60,
+        "table": "313"
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 61,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 62,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 63,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 64,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 65,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 66,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 67,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 68,
+        "table": "136"
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 69,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 70,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 71,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 72,
+        "table": null
+      }
+    ],
+    "IN3": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 4,
+        "table": "136"
+      },
+      {
+        "dataType": "MOP",
+        "max": 1,
+        "maxLength": 23,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "DTN",
+        "max": 1,
+        "maxLength": 6,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 48,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "ICD",
+        "max": null,
+        "maxLength": 40,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 48,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 23,
+        "table": "151"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 1,
+        "min": 0,
+        "position": 24,
+        "table": "152"
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 25,
+        "table": null
+      }
+    ],
+    "MSH": [
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 1,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "max": 1,
+        "maxLength": 227,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "max": 1,
+        "maxLength": 227,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "max": 1,
+        "maxLength": 227,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "max": 1,
+        "maxLength": 227,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 1,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "MSG",
+        "max": 1,
+        "maxLength": 15,
+        "min": 1,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 1,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "PT",
+        "max": 1,
+        "maxLength": 3,
+        "min": 1,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "VID",
+        "max": 1,
+        "maxLength": 60,
+        "min": 1,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 15,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 180,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 15,
+        "table": "155"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 16,
+        "table": "155"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 17,
+        "table": "399"
+      },
+      {
+        "dataType": "ID",
+        "max": null,
+        "maxLength": 16,
+        "min": 0,
+        "position": 18,
+        "table": "211"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 20,
+        "table": "356"
+      },
+      {
+        "dataType": "EI",
+        "max": null,
+        "maxLength": 427,
+        "min": 0,
+        "position": 21,
+        "table": null
+      }
+    ],
+    "NK1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "JCC",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 15,
+        "table": "1"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 17,
+        "table": "223"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 18,
+        "table": "9"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 21,
+        "table": "220"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 23,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 24,
+        "table": "231"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 31,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 32,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 34,
+        "table": "311"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 35,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 36,
+        "table": "295"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 16,
+        "min": 0,
+        "position": 37,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 39,
+        "table": "99"
+      }
+    ],
+    "NTE": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 2,
+        "table": "105"
+      },
+      {
+        "dataType": "FT",
+        "max": null,
+        "maxLength": 65536,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      }
+    ],
+    "OBR": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 22,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 22,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 5,
+        "table": "0"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 11,
+        "table": "65"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 300,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "SPS",
+        "max": 1,
+        "maxLength": 300,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": 2,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "MOC",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 24,
+        "table": "74"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 25,
+        "table": "123"
+      },
+      {
+        "dataType": "PRL",
+        "max": 1,
+        "maxLength": 400,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "TQ",
+        "max": null,
+        "maxLength": 200,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "EIP",
+        "max": 1,
+        "maxLength": 200,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 30,
+        "table": "124"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 31,
+        "table": null
+      },
+      {
+        "dataType": "NDL",
+        "max": 1,
+        "maxLength": 200,
+        "min": 0,
+        "position": 32,
+        "table": null
+      },
+      {
+        "dataType": "NDL",
+        "max": null,
+        "maxLength": 200,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "NDL",
+        "max": null,
+        "maxLength": 200,
+        "min": 0,
+        "position": 34,
+        "table": null
+      },
+      {
+        "dataType": "NDL",
+        "max": null,
+        "maxLength": 200,
+        "min": 0,
+        "position": 35,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 36,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 37,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 39,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 40,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 30,
+        "min": 0,
+        "position": 41,
+        "table": "224"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 42,
+        "table": "225"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 43,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 44,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 45,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 46,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 47,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 48,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 49,
+        "table": "507"
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 50,
+        "table": null
+      }
+    ],
+    "OBX": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 2,
+        "table": "125"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "Varies",
+        "max": null,
+        "maxLength": null,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 5,
+        "min": 0,
+        "position": 8,
+        "table": "78"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 5,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 10,
+        "table": "80"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 1,
+        "position": 11,
+        "table": "85"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": null,
+        "maxLength": 22,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "Varies",
+        "max": 1,
+        "maxLength": null,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "Varies",
+        "max": 1,
+        "maxLength": null,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "Varies",
+        "max": 1,
+        "maxLength": null,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": 1,
+        "maxLength": 567,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": 1,
+        "maxLength": 631,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": 1,
+        "maxLength": 3002,
+        "min": 0,
+        "position": 25,
+        "table": null
+      }
+    ],
+    "ODS": [
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 1,
+        "position": 1,
+        "table": "159"
+      },
+      {
+        "dataType": "CE",
+        "max": 10,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 20,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 2,
+        "maxLength": 80,
+        "min": 0,
+        "position": 4,
+        "table": null
+      }
+    ],
+    "ODT": [
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 10,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 3,
+        "table": null
+      }
+    ],
+    "ORC": [
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 1,
+        "position": 1,
+        "table": "119"
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 22,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 22,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 22,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 5,
+        "table": "38"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 6,
+        "table": "121"
+      },
+      {
+        "dataType": "TQ",
+        "max": null,
+        "maxLength": 200,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "EIP",
+        "max": 1,
+        "maxLength": 200,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": 2,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "CNE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 31,
+        "table": null
+      }
+    ],
+    "PD1": [
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 1,
+        "table": "223"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 2,
+        "table": "220"
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 5,
+        "table": "231"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 6,
+        "table": "295"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 7,
+        "table": "315"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 8,
+        "table": "316"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 9,
+        "table": "136"
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 12,
+        "table": "136"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 16,
+        "table": "441"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 5,
+        "min": 0,
+        "position": 19,
+        "table": "140"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 20,
+        "table": "141"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 21,
+        "table": "142"
+      }
+    ],
+    "PDA": [
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 3,
+        "table": "136"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 6,
+        "table": "136"
+      },
+      {
+        "dataType": "DR",
+        "max": 1,
+        "maxLength": 53,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 9,
+        "table": "136"
+      }
+    ],
+    "PID": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 20,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 1,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 8,
+        "table": "1"
+      },
+      {
+        "dataType": "XPN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 12,
+        "table": "289"
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 16,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "DLN",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 24,
+        "table": "136"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 30,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 31,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 20,
+        "min": 0,
+        "position": 32,
+        "table": "445"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "HD",
+        "max": 1,
+        "maxLength": 241,
+        "min": 0,
+        "position": 34,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 35,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 36,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 37,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 39,
+        "table": null
+      }
+    ],
+    "PR1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 2,
+        "table": "89"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 40,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 1,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 6,
+        "table": "230"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 9,
+        "table": "19"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 14,
+        "table": "418"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 17,
+        "table": "416"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 427,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 20,
+        "table": "206"
+      }
+    ],
+    "PV1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 1,
+        "position": 2,
+        "table": "4"
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 4,
+        "table": "7"
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 10,
+        "table": "69"
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 12,
+        "table": "87"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 13,
+        "table": "92"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 6,
+        "min": 0,
+        "position": 14,
+        "table": "23"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 15,
+        "table": "9"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 16,
+        "table": "99"
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 18,
+        "table": "18"
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "FC",
+        "max": null,
+        "maxLength": 50,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 21,
+        "table": "32"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 22,
+        "table": "45"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 23,
+        "table": "46"
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 24,
+        "table": "44"
+      },
+      {
+        "dataType": "DT",
+        "max": null,
+        "maxLength": 8,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": null,
+        "maxLength": 12,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": null,
+        "maxLength": 3,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 28,
+        "table": "73"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 29,
+        "table": "110"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 31,
+        "table": "21"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 32,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 34,
+        "table": "111"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 35,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 36,
+        "table": "112"
+      },
+      {
+        "dataType": "DLD",
+        "max": 1,
+        "maxLength": 47,
+        "min": 0,
+        "position": 37,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 39,
+        "table": "115"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 40,
+        "table": "116"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 41,
+        "table": "117"
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 42,
+        "table": null
+      },
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 43,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 44,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": null,
+        "maxLength": 26,
+        "min": 0,
+        "position": 45,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 46,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 47,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 48,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 12,
+        "min": 0,
+        "position": 49,
+        "table": null
+      },
+      {
+        "dataType": "CX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 50,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 51,
+        "table": "326"
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 52,
+        "table": null
+      }
+    ],
+    "PV2": [
+      {
+        "dataType": "PL",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": null,
+        "maxLength": 25,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 25,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 2,
+        "min": 0,
+        "position": 7,
+        "table": "130"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 50,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 15,
+        "table": "136"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 16,
+        "table": "213"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 18,
+        "table": "214"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 19,
+        "table": "136"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 21,
+        "table": "215"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 22,
+        "table": "136"
+      },
+      {
+        "dataType": "XON",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 24,
+        "table": "216"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 25,
+        "table": "217"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 27,
+        "table": "112"
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 29,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 30,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 31,
+        "table": "219"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 32,
+        "table": "136"
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 33,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 34,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 35,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 36,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 37,
+        "table": "136"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 38,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 39,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 40,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 41,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 42,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 43,
+        "table": "315"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 44,
+        "table": "316"
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 45,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 46,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 47,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 48,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": null,
+        "maxLength": 20,
+        "min": 0,
+        "position": 49,
+        "table": "534"
+      }
+    ],
+    "ROL": [
+      {
+        "dataType": "EI",
+        "max": 1,
+        "maxLength": 60,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 1,
+        "position": 2,
+        "table": "287"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 1,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "XAD",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "XTN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      }
+    ],
+    "RQ1": [
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 16,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 16,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 6,
+        "table": "136"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 7,
+        "table": "136"
+      }
+    ],
+    "RQD": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 6,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 30,
+        "min": 0,
+        "position": 7,
+        "table": "319"
+      },
+      {
+        "dataType": "IS",
+        "max": 1,
+        "maxLength": 30,
+        "min": 0,
+        "position": 8,
+        "table": "320"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 10,
+        "table": null
+      }
+    ],
+    "RXO": [
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "LA1",
+        "max": 1,
+        "maxLength": 200,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 9,
+        "table": "161"
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "XCN",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 16,
+        "table": "136"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 6,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 5,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 27,
+        "table": "480"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 28,
+        "table": null
+      }
+    ],
+    "SFT": [
+      {
+        "dataType": "XON",
+        "max": 1,
+        "maxLength": 567,
+        "min": 1,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 15,
+        "min": 1,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 1,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 20,
+        "min": 1,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "TX",
+        "max": 1,
+        "maxLength": 1024,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 6,
+        "table": null
+      }
+    ],
+    "SPM": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "EIP",
+        "max": 1,
+        "maxLength": 80,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "EIP",
+        "max": null,
+        "maxLength": 80,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 1,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 6,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "DR",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 20,
+        "table": "136"
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 23,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 24,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 25,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 26,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 27,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 28,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 29,
+        "table": null
+      }
+    ],
+    "TQ1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "RPT",
+        "max": null,
+        "maxLength": 540,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "TM",
+        "max": null,
+        "maxLength": 20,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": null,
+        "maxLength": 20,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "TS",
+        "max": 1,
+        "maxLength": 26,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "CWE",
+        "max": null,
+        "maxLength": 250,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "TX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "TX",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 12,
+        "table": "427"
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 14,
+        "table": null
+      }
+    ],
+    "TQ2": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 2,
+        "table": "503"
+      },
+      {
+        "dataType": "EI",
+        "max": null,
+        "maxLength": 22,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": null,
+        "maxLength": 22,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "EI",
+        "max": null,
+        "maxLength": 22,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 6,
+        "table": "504"
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 7,
+        "table": "505"
+      },
+      {
+        "dataType": "CQ",
+        "max": 1,
+        "maxLength": 20,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 10,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ID",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 10,
+        "table": "506"
+      }
+    ],
+    "UB1": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 1,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 3,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 5,
+        "maxLength": 14,
+        "min": 0,
+        "position": 7,
+        "table": "43"
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "UVC",
+        "max": 8,
+        "maxLength": 41,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 2,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "OCD",
+        "max": 5,
+        "maxLength": 259,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "CE",
+        "max": 1,
+        "maxLength": 250,
+        "min": 0,
+        "position": 17,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 18,
+        "table": null
+      },
+      {
+        "dataType": "DT",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 19,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 30,
+        "min": 0,
+        "position": 20,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 7,
+        "min": 0,
+        "position": 21,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 8,
+        "min": 0,
+        "position": 22,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 17,
+        "min": 0,
+        "position": 23,
+        "table": null
+      }
+    ],
+    "UB2": [
+      {
+        "dataType": "SI",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 1,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 2,
+        "table": null
+      },
+      {
+        "dataType": "IS",
+        "max": 7,
+        "maxLength": 2,
+        "min": 0,
+        "position": 3,
+        "table": "43"
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 4,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 4,
+        "min": 0,
+        "position": 5,
+        "table": null
+      },
+      {
+        "dataType": "UVC",
+        "max": 12,
+        "maxLength": 41,
+        "min": 0,
+        "position": 6,
+        "table": null
+      },
+      {
+        "dataType": "OCD",
+        "max": 8,
+        "maxLength": 259,
+        "min": 0,
+        "position": 7,
+        "table": null
+      },
+      {
+        "dataType": "OSP",
+        "max": 2,
+        "maxLength": 268,
+        "min": 0,
+        "position": 8,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 2,
+        "maxLength": 29,
+        "min": 0,
+        "position": 9,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 2,
+        "maxLength": 12,
+        "min": 0,
+        "position": 10,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 5,
+        "min": 0,
+        "position": 11,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 3,
+        "maxLength": 23,
+        "min": 0,
+        "position": 12,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 23,
+        "maxLength": 4,
+        "min": 0,
+        "position": 13,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 5,
+        "maxLength": 14,
+        "min": 0,
+        "position": 14,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 1,
+        "maxLength": 27,
+        "min": 0,
+        "position": 15,
+        "table": null
+      },
+      {
+        "dataType": "ST",
+        "max": 2,
+        "maxLength": 2,
+        "min": 0,
+        "position": 16,
+        "table": null
+      },
+      {
+        "dataType": "NM",
+        "max": 1,
+        "maxLength": 3,
+        "min": 0,
+        "position": 17,
+        "table": null
+      }
+    ]
+  },
+  "source": "https://github.com/nHapiNET/nHapi/tree/9027797b1fd1faebcffd743ac11324499145f29d",
+  "sourceSha256": {
+    "src/NHapi.Model.V251/Datatype/AD.cs": "d20ccd55c0ac2a6ea4c7224ae0fb1890edcd0977b53ba7e6c06ba920583d5292",
+    "src/NHapi.Model.V251/Datatype/AUI.cs": "b4839d7e2555e5af281db6542ef551ef961439f032bf08a18a29d7a41b352fcb",
+    "src/NHapi.Model.V251/Datatype/CCD.cs": "0b7a3a4a154c23f39465e88908241134edd83f53ff47c751ea48c73c21c28770",
+    "src/NHapi.Model.V251/Datatype/CE.cs": "81df6319b138bdac0517d2edc189b639428cce8f3ce25b4fa6999824574a36f3",
+    "src/NHapi.Model.V251/Datatype/CNE.cs": "61d95aa4355714db211760f3344d69d8afa4d13d13e4488048e4f8965cf2e2b8",
+    "src/NHapi.Model.V251/Datatype/CNN.cs": "2c57ee19f623d9f239e2c21353c0ac6b86355765d919447642fca66f75323381",
+    "src/NHapi.Model.V251/Datatype/CP.cs": "838144a7183de5a118ff9418f9a2094f5c21d7df68b32f718db88b96e83e022f",
+    "src/NHapi.Model.V251/Datatype/CQ.cs": "fd1660ded2e10aa5b495c55990f00c4681dbb03a3e5bfcafb017d4dae980d581",
+    "src/NHapi.Model.V251/Datatype/CWE.cs": "6e37b325a17f5f6224c618b91e267bc0b13c34e6b7432c775745ea01167b538c",
+    "src/NHapi.Model.V251/Datatype/CX.cs": "30015e00a7cca3ff1e1fc09c7c755efb10f1f40be78cffe4b50824e0cdc9cb67",
+    "src/NHapi.Model.V251/Datatype/DDI.cs": "1313b330c438b29102630f3448189a338a100e9d2c64fa0aeef6c2aad47253f7",
+    "src/NHapi.Model.V251/Datatype/DLD.cs": "99fc76d30aa30f69500c32525310afcd8e50213dd657d1bef2f7037e25e87267",
+    "src/NHapi.Model.V251/Datatype/DLN.cs": "8fa623318f19e4a7df514943f91d01ac41c6c33021b7ee742934f709f099dbf7",
+    "src/NHapi.Model.V251/Datatype/DR.cs": "8b0f5127a3da4842893914df93e17bd54d96604d19de123401edf30e91e4318d",
+    "src/NHapi.Model.V251/Datatype/DTN.cs": "fa3c52c4a1310096fde2aa17de67668b6003ae1b25b80ab7cbd68c3228b39d06",
+    "src/NHapi.Model.V251/Datatype/EI.cs": "37392defcb9ad107822511fc0bae55bebc9694174fef2b51b19cac993340601b",
+    "src/NHapi.Model.V251/Datatype/EIP.cs": "cbfe8219fb92346961f4ad71c503e774e8033c797f41b7948b71a1a392b861bb",
+    "src/NHapi.Model.V251/Datatype/FC.cs": "9868939e5c27c361c67f87ace99e4573bbca493e048f6fef0f18f1d65cfd46b3",
+    "src/NHapi.Model.V251/Datatype/FN.cs": "5376845c304d9d8da92ca135201e314e8b6ecb39241c4e74c9666bbaf77152a3",
+    "src/NHapi.Model.V251/Datatype/HD.cs": "822a455a64e2a48060211f8667cc300a78dafb7362bbe31fe8b69023af9966f8",
+    "src/NHapi.Model.V251/Datatype/ICD.cs": "a6a462dda3f42233614a7a944694a4ad8f341208d07fdb49e922d3574fb2a3fb",
+    "src/NHapi.Model.V251/Datatype/JCC.cs": "d1b7f18f9abd3dc311b2363cbc61af4d9b2451d228edf07f6607833ce7eb05bb",
+    "src/NHapi.Model.V251/Datatype/LA1.cs": "06915bb19dbf94be8c9a7d14d0af078435cdcbc7f9fb0bc536e4ee28d05e199a",
+    "src/NHapi.Model.V251/Datatype/MO.cs": "2164323349a9f1c218a736de33ac773c1f51c48c7c40deaa746b0d05f550dd1e",
+    "src/NHapi.Model.V251/Datatype/MOC.cs": "83e7396bc3fca20d51dee065f36105f61ba58c7c81baf515da2ed45dd75fa1ba",
+    "src/NHapi.Model.V251/Datatype/MOP.cs": "4235c23459de916286ca01d2c0fc53278121578213d85bc7a273508b53a17304",
+    "src/NHapi.Model.V251/Datatype/MSG.cs": "3a6768ddb967b34c227dc2e83fc2e1f918e6e75d1f2226ac398c4a0f0e92305b",
+    "src/NHapi.Model.V251/Datatype/NDL.cs": "8868143f8c1ce1aa0272d8a884471c5af91460e170d8c3a3ffdfa60a221accf3",
+    "src/NHapi.Model.V251/Datatype/OCD.cs": "ce314a120da45e18659e84eba25d865dd6d683d0290bbcbeb3af2b886acc88cb",
+    "src/NHapi.Model.V251/Datatype/OSD.cs": "6685edc41983a0952a2c3001eb9bfdeb12f663171d8fafa362ecfda28e66c46c",
+    "src/NHapi.Model.V251/Datatype/OSP.cs": "d3afa7ecd78f216ac15b64dbd14d25a11c906178e75dfd949f5a016ed400707d",
+    "src/NHapi.Model.V251/Datatype/PL.cs": "dba9867465dc5a460333310095909b26366142ab0d0b544be6c09d0462def125",
+    "src/NHapi.Model.V251/Datatype/PLN.cs": "08626f5a7d247f8a34268040bc4e8a3d2fe73f24a44c9d5ea8df9221e27b1841",
+    "src/NHapi.Model.V251/Datatype/PRL.cs": "a1201404fbcd66a57663a41ba0558967cda2884dfc4d0df74a8c520c6252425d",
+    "src/NHapi.Model.V251/Datatype/PT.cs": "778b6cd85e232200c28bab0403483c8cd7f945af8e88ddf203be67535a445537",
+    "src/NHapi.Model.V251/Datatype/PTA.cs": "661f3f533d529cd0fbce440c7f7577eee94e2ac1e8e6e7aa556d067ea662e2fa",
+    "src/NHapi.Model.V251/Datatype/RI.cs": "5a2eb2ef747344391115d5fd75905b86f68f47abfc3c64bd184ee8c94b4ebf87",
+    "src/NHapi.Model.V251/Datatype/RMC.cs": "29534e9a326c70cda1b91061f7be29d4ad58474e90132bc8cdc5748e7eb99097",
+    "src/NHapi.Model.V251/Datatype/RPT.cs": "2b4fb3726238e3a8f39aa619f5bc8fb753e6b3ce22b8abb42c6a081d6353bb8d",
+    "src/NHapi.Model.V251/Datatype/SAD.cs": "29ff9d27426c62950f06aba596ec9cb0de0a842bc79466b708c8e97d0039bf8e",
+    "src/NHapi.Model.V251/Datatype/SPS.cs": "d2a81c92ba356cbf03d7dff7f94a8cd887a8e2c2a5f38e21df071483de6c2be1",
+    "src/NHapi.Model.V251/Datatype/TQ.cs": "cc89c7814319795b840e20c1873906e5aca37e1fc6bb47e7d5493f5504b89604",
+    "src/NHapi.Model.V251/Datatype/TS.cs": "e4d50b02da1c0d3292e6d717c9cf35da35a7fb36bd0118d73cf7917bbf6fb247",
+    "src/NHapi.Model.V251/Datatype/UVC.cs": "fb28ec45fbbf2367c3ec725420b6644fb97fcee6676e301f51f93b5e470c1d70",
+    "src/NHapi.Model.V251/Datatype/VID.cs": "2e81dde355ad598c63804dbff9aa3c8e29bf02b4ce4ce180711cd36f9369623f",
+    "src/NHapi.Model.V251/Datatype/XAD.cs": "2db0b77de11ce92994b6d7e4cd0f93aedbd0b7050e506784948b3035911367ec",
+    "src/NHapi.Model.V251/Datatype/XCN.cs": "0d70bb8240a1eca63d54f6fcc918c9446d678de6548817beeb891a45fc833266",
+    "src/NHapi.Model.V251/Datatype/XON.cs": "39fef3fedc7b3f16d98654f031b27acc2cf8501b5abfaa816adcec68a59f67f2",
+    "src/NHapi.Model.V251/Datatype/XPN.cs": "adb338ebb3941af73fc56972d08ee488271739ccf9c7e8a6e8b0776c6f67c305",
+    "src/NHapi.Model.V251/Datatype/XTN.cs": "6c4151879693757965907f0c4b4d188f1b62024ebe48c3783ef43a1132a65261",
+    "src/NHapi.Model.V251/Group/ADT_A01_INSURANCE.cs": "e188bd00435bae75d0338323146e893ff0a946d27970482d1717f137caf7b00e",
+    "src/NHapi.Model.V251/Group/ADT_A01_PROCEDURE.cs": "842d891792091a244c2e52a6595e0b66e5219ec0554e6bcdd2eb0077bed27f58",
+    "src/NHapi.Model.V251/Group/ADT_A03_INSURANCE.cs": "a4fc6bfb7a42945293e4edd5ace83d7cd156b9ec090ac64b254ec4f10d6a2f67",
+    "src/NHapi.Model.V251/Group/ADT_A03_PROCEDURE.cs": "24591e70555cc0d69dce85315bb3103772477de2d1f4eb7d007f8fa4d4b3f31e",
+    "src/NHapi.Model.V251/Group/ORM_O01_INSURANCE.cs": "419ebf61f96667f994aa6df303b5b1c06ebf0e1677c3590bd2190100e3e631a5",
+    "src/NHapi.Model.V251/Group/ORM_O01_OBSERVATION.cs": "d818e81867c30613559c456ac4df1c4356ec9bcfb689e974ea186573ef88fe22",
+    "src/NHapi.Model.V251/Group/ORM_O01_ORDER.cs": "e381fd878527ffe4bc2c1493a17f846ffa28460325a80b8c5b3ce3717968f9e4",
+    "src/NHapi.Model.V251/Group/ORM_O01_ORDER_DETAIL.cs": "67f8f99be9f9df6af37db7c4352ba2328fd1ff921a1c311fe4504bd4961bcce8",
+    "src/NHapi.Model.V251/Group/ORM_O01_PATIENT.cs": "f5d826077a99c1afab0469ca8e9086e74dcaf4dd0bbd944b18cc09dacdae7e0c",
+    "src/NHapi.Model.V251/Group/ORM_O01_PATIENT_VISIT.cs": "275b42e96ef7fd7f2d91f9b561c7446791e0729a4339fd28bb0551075e5a0c8d",
+    "src/NHapi.Model.V251/Group/ORU_R01_OBSERVATION.cs": "9672d5981556147dd180515636360ec075e83e3080de134bea7977dcb1544c7e",
+    "src/NHapi.Model.V251/Group/ORU_R01_ORDER_OBSERVATION.cs": "7c7f6b7180613f4990d26ae2e1e41006d998439a50060c7c3b52c3336ab78105",
+    "src/NHapi.Model.V251/Group/ORU_R01_PATIENT.cs": "a55d373f797a0d5fb1ba756f457a59d19b8c19796165047991d4846a66ee7b5e",
+    "src/NHapi.Model.V251/Group/ORU_R01_PATIENT_RESULT.cs": "b208038c444c6b7ef0366452e7f1c2b24b5d6dc6e213745c51bd4a3ed1277753",
+    "src/NHapi.Model.V251/Group/ORU_R01_SPECIMEN.cs": "2c839adf4ca2d9e603e53aaadd69f2e6b43720cbfb3b7fd0edeb9766653bc910",
+    "src/NHapi.Model.V251/Group/ORU_R01_TIMING_QTY.cs": "7e6e34f6c8a883e1f9466a8aa8670c173fdb5991ae93243551ae861a38a701ad",
+    "src/NHapi.Model.V251/Group/ORU_R01_VISIT.cs": "242b3322cbf0f5a95b511bf9ef7f53695c5622ac4a9944e02879c05846f9540f",
+    "src/NHapi.Model.V251/Message/ADT_A01.cs": "b4ccce5af729c30d72f7519e6d1797a38b41af7b612a2b7cb6e5999e200999c9",
+    "src/NHapi.Model.V251/Message/ADT_A02.cs": "16f9912143505b3411594379f1d3931e0121946d4eb15903380586825827ac48",
+    "src/NHapi.Model.V251/Message/ADT_A03.cs": "85b4ba6ec6c75361a4e4d31f1d3566c29b50339f2ef8dd3d4255a22fa5ce91ad",
+    "src/NHapi.Model.V251/Message/ORM_O01.cs": "ed5599a47619e4a302d4f939f7a525f9c5f1f9c16a15743750fe9bc9cca1b4eb",
+    "src/NHapi.Model.V251/Message/ORU_R01.cs": "57898c87b5b40742cf23b86430d2782e2fb51074d6fc7c095c78b83a2f2ee715",
+    "src/NHapi.Model.V251/Segment/ACC.cs": "345534ab8b3e4edd507079c488826ce8aa124878c61a89efc81afde1e551213f",
+    "src/NHapi.Model.V251/Segment/AL1.cs": "44ed1738823acf18d0de0a023dc7860ac43b6bcad2bee196ee4f2dfaff214cc5",
+    "src/NHapi.Model.V251/Segment/BLG.cs": "e1284437c83859300379e2b4ba416af85f7092513927d32c0b18baf5885e5f25",
+    "src/NHapi.Model.V251/Segment/CTD.cs": "e7fc1bf3328bb2e70f40f9b9f07ab47ad80e9587cc4db4b5e2186696b221dc27",
+    "src/NHapi.Model.V251/Segment/CTI.cs": "c027c77ce31ba8347323cacaebe3dcc2b72dd73c658f8b734a64e23a3e27a3f1",
+    "src/NHapi.Model.V251/Segment/DB1.cs": "11fea803384a7a1721a3ebe0b3cf790b1fe639a20b9ed71f05ea48cafd4083e4",
+    "src/NHapi.Model.V251/Segment/DG1.cs": "d1931cabbf07bfd91519b6f7f377657dd186e825b1c258ea8805ab4cc9ea2c3f",
+    "src/NHapi.Model.V251/Segment/DRG.cs": "e5bab01c81efa304f6ee653ba2fe01f5ab0b98f031a4a5e9cb009d9968393ee7",
+    "src/NHapi.Model.V251/Segment/DSC.cs": "6fda4311f9b18c1578f3a8a60249afde076dcc35bf4cbe50a3b9dcadee918ac0",
+    "src/NHapi.Model.V251/Segment/EVN.cs": "c6fa95d61aa62b853e0af5243dc67a885d58b84632c2cdf52a06044ae2f848fc",
+    "src/NHapi.Model.V251/Segment/FT1.cs": "00273dd4da74e51f91fdc2b34ca31800e33a759d23e8c051173f94fa3f5935c7",
+    "src/NHapi.Model.V251/Segment/GT1.cs": "9c9fa5596b1f2ecdfe94174d9db4d1ade14ece38cc6f98e906ad19b8b53a71d5",
+    "src/NHapi.Model.V251/Segment/IN1.cs": "b58c628889db11e3f6b1aecffdbe8f693a1f73273553bc67614f2f0d187eccf1",
+    "src/NHapi.Model.V251/Segment/IN2.cs": "8d4aebc8aa9c9cfa4ececbfbc5a1e3ad522849e9a853dd3cf49342a519983c42",
+    "src/NHapi.Model.V251/Segment/IN3.cs": "d616e8028635f1bca080d601a5b41c0550cdcc8a71fbd6b7532e530c45552bb6",
+    "src/NHapi.Model.V251/Segment/MSH.cs": "0b3d93b817851ba30eecac715f5cf6e5131c472122832475f3950e298da0f68f",
+    "src/NHapi.Model.V251/Segment/NK1.cs": "1f233bd0880b7e7b773e6bb23cd2a516e1d814ee46b9f9753fee27cc38410e47",
+    "src/NHapi.Model.V251/Segment/NTE.cs": "98f47cca96986f3d89e3622cf200544c4dc8bcb3455bcb85c15b4facc0838a84",
+    "src/NHapi.Model.V251/Segment/OBR.cs": "b73eb885289276b1f213d3ef34a6b098e49af1f91f7b99a1f4aa343a8b4c8a5f",
+    "src/NHapi.Model.V251/Segment/OBX.cs": "5ef56b951736d4602a2146aba6b3d5e9ef9c2eed73d87600a8fd216e46e41455",
+    "src/NHapi.Model.V251/Segment/ODS.cs": "9f1f7f52ac163f1f5d9b2c29a8622db9eb6c639938a665ea63e67bbf16b17ad8",
+    "src/NHapi.Model.V251/Segment/ODT.cs": "359885ac38ebe87f1e6fb319ebd1bb6a089dc955f822a07d748e04d493a762a0",
+    "src/NHapi.Model.V251/Segment/ORC.cs": "4f52a13e558cce0368ad6d07210504c50b62f91dd01f0a6d535f123e7dcd47c5",
+    "src/NHapi.Model.V251/Segment/PD1.cs": "6ef0191c0bec294bdbb102e2560fc81914da160f33bf7c7cc81c8dfb808c3779",
+    "src/NHapi.Model.V251/Segment/PDA.cs": "0fc3eb61f9cd332b7f5e94e57bd84d92b42c2579f6fbf7262bf68b9a55192a19",
+    "src/NHapi.Model.V251/Segment/PID.cs": "88220556a39406e6d3acfbfd841f1f81da0c5948c3d886c601cb20394867d856",
+    "src/NHapi.Model.V251/Segment/PR1.cs": "62d4ad0f4380fdc774513416b7bcb83615b8363043d2df635dd4b0fe60bc82bb",
+    "src/NHapi.Model.V251/Segment/PV1.cs": "63d7c26879e13533a1bff3bef031a72ab05a47d36fb54f971e6c37ef432dad61",
+    "src/NHapi.Model.V251/Segment/PV2.cs": "ce0e0c99319ed30a8dbdd4e221a40169317ec0e35fdba790a8cd154b109c9b93",
+    "src/NHapi.Model.V251/Segment/ROL.cs": "ba7153ade7e356c1894571616c655fedfc6722d377465f6f63173de82063f5f7",
+    "src/NHapi.Model.V251/Segment/RQ1.cs": "ec1d9964ff5aedade41140db3ec8a9c007b40fa2eabd7cd3a700ab298d53639c",
+    "src/NHapi.Model.V251/Segment/RQD.cs": "9a4952b320eb406e5e64a55443974b9d89659eeb335b65ff6b28e971d331705c",
+    "src/NHapi.Model.V251/Segment/RXO.cs": "3004b44ca457ca7a8b04770862d18f83a52a88449e45ceb243f3ebd35dadcad7",
+    "src/NHapi.Model.V251/Segment/SFT.cs": "c3b83069f8192d5e93b93fd0b7aa405809dfa2dae3f17e14cf05d25aee2b09e4",
+    "src/NHapi.Model.V251/Segment/SPM.cs": "0ad879fc26a995547b3fc72e4c31c124b39cc4677a4b461d9962af4ccef89d2e",
+    "src/NHapi.Model.V251/Segment/TQ1.cs": "d6ee1b04e3ebd52bb5a64825a5a07495345210f653df54f453669110ada134df",
+    "src/NHapi.Model.V251/Segment/TQ2.cs": "af3c0bc967eb0ac9e2c379e8c693563af6ea1e52037d654b6635a715f1f4ee19",
+    "src/NHapi.Model.V251/Segment/UB1.cs": "a9354c102f76a5f4d801c7a0dcdc6f6cc943e7e070b2d9569bed32c936b70c69",
+    "src/NHapi.Model.V251/Segment/UB2.cs": "de60a3ad9ee30062dbe6568d8b5936806e5d7a39e81d973c9b2b537bd64ae186"
+  },
+  "structures": {
+    "ADT_A01": [
+      {
+        "key": "MSH",
+        "max": 1,
+        "min": 1,
+        "segment": "MSH"
+      },
+      {
+        "key": "SFT",
+        "max": null,
+        "min": 0,
+        "segment": "SFT"
+      },
+      {
+        "key": "EVN",
+        "max": 1,
+        "min": 1,
+        "segment": "EVN"
+      },
+      {
+        "key": "PID",
+        "max": 1,
+        "min": 1,
+        "segment": "PID"
+      },
+      {
+        "key": "PD1",
+        "max": 1,
+        "min": 0,
+        "segment": "PD1"
+      },
+      {
+        "key": "ROL",
+        "max": null,
+        "min": 0,
+        "segment": "ROL"
+      },
+      {
+        "key": "NK1",
+        "max": null,
+        "min": 0,
+        "segment": "NK1"
+      },
+      {
+        "key": "PV1",
+        "max": 1,
+        "min": 1,
+        "segment": "PV1"
+      },
+      {
+        "key": "PV2",
+        "max": 1,
+        "min": 0,
+        "segment": "PV2"
+      },
+      {
+        "key": "ROL_2",
+        "max": null,
+        "min": 0,
+        "segment": "ROL"
+      },
+      {
+        "key": "DB1",
+        "max": null,
+        "min": 0,
+        "segment": "DB1"
+      },
+      {
+        "key": "OBX",
+        "max": null,
+        "min": 0,
+        "segment": "OBX"
+      },
+      {
+        "key": "AL1",
+        "max": null,
+        "min": 0,
+        "segment": "AL1"
+      },
+      {
+        "key": "DG1",
+        "max": null,
+        "min": 0,
+        "segment": "DG1"
+      },
+      {
+        "key": "DRG",
+        "max": 1,
+        "min": 0,
+        "segment": "DRG"
+      },
+      {
+        "children": [
+          {
+            "key": "PR1",
+            "max": 1,
+            "min": 1,
+            "segment": "PR1"
+          },
+          {
+            "key": "ROL",
+            "max": null,
+            "min": 0,
+            "segment": "ROL"
+          }
+        ],
+        "key": "ADT_A01_PROCEDURE",
+        "max": null,
+        "min": 0
+      },
+      {
+        "key": "GT1",
+        "max": null,
+        "min": 0,
+        "segment": "GT1"
+      },
+      {
+        "children": [
+          {
+            "key": "IN1",
+            "max": 1,
+            "min": 1,
+            "segment": "IN1"
+          },
+          {
+            "key": "IN2",
+            "max": 1,
+            "min": 0,
+            "segment": "IN2"
+          },
+          {
+            "key": "IN3",
+            "max": null,
+            "min": 0,
+            "segment": "IN3"
+          },
+          {
+            "key": "ROL",
+            "max": null,
+            "min": 0,
+            "segment": "ROL"
+          }
+        ],
+        "key": "ADT_A01_INSURANCE",
+        "max": null,
+        "min": 0
+      },
+      {
+        "key": "ACC",
+        "max": 1,
+        "min": 0,
+        "segment": "ACC"
+      },
+      {
+        "key": "UB1",
+        "max": 1,
+        "min": 0,
+        "segment": "UB1"
+      },
+      {
+        "key": "UB2",
+        "max": 1,
+        "min": 0,
+        "segment": "UB2"
+      },
+      {
+        "key": "PDA",
+        "max": 1,
+        "min": 0,
+        "segment": "PDA"
+      }
+    ],
+    "ADT_A02": [
+      {
+        "key": "MSH",
+        "max": 1,
+        "min": 1,
+        "segment": "MSH"
+      },
+      {
+        "key": "SFT",
+        "max": null,
+        "min": 0,
+        "segment": "SFT"
+      },
+      {
+        "key": "EVN",
+        "max": 1,
+        "min": 1,
+        "segment": "EVN"
+      },
+      {
+        "key": "PID",
+        "max": 1,
+        "min": 1,
+        "segment": "PID"
+      },
+      {
+        "key": "PD1",
+        "max": 1,
+        "min": 0,
+        "segment": "PD1"
+      },
+      {
+        "key": "ROL",
+        "max": null,
+        "min": 0,
+        "segment": "ROL"
+      },
+      {
+        "key": "PV1",
+        "max": 1,
+        "min": 1,
+        "segment": "PV1"
+      },
+      {
+        "key": "PV2",
+        "max": 1,
+        "min": 0,
+        "segment": "PV2"
+      },
+      {
+        "key": "ROL_2",
+        "max": null,
+        "min": 0,
+        "segment": "ROL"
+      },
+      {
+        "key": "DB1",
+        "max": null,
+        "min": 0,
+        "segment": "DB1"
+      },
+      {
+        "key": "OBX",
+        "max": null,
+        "min": 0,
+        "segment": "OBX"
+      },
+      {
+        "key": "PDA",
+        "max": 1,
+        "min": 0,
+        "segment": "PDA"
+      }
+    ],
+    "ADT_A03": [
+      {
+        "key": "MSH",
+        "max": 1,
+        "min": 1,
+        "segment": "MSH"
+      },
+      {
+        "key": "SFT",
+        "max": null,
+        "min": 0,
+        "segment": "SFT"
+      },
+      {
+        "key": "EVN",
+        "max": 1,
+        "min": 1,
+        "segment": "EVN"
+      },
+      {
+        "key": "PID",
+        "max": 1,
+        "min": 1,
+        "segment": "PID"
+      },
+      {
+        "key": "PD1",
+        "max": 1,
+        "min": 0,
+        "segment": "PD1"
+      },
+      {
+        "key": "ROL",
+        "max": null,
+        "min": 0,
+        "segment": "ROL"
+      },
+      {
+        "key": "NK1",
+        "max": null,
+        "min": 0,
+        "segment": "NK1"
+      },
+      {
+        "key": "PV1",
+        "max": 1,
+        "min": 1,
+        "segment": "PV1"
+      },
+      {
+        "key": "PV2",
+        "max": 1,
+        "min": 0,
+        "segment": "PV2"
+      },
+      {
+        "key": "ROL_2",
+        "max": null,
+        "min": 0,
+        "segment": "ROL"
+      },
+      {
+        "key": "DB1",
+        "max": null,
+        "min": 0,
+        "segment": "DB1"
+      },
+      {
+        "key": "AL1",
+        "max": null,
+        "min": 0,
+        "segment": "AL1"
+      },
+      {
+        "key": "DG1",
+        "max": null,
+        "min": 0,
+        "segment": "DG1"
+      },
+      {
+        "key": "DRG",
+        "max": 1,
+        "min": 0,
+        "segment": "DRG"
+      },
+      {
+        "children": [
+          {
+            "key": "PR1",
+            "max": 1,
+            "min": 1,
+            "segment": "PR1"
+          },
+          {
+            "key": "ROL",
+            "max": null,
+            "min": 0,
+            "segment": "ROL"
+          }
+        ],
+        "key": "ADT_A03_PROCEDURE",
+        "max": null,
+        "min": 0
+      },
+      {
+        "key": "OBX",
+        "max": null,
+        "min": 0,
+        "segment": "OBX"
+      },
+      {
+        "key": "GT1",
+        "max": null,
+        "min": 0,
+        "segment": "GT1"
+      },
+      {
+        "children": [
+          {
+            "key": "IN1",
+            "max": 1,
+            "min": 1,
+            "segment": "IN1"
+          },
+          {
+            "key": "IN2",
+            "max": 1,
+            "min": 0,
+            "segment": "IN2"
+          },
+          {
+            "key": "IN3",
+            "max": null,
+            "min": 0,
+            "segment": "IN3"
+          },
+          {
+            "key": "ROL",
+            "max": null,
+            "min": 0,
+            "segment": "ROL"
+          }
+        ],
+        "key": "ADT_A03_INSURANCE",
+        "max": null,
+        "min": 0
+      },
+      {
+        "key": "ACC",
+        "max": 1,
+        "min": 0,
+        "segment": "ACC"
+      },
+      {
+        "key": "PDA",
+        "max": 1,
+        "min": 0,
+        "segment": "PDA"
+      }
+    ],
+    "ORM_O01": [
+      {
+        "key": "MSH",
+        "max": 1,
+        "min": 1,
+        "segment": "MSH"
+      },
+      {
+        "key": "NTE",
+        "max": null,
+        "min": 0,
+        "segment": "NTE"
+      },
+      {
+        "children": [
+          {
+            "key": "PID",
+            "max": 1,
+            "min": 1,
+            "segment": "PID"
+          },
+          {
+            "key": "PD1",
+            "max": 1,
+            "min": 0,
+            "segment": "PD1"
+          },
+          {
+            "key": "NTE",
+            "max": null,
+            "min": 0,
+            "segment": "NTE"
+          },
+          {
+            "children": [
+              {
+                "key": "PV1",
+                "max": 1,
+                "min": 1,
+                "segment": "PV1"
+              },
+              {
+                "key": "PV2",
+                "max": 1,
+                "min": 0,
+                "segment": "PV2"
+              }
+            ],
+            "key": "ORM_O01_PATIENT_VISIT",
+            "max": 1,
+            "min": 0
+          },
+          {
+            "children": [
+              {
+                "key": "IN1",
+                "max": 1,
+                "min": 1,
+                "segment": "IN1"
+              },
+              {
+                "key": "IN2",
+                "max": 1,
+                "min": 0,
+                "segment": "IN2"
+              },
+              {
+                "key": "IN3",
+                "max": 1,
+                "min": 0,
+                "segment": "IN3"
+              }
+            ],
+            "key": "ORM_O01_INSURANCE",
+            "max": null,
+            "min": 0
+          },
+          {
+            "key": "GT1",
+            "max": 1,
+            "min": 0,
+            "segment": "GT1"
+          },
+          {
+            "key": "AL1",
+            "max": null,
+            "min": 0,
+            "segment": "AL1"
+          }
+        ],
+        "key": "ORM_O01_PATIENT",
+        "max": 1,
+        "min": 0
+      },
+      {
+        "children": [
+          {
+            "key": "ORC",
+            "max": 1,
+            "min": 1,
+            "segment": "ORC"
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "key": "OBR",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "OBR"
+                  },
+                  {
+                    "key": "RQD",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "RQD"
+                  },
+                  {
+                    "key": "RQ1",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "RQ1"
+                  },
+                  {
+                    "key": "RXO",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "RXO"
+                  },
+                  {
+                    "key": "ODS",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "ODS"
+                  },
+                  {
+                    "key": "ODT",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "ODT"
+                  }
+                ],
+                "choice": true,
+                "key": "DETAIL_TYPE",
+                "max": 1,
+                "min": 1
+              },
+              {
+                "key": "NTE",
+                "max": null,
+                "min": 0,
+                "segment": "NTE"
+              },
+              {
+                "key": "CTD",
+                "max": 1,
+                "min": 0,
+                "segment": "CTD"
+              },
+              {
+                "key": "DG1",
+                "max": null,
+                "min": 0,
+                "segment": "DG1"
+              },
+              {
+                "children": [
+                  {
+                    "key": "OBX",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "OBX"
+                  },
+                  {
+                    "key": "NTE",
+                    "max": null,
+                    "min": 0,
+                    "segment": "NTE"
+                  }
+                ],
+                "key": "ORM_O01_OBSERVATION",
+                "max": null,
+                "min": 0
+              }
+            ],
+            "key": "ORM_O01_ORDER_DETAIL",
+            "max": 1,
+            "min": 0
+          },
+          {
+            "key": "FT1",
+            "max": null,
+            "min": 0,
+            "segment": "FT1"
+          },
+          {
+            "key": "CTI",
+            "max": null,
+            "min": 0,
+            "segment": "CTI"
+          },
+          {
+            "key": "BLG",
+            "max": 1,
+            "min": 0,
+            "segment": "BLG"
+          }
+        ],
+        "key": "ORM_O01_ORDER",
+        "max": null,
+        "min": 1
+      }
+    ],
+    "ORU_R01": [
+      {
+        "key": "MSH",
+        "max": 1,
+        "min": 1,
+        "segment": "MSH"
+      },
+      {
+        "key": "SFT",
+        "max": null,
+        "min": 0,
+        "segment": "SFT"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "key": "PID",
+                "max": 1,
+                "min": 1,
+                "segment": "PID"
+              },
+              {
+                "key": "PD1",
+                "max": 1,
+                "min": 0,
+                "segment": "PD1"
+              },
+              {
+                "key": "NTE",
+                "max": null,
+                "min": 0,
+                "segment": "NTE"
+              },
+              {
+                "key": "NK1",
+                "max": null,
+                "min": 0,
+                "segment": "NK1"
+              },
+              {
+                "children": [
+                  {
+                    "key": "PV1",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "PV1"
+                  },
+                  {
+                    "key": "PV2",
+                    "max": 1,
+                    "min": 0,
+                    "segment": "PV2"
+                  }
+                ],
+                "key": "ORU_R01_VISIT",
+                "max": 1,
+                "min": 0
+              }
+            ],
+            "key": "ORU_R01_PATIENT",
+            "max": 1,
+            "min": 0
+          },
+          {
+            "children": [
+              {
+                "key": "ORC",
+                "max": 1,
+                "min": 0,
+                "segment": "ORC"
+              },
+              {
+                "key": "OBR",
+                "max": 1,
+                "min": 1,
+                "segment": "OBR"
+              },
+              {
+                "key": "NTE",
+                "max": null,
+                "min": 0,
+                "segment": "NTE"
+              },
+              {
+                "children": [
+                  {
+                    "key": "TQ1",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "TQ1"
+                  },
+                  {
+                    "key": "TQ2",
+                    "max": null,
+                    "min": 0,
+                    "segment": "TQ2"
+                  }
+                ],
+                "key": "ORU_R01_TIMING_QTY",
+                "max": null,
+                "min": 0
+              },
+              {
+                "key": "CTD",
+                "max": 1,
+                "min": 0,
+                "segment": "CTD"
+              },
+              {
+                "children": [
+                  {
+                    "key": "OBX",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "OBX"
+                  },
+                  {
+                    "key": "NTE",
+                    "max": null,
+                    "min": 0,
+                    "segment": "NTE"
+                  }
+                ],
+                "key": "ORU_R01_OBSERVATION",
+                "max": null,
+                "min": 0
+              },
+              {
+                "key": "FT1",
+                "max": null,
+                "min": 0,
+                "segment": "FT1"
+              },
+              {
+                "key": "CTI",
+                "max": null,
+                "min": 0,
+                "segment": "CTI"
+              },
+              {
+                "children": [
+                  {
+                    "key": "SPM",
+                    "max": 1,
+                    "min": 1,
+                    "segment": "SPM"
+                  },
+                  {
+                    "key": "OBX",
+                    "max": null,
+                    "min": 0,
+                    "segment": "OBX"
+                  }
+                ],
+                "key": "ORU_R01_SPECIMEN",
+                "max": null,
+                "min": 0
+              }
+            ],
+            "key": "ORU_R01_ORDER_OBSERVATION",
+            "max": null,
+            "min": 1
+          }
+        ],
+        "key": "ORU_R01_PATIENT_RESULT",
+        "max": null,
+        "min": 1
+      },
+      {
+        "key": "DSC",
+        "max": 1,
+        "min": 0,
+        "segment": "DSC"
+      }
+    ]
+  }
+}

@@ -30,7 +30,8 @@ public sealed partial class MessageInspectionView : Grid
         ReferenceEquals(Editor, editor) && ReferenceEquals(document, activeDocument);
     public PresentationView? PresentationView { get; }
     private readonly FieldToolTipLifecycle? rawToolTips;
-    public Grid RawPane { get; } = new() { RowDefinitions = new("*,Auto,Auto") };
+    // Each owner has its own Auto row: editing, file navigation, validation status.
+    public Grid RawPane { get; } = new() { RowDefinitions = new("*,Auto,Auto,Auto") };
     public TextBlock WindowStatus { get; } = new();
     public ListBox Navigator => panes!.Navigator;
     public TreeView Inspector => panes!.Inspector;
@@ -48,13 +49,18 @@ public sealed partial class MessageInspectionView : Grid
     {
         this.inspection = inspection;
         this.document = document;
+        WindowStatus.IsVisible = false;
+        WindowStatus.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == TextBlock.TextProperty) WindowStatus.IsVisible = !string.IsNullOrEmpty(WindowStatus.Text);
+        };
 
         Editor = editor;
         if (document is not null && document.Presentation is null) ViewerRequests.AttachMenu(new(editor, document, inspection));
         if (document?.Presentation is not null) PresentationView = new(document, inspection, editor, scheduleHover);
         else
         {
-            rawToolTips = new(editor, offset => HasCurrentInspection ? FieldToolTipTarget.From(this.inspection.ResolveOffset(offset)) : null, scheduleHover);
+            rawToolTips = new(editor, offset => ValidationInlineRenderer.ToolTipAt(document, offset) ?? (HasCurrentInspection ? FieldToolTipTarget.From(this.inspection.ResolveOffset(offset)) : null), scheduleHover);
             editor.TextArea.TextView.LineTransformers.Add(new SelectionColorizer(() => HasCurrentInspection ? this.inspection : null, () => Hl7EditorTheme.PaletteFor(editor)));
         }
         // Workspace owns history across navigation and view reconstruction. Limit
@@ -78,13 +84,15 @@ public sealed partial class MessageInspectionView : Grid
         ApplySelection(false);
         if (document is not null)
         {
-            var bar = new StackPanel { Orientation = Orientation.Horizontal, Children = { editMode, undo, redo, WindowStatus } };
+            var bar = new AdaptiveActionBar(editMode, undo, redo, WindowStatus);
+            Avalonia.Automation.AutomationProperties.SetName(bar, "Editing");
             SetRow(bar, 1); RawPane.Children.Add(bar);
             ToolTip.SetTip(editMode, "Enable manual editing for this document. Turning it off retains unsaved changes.");
             editMode.IsCheckedChanged += (_, _) => { if (!updatingText) document.IsEditMode = editMode.IsChecked == true; };
             undo.Click += (_, _) => document.Undo(); redo.Click += (_, _) => document.Redo();
             UpdateEditingControls();
         }
+        InitializeValidation();
     }
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -93,7 +101,7 @@ public sealed partial class MessageInspectionView : Grid
         subscribed = true;
         if (document is not null) document.PropertyChanged += DocumentChanged;
         inspection.SelectionChanged += SelectionChanged;
-        if (PresentationView is not null) { ApplySelection(false); return; }
+        if (PresentationView is not null) { UpdateEditingControls(); UpdateValidation(); ApplySelection(false); return; }
         Editor.TextArea.Caret.PositionChanged += CaretChanged;
         Editor.TextChanged += WorkingTextChanged;
         UpdateFromDocument();
@@ -131,6 +139,7 @@ public sealed partial class MessageInspectionView : Grid
     }
     private void DocumentChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MessageDocument.SchemaValidation)) { UpdateValidation(); return; }
         if (e.PropertyName == "ActiveContent") UpdateFromDocument(); else UpdateEditingControls();
     }
     private void UpdateEditingControls()
@@ -148,6 +157,7 @@ public sealed partial class MessageInspectionView : Grid
     {
         if (document is null) return;
         UpdateEditingControls();
+        UpdateValidation();
         if (PresentationView is not null || document.IsLoading) return;
         CloseRawToolTip();
         updatingText = true; synchronizing = true;

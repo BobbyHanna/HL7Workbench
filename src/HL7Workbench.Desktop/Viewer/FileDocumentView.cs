@@ -15,7 +15,7 @@ public sealed class FileDocumentView : ContentControl
     private readonly MessageDocument document;
     private readonly bool dockedInspection;
     private readonly Func<Action, TimeSpan, IDisposable>? scheduleHover;
-    private readonly WrapPanel toolbar = new() { Orientation = Orientation.Horizontal, Margin = new(4) };
+    private readonly AdaptiveActionBar toolbar = new() { Margin = new(4, 0) };
     private readonly StackPanel navigation = new() { Spacing = 4 };
     private readonly List<Button> directions = [];
     private readonly TextBlock count = new();
@@ -47,6 +47,7 @@ public sealed class FileDocumentView : ContentControl
         this.scheduleHover = scheduleHover;
         this.document = document;
         this.dockedInspection = dockedInspection;
+        Avalonia.Automation.AutomationProperties.SetName(toolbar, "Message navigation");
         NextMessageCommand = new(NextAsync, CanGoNext);
         InsertionCommands = MessageInsertionWorkflow.Choices.ToDictionary(c => c.Position,
             c => new UiCommand(async () => { await InsertMessageAsync(c.Position); }, () => MessageInsertionWorkflow.CanInsert(document, c.Position)));
@@ -62,6 +63,7 @@ public sealed class FileDocumentView : ContentControl
             directions.Add(button); toolbar.Children.Add(button);
         }
         Button("|<", "First matching/logical message", () => NavigatorTarget(0)); Button("<", "Previous matching/logical message", () => NavigatorTarget(1));
+        Button(">", "Next matching/logical message", () => NavigatorTarget(2)); Button(">|", "Last matching/logical message", () => NavigatorTarget(3));
         ToolTip.SetTip(MessageNumberInput, "Message number within this file"); ToolTip.SetTip(go, "Jump to message number");
         ToolTip.SetTip(retry, "Retry preparing the selected message"); ToolTip.SetTip(cancel, "Cancel preparing the selected message");
         ToolTip.SetTip(regions, "Select a retained unclassified source region"); ToolTip.SetTip(regionInspector, "Inspect original bytes outside classified messages");
@@ -71,7 +73,6 @@ public sealed class FileDocumentView : ContentControl
         { if (!updatingNavigation && FilteredMessages.SelectedItem is int number && number != document.MessageNumber) await NavigateAsync(number); };
         MessageNumberInput.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await JumpAsync(); } };
         go.Click += async (_, _) => await JumpAsync(); toolbar.Children.Add(go);
-        Button(">", "Next matching/logical message", () => NavigatorTarget(2)); Button(">|", "Last matching/logical message", () => NavigatorTarget(3));
         toolbar.Children.Add(AddMessage);
         ExtractFields.Click += (_, _) => RaiseEvent(new RawInspectorRequestEventArgs(document, null, null) { RoutedEvent = ViewerRequests.FieldExtractionEvent });
         toolbar.Children.Add(ExtractFields);

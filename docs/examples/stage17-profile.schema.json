@@ -1,0 +1,722 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "formatVersion": {
+      "const": 1,
+      "default": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 2048,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "profileVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "hl7Version": {
+      "const": "2.5.1",
+      "default": "2.5.1"
+    },
+    "messageType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 3,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "triggerEvent": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 3,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "messageStructure": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 32,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "baseProfile": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 512
+    },
+    "tradingPartner": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 512
+    },
+    "organization": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 512
+    },
+    "source": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 512,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+    },
+    "unknownZSegments": {
+      "enum": [
+        "Reject",
+        "Warn",
+        "Allow",
+        0,
+        1,
+        2
+      ],
+      "default": "Warn"
+    },
+    "structure": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/structure"
+      },
+      "maxItems": 10000
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/segment"
+      },
+      "maxItems": 10000
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condition"
+      },
+      "maxItems": 10000
+    },
+    "coverageWarnings": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512,
+        "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+      }
+    },
+    "unsupportedSegments": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9]{3}$"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "messageType",
+    "triggerEvent"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:message-workbench:validation-profile:1",
+  "title": "Message Workbench native validation profile v1",
+  "$comment": "Authoring schema. The Core importer additionally enforces input/depth/aggregate budgets, uniqueness, valid HL7 paths, datatype-specific component positions, cardinality consistency and inheritance conflicts. It never fetches this schema or references.",
+  "$defs": {
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000,
+          "default": 0
+        },
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000,
+          "default": 1
+        },
+        "dataType": {
+          "enum": [
+            "AD",
+            "AUI",
+            "CCD",
+            "CE",
+            "CNE",
+            "CNN",
+            "CP",
+            "CQ",
+            "CWE",
+            "CX",
+            "DDI",
+            "DLD",
+            "DLN",
+            "DR",
+            "DT",
+            "DTM",
+            "DTN",
+            "EI",
+            "EIP",
+            "FC",
+            "FN",
+            "FT",
+            "GTS",
+            "HD",
+            "ICD",
+            "ID",
+            "IS",
+            "JCC",
+            "LA1",
+            "MO",
+            "MOC",
+            "MOP",
+            "MSG",
+            "NDL",
+            "NM",
+            "OCD",
+            "OSD",
+            "OSP",
+            "PL",
+            "PLN",
+            "PRL",
+            "PT",
+            "PTA",
+            "RI",
+            "RMC",
+            "RPT",
+            "SAD",
+            "SI",
+            "SPS",
+            "ST",
+            "TM",
+            "TN",
+            "TQ",
+            "TS",
+            "TX",
+            "UVC",
+            "VID",
+            "Varies",
+            "XAD",
+            "XCN",
+            "XON",
+            "XPN",
+            "XTN"
+          ]
+        },
+        "dataTypePath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 64
+        },
+        "maxLength": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "table": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32
+        },
+        "allowedValues": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 256,
+            "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+          }
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 512,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/component"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "position"
+      ]
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dataType": {
+          "enum": [
+            "AD",
+            "AUI",
+            "CCD",
+            "CE",
+            "CNE",
+            "CNN",
+            "CP",
+            "CQ",
+            "CWE",
+            "CX",
+            "DDI",
+            "DLD",
+            "DLN",
+            "DR",
+            "DT",
+            "DTM",
+            "DTN",
+            "EI",
+            "EIP",
+            "FC",
+            "FN",
+            "FT",
+            "GTS",
+            "HD",
+            "ICD",
+            "ID",
+            "IS",
+            "JCC",
+            "LA1",
+            "MO",
+            "MOC",
+            "MOP",
+            "MSG",
+            "NDL",
+            "NM",
+            "OCD",
+            "OSD",
+            "OSP",
+            "PL",
+            "PLN",
+            "PRL",
+            "PT",
+            "PTA",
+            "RI",
+            "RMC",
+            "RPT",
+            "SAD",
+            "SI",
+            "SPS",
+            "ST",
+            "TM",
+            "TN",
+            "TQ",
+            "TS",
+            "TX",
+            "UVC",
+            "VID",
+            "Varies",
+            "XAD",
+            "XCN",
+            "XON",
+            "XPN",
+            "XTN"
+          ]
+        },
+        "dataTypePath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 64
+        },
+        "maxLength": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "table": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32
+        },
+        "allowedValues": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 256,
+            "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+          }
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 512,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/subcomponent"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "position"
+      ]
+    },
+    "subcomponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "dataType": {
+          "enum": [
+            "AD",
+            "AUI",
+            "CCD",
+            "CE",
+            "CNE",
+            "CNN",
+            "CP",
+            "CQ",
+            "CWE",
+            "CX",
+            "DDI",
+            "DLD",
+            "DLN",
+            "DR",
+            "DT",
+            "DTM",
+            "DTN",
+            "EI",
+            "EIP",
+            "FC",
+            "FN",
+            "FT",
+            "GTS",
+            "HD",
+            "ICD",
+            "ID",
+            "IS",
+            "JCC",
+            "LA1",
+            "MO",
+            "MOC",
+            "MOP",
+            "MSG",
+            "NDL",
+            "NM",
+            "OCD",
+            "OSD",
+            "OSP",
+            "PL",
+            "PLN",
+            "PRL",
+            "PT",
+            "PTA",
+            "RI",
+            "RMC",
+            "RPT",
+            "SAD",
+            "SI",
+            "SPS",
+            "ST",
+            "TM",
+            "TN",
+            "TQ",
+            "TS",
+            "TX",
+            "UVC",
+            "VID",
+            "Varies",
+            "XAD",
+            "XCN",
+            "XON",
+            "XPN",
+            "XTN"
+          ]
+        },
+        "dataTypePath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 64
+        },
+        "maxLength": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "table": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 32
+        },
+        "allowedValues": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 256,
+            "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+          }
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 512,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "children": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "position"
+      ]
+    },
+    "structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "segment": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z0-9]{3}$"
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "after": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "choice": {
+          "type": "boolean"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/structure"
+          },
+          "maxItems": 10000
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 512,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "segment"
+          ],
+          "properties": {
+            "segment": {
+              "type": "string"
+            },
+            "children": {
+              "maxItems": 0
+            },
+            "choice": {
+              "const": false
+            }
+          }
+        },
+        {
+          "required": [
+            "children"
+          ],
+          "properties": {
+            "segment": {
+              "type": "null"
+            },
+            "children": {
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{3}$"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          },
+          "maxItems": 1000
+        },
+        "allowExtraFields": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "ifPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "equalsValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "thenPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        },
+        "prohibit": {
+          "type": "boolean",
+          "default": false
+        },
+        "severity": {
+          "enum": [
+            "Information",
+            "Warning",
+            "Error"
+          ],
+          "default": "Error"
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 512,
+          "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]*$"
+        }
+      },
+      "required": [
+        "id",
+        "ifPath",
+        "thenPath"
+      ]
+    }
+  }
+}

@@ -8,7 +8,75 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
-## Stage 16D — realistic standalone demographics (2026-10-29)
+## Stage 17 — explicit inline schema validation (2026-10-29)
+
+The owner confirms Stage 16/16A–D native acceptance, commit and passing Actions.
+Preflight found clean main at 9686f5259f9c1a8b99cc4631dfae40731b410284, with the
+Stage 16 acceptance commit present. This request authorizes Stage 17 and supersedes
+historical no-Stage-17 statements below. No commit, push, packaging, publication,
+protected-beta changes or Stage 18 are authorized; stop for native Windows acceptance.
+
+Core now owns immutable v2.5.1 profiles, strict native JSON/conformance XML import,
+narrowing-only inheritance, exact UTF-16 source maps and a read-only bounded evaluator
+over the existing parser/scanner. Seven built-ins represent ADT A01/A04/A08/A02/A03,
+ORM O01 and ORU R01 using five structures, 39 full segment declarations and 50
+composite layouts. Attributed pinned nHapi model metadata is isolated under MPL-2.0;
+no runtime package/second parser/standard prose bundle is added. Base conditional,
+terminology and advanced datatype gaps are explicit Incomplete notices, not claimed
+universal conformance. Stage 16 byte goldens remain intact, including genuine schema
+length findings in some standalone output. See the [Stage 17 guide](stage17-hl7-schema-validation.md)
+and [ADR 0021](decisions/0021-explicit-inline-schema-validation.md).
+
+Workspace owns an atomic local definition library, explicit per-MessageId session
+application and background cancellation/revision guards. Defaults select a picker
+choice only; opening content never validates. Existing edit debounce, source/work
+leases, history and save limits stand. Disposal drains validation before source
+release. Profile update/removal invalidates dependent selections. Desktop reuses
+the raw editor, preview mappings and hover lifecycle for squiggles/boundary marks,
+F8 navigation and compact read-only status. Stage 17F moves Apply/Change, Remove,
+Import and Manage Schemas plus issue navigation to HL7 Tools → Schema Validation.
+Separate responsive editing/navigation/status rows fix the shared-row overlap.
+The existing picker/library is reused; no Core/Workspace behavior changes.
+Preferences adds Validation; the picker imports/reimports/removes definitions.
+No results window or View-menu change is introduced. Synthetic JSON/XML/message
+examples are permanent test inputs.
+
+The earlier Stage 17 checkpoint, before Stage 17F, passed normal/independent locked
+restores and Release build (0 warnings/errors).
+Focused Core/Workspace/Desktop suites passed 207/214/151 with no failures/skips.
+The exact full regular solution suite passed 2,650, failed 0, skipped the same
+14 opt-ins (2,664 total; 4m 49.518s). Added 103 permanent ordinary cases (75 Core /
+17 Workspace / 11 Desktop). Original Latin-1/UTF-16 escape interpretation is retained;
+unencodable drafts remain intact with unavailable validation. All 2,384 protected
+beta hashes and seven Stage 16 Core generator source files are unchanged. Stress
+identities/classification files are unchanged. Stage 17 has 43 unstaged changed paths
+(17 updated tracked / 26 new), empty index, unchanged main/HEAD 9686f52. Final logs,
+baseline/source/protected/stress audits, reviewed failure diagnostics, isolated
+restore metadata and pinned upstream regeneration cache remain under ignored
+artifacts/stage17. Twenty-one redundant intermediate logs were removed. No disposable
+HL7/CSV exports were created; documented synthetic examples and the JSON authoring
+schema are permanent artifacts. Native rendering/focus/high-DPI/platform-picker
+acceptance remains pending. No commit, push, package, publication or Stage 18.
+
+Stage 17F resumes from those changes without discarding prior work. Its 15-file
+increment includes 17 new permanent Desktop regression cases, shell-owned schema
+commands using the existing selector/library, and responsive editor rows. Both
+locked restores and the final Release build pass again with zero warnings/errors;
+focused Core/Workspace/Desktop filters pass 168/95/132 with no failures/skips.
+The exact full regular solution suite passes 2,667, fails 0 and skips the same 14
+opt-in cases (2,681 total; 5m 03.560s). All 2,384 protected beta hashes match after
+the suite, with no changed, missing or additional files. The complete working tree
+contains 47 unstaged paths (19 modified tracked / 28 new), preserving earlier
+Stage 17 work; main/HEAD and the empty index are unchanged. Final Stage 17F logs,
+hash audits, file manifests and reviewed interrupted diagnostics are retained under
+ignored artifacts/stage17f. Runtime/test/build sources match the tested snapshot.
+The owner reports that a native Windows launch confirmed the revised ribbon and
+editor layout working. Detailed DPI/picker/focus coverage is not inferred from that
+report. Current verification, exact changed paths and the remaining acceptance
+checklist are recorded in the Stage 17 guide. No commit, push, package, publication
+or Stage 18 work is authorized.
+
+## Stage 16D — realistic standalone demographics (historical verification)
 
 Current request extends Realistic Synthetic to standalone ADT A01/A04/A08, ORM O01
 and ORU R01. New dialog configurations in both modes default realistic/blank Seed;

@@ -161,6 +161,9 @@ public sealed class UtilityRibbon : Grid
         {
             Add("Navigation", Row(Existing("Message Browser", "Browser", large: true), Existing("Segment Navigator", "Navigator", large: true)));
             Add("Inspection", Row(Existing("Field Inspector", "Inspect", large: true), Existing("Full Source Viewer", "Source", large: true), Existing("Activity Log", "Reports", large: true)));
+            Add("Schema Validation", TwoRows(Existing("Apply/Change Schema", "Review"), Existing("Remove Schema", "Delete"),
+                Existing("Import Schema", "Open"), Existing("Manage Schemas", "Settings"),
+                Existing("Previous Issue", "Navigator"), Existing("Next Issue", "Navigator")));
             Add("Search", TwoRows(Existing("Find Messages", "Inspect"), Existing("Clear Search / Restore Navigator", "Restore")));
             Add("Comparison", TwoRows(Existing("Message Comparison", "Inspect"), Existing("Compare With Original", "Restore")));
         }
@@ -195,6 +198,12 @@ public sealed class UtilityRibbon : Grid
         {
             "Reports" => "Reports / Export CSV — results from the last successful run",
             "Find Messages" => "Open Find Messages and focus the search value (Ctrl+F)",
+            "Apply/Change Schema" => "Explicitly apply or change the schema for the active message. Opening a file never applies a schema.",
+            "Remove Schema" => "Remove the schema and inline diagnostics from the active message without changing its text.",
+            "Import Schema" => "Import a local JSON/XML profile using the existing profile library. Review before explicitly applying.",
+            "Manage Schemas" => "Review, reimport or remove profiles in the local schema library.",
+            "Previous Issue" => "Previous validation issue in the active message (Shift+F8)",
+            "Next Issue" => "Next validation issue in the active message (F8)",
             _ => label
         }); return button;
     }

@@ -82,7 +82,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
         if (index.Messages.Count == 0 && index.Diagnostics.Any(d => d.Code == "InvalidEncoding"))
             Failure = "Text unavailable: input cannot be decoded safely. Inspect retained source bytes.";
     }
-    private void Changed() => PropertyChanged?.Invoke(this, new("ActiveContent"));
+    private void Changed() { ValidationContentChanged(); PropertyChanged?.Invoke(this, new("ActiveContent")); }
 
     /// <summary>Navigates by current logical position. Retained feature selections should use MessageId instead.</summary>
     public async Task NavigateAsync(int number, CancellationToken cancellationToken = default)
@@ -293,6 +293,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
     {
         if (disposed) return;
         disposed = true; generation++; lifetime.Cancel(); request?.Cancel();
+        var validationPending = StopValidation();
         ClearSearchFilter(); searchChanges.Cancel();
         previousInspection = null;
         TransformationReport?.Dispose();
@@ -303,6 +304,7 @@ public sealed partial class MessageDocument : INotifyPropertyChanged, IDisposabl
             // A search owns immutable draft references and borrows the original snapshot.
             // Let cancellation drain that reader before deleting any source/spool files.
             await DrainSearchReaders();
+            await Task.WhenAll(validationPending);
             await work.WaitAsync();
             try { Source?.Dispose(); Source = null; cachedSource?.Dispose(); cachedSource = null; buffers.Clear(); undo.Clear(); redo.Clear(); Snapshot?.Dispose(); editRefresh?.Dispose(); request?.Dispose(); lifetime.Dispose(); searchChanges.Dispose(); }
             finally { work.Release(); }

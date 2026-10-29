@@ -11,6 +11,14 @@ Viewer/editor Stages 1–4 are complete and have passed native Windows acceptanc
 
 ## Implemented capabilities
 
+Stage 17 adds explicit **Apply Schema** in the existing raw editor, with inline
+diagnostics, hover explanations, F8/Shift+F8 navigation and edit-triggered refresh.
+The local library supports scoped v2.5.1 built-ins, strict conformance-profile XML
+and native JSON HIE/trading-partner profiles with inheritance and Z segments.
+Preferences → Validation chooses the initial profile; opening files never validates
+automatically. Unsupported coverage displays Incomplete, without a conformance
+certification claim. See [formats, provenance, limits and native acceptance](docs/stage17-hl7-schema-validation.md).
+
 Stage 14 prepares a **Windows x64 portable self-contained v0.1.0-beta candidate**:
 startup/layout stability corrections, adjacent apphost worker launch, stable beta
 metadata, deterministic local candidate assembly, checksums/provenance, and reviewed

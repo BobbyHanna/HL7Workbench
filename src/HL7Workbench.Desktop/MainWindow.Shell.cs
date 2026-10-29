@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Dock.Avalonia.Controls;
 using Dock.Model.Core;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using HL7Workbench.Desktop.Docking;
 using HL7Workbench.Desktop.Viewer;
 using HL7Workbench.Desktop.ViewModels;
@@ -21,6 +22,9 @@ public partial class MainWindow
     private PreferencesWindow? preferencesWindow;
     private AboutWindow? aboutWindow;
     private UiCommand[] shellCommands = [];
+    private SchemaValidationCommands? schemaCommands;
+    internal Task SchemaCommandTask => schemaCommands?.Pending ?? Task.CompletedTask;
+    private readonly List<Window> documentWindows = [];
     private void InitializeShell()
     {
         preferences.PropertyChanged += PreferencesChanged;
@@ -43,6 +47,8 @@ public partial class MainWindow
         factory.HostWindowLocator![nameof(IDockWindow)] = () =>
         {
             var host = new HostWindow();
+            documentWindows.Add(host);
+            host.Closed += (_, _) => documentWindows.Remove(host);
             AttachSearchShortcut(host); AttachDocumentHistoryShortcut(host);
             return host;
         };
@@ -64,6 +70,13 @@ public partial class MainWindow
             ["Message Comparison"] = new UiCommand(() => { OpenComparison(); return Task.CompletedTask; }),
             ["Compare With Original"] = new UiCommand(() => { OpenComparison().CompareWithOriginal(); return Task.CompletedTask; }, () => documents.ActiveDocument is { MessageNumber: > 0 })
         };
+        schemaCommands = new(documents, DialogOwner, (document, direction) =>
+        {
+            documentWindows.Prepend(this).SelectMany(w => w.GetVisualDescendants().OfType<FileDocumentView>())
+                .FirstOrDefault(v => ReferenceEquals(v.Document, document) && v.IsEffectivelyVisible)?.ActiveView?.NavigateValidationIssue(direction);
+        });
+        schemaCommands.Feedback += message => Status.Text = message;
+        foreach (var action in schemaCommands.Actions) actions.Add(action.Key, action.Value);
         foreach (var (position, _) in MessageInsertionWorkflow.Choices)
             actions.Add(MessageInsertionWorkflow.CommandName(position), new UiCommand(() => InsertMessageAsync(position),
                 () => MessageInsertionWorkflow.CanInsert(documents.ActiveDocument, position)));
@@ -103,7 +116,7 @@ public partial class MainWindow
     private async void ShowPreferences(object? sender, RoutedEventArgs e)
     {
         if (preferencesWindow is not null) { preferencesWindow.Activate(); return; }
-        preferencesWindow = new(preferences);
+        preferencesWindow = new(preferences, documents.ValidationProfiles);
         try { await preferencesWindow.ShowDialog(DialogOwner()); }
         finally { preferencesWindow = null; }
     }

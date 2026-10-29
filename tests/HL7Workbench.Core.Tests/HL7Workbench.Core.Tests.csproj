@@ -12,5 +12,6 @@
   <ItemGroup>
     <None Include="../../samples/synthetic-only/*.hl7" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/synthetic-only/fhir-r4/*.json" Link="Fixtures/fhir-r4/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/examples/stage17-*" Link="Fixtures/Profiles/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,20 @@
 # Architecture
 
+## Stage 17 explicit inline validation
+
+Core adds immutable declarative profiles, strict bounded XML/JSON import, narrowing
+inheritance, source maps and a read-only evaluator over the accepted parser/scanner.
+Pinned attributed v2.5.1 model metadata is isolated under MPL-2.0; no extra parser,
+runtime package or cloud dependency is introduced. Unsupported coverage and budgets
+remain explicit. Workspace owns atomic profile storage and per-MessageId session
+application, existing edit debounce/work leases, cancellation and revision guards.
+Disposal drains validation before source release. Defaults affect the explicit
+picker only. Desktop supplies view-owned AvaloniaEdit marks, shared hover, F8
+navigation and compact status; no new results Dock tool or source persistence.
+Preview decorations map real source fragments, excluding omission markers.
+See [ADR 0021](decisions/0021-explicit-inline-schema-validation.md) and
+[Stage 17 coverage/import/acceptance](stage17-hl7-schema-validation.md).
+
 ## Stage 16 coherent synthetic scenarios
 
 Stage 16D shares the Stage 16A ordered demographic catalogs and deterministic

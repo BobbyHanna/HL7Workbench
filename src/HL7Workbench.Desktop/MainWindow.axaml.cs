@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     internal MainWindow(string configurationDirectory)
     {
         preferences = new(Path.Combine(configurationDirectory, "editor-preferences.json"));
+        documents.ConfigureValidationLibrary(new(Path.Combine(configurationDirectory, "ValidationProfiles")));
         layoutPath = Path.Combine(configurationDirectory, "workspace-layout.json");
         transportProfilesPath = Path.Combine(configurationDirectory, "transport-endpoints.json");
         sqlLibraryDirectory = Path.Combine(configurationDirectory, "SqlQueries");
@@ -122,6 +123,7 @@ public partial class MainWindow : Window
             scriptReference.CreateScriptAsync = _ => Task.FromResult(false);
             search.Dispose();
             preferences.PropertyChanged -= PreferencesChanged;
+            schemaCommands?.Dispose();
             documents.PropertyChanged -= ShellCommandsChanged;
             documents.Dispose();
         };

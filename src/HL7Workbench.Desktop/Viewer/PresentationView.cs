@@ -67,8 +67,9 @@ public sealed class PresentationView : ContentControl
             var fragment = presentation.Hit(hit);
             if (fragment?.Marker is not null) return new(fragment.Display,
                 "Display-only omission marker · right-click to View Full Value or export original source bytes.");
-            return presentation.SourceOffset(hit) is { } raw ? FieldToolTipTarget.From(inspection.ResolveOffset(raw)) : null;
+            return presentation.SourceOffset(hit) is { } raw ? ValidationInlineRenderer.ToolTipAt(document, raw) ?? FieldToolTipTarget.From(inspection.ResolveOffset(raw)) : null;
         }, scheduleHover);
+        _ = new ValidationInlineRenderer(editor, document, presentation, display);
         var loading = 0L;
         CancellationTokenSource? cancel = null;
         editor.TextArea.TextView.LineTransformers.Add(new SourceColorizer(document.Structure, () => display.Offset, () => Hl7EditorTheme.PaletteFor(editor), presentation));
@@ -117,9 +118,21 @@ public sealed class PresentationView : ContentControl
         editor.AttachedToVisualTree += (_, _) => { if (!editors.Any(p => ReferenceEquals(p.Editor, editor))) editors.Add((editor, display)); };
     }
     private readonly List<(TextEditor Editor, CharacterRange Display)> editors = [];
+    private CharacterRange? validationNavigation;
+    internal void NavigateValidationRange(CharacterRange range)
+    {
+        validationNavigation = range;
+        var offset = presentation.DisplayOffset(range.Offset);
+        if (blocks is not null)
+        {
+            var block = presentation.Blocks.FirstOrDefault(b => b.Display.Contains(offset) || offset == presentation.Length && b.Display.End == offset);
+            if (block is not null) blocks.ScrollIntoView(block);
+        }
+        foreach (var pair in editors.ToArray()) NavigateEditor(pair.Editor, pair.Display, true);
+    }
     private void NavigateEditor(TextEditor editor, CharacterRange display, bool navigate)
     {
-        if (inspection.SelectedRange64 is not { } raw)
+        if ((validationNavigation ?? inspection.SelectedRange64) is not { } raw)
         {
             selecting = true;
             try { if (navigate) editor.Select(editor.CaretOffset, 0); editor.TextArea.TextView.Redraw(); }
@@ -148,6 +161,7 @@ public sealed class PresentationView : ContentControl
     }
     private void SelectionChanged(object? sender, InspectionSelectionChangedEventArgs e)
     {
+        validationNavigation = null;
         if (e.NavigateRaw && inspection.SelectedRange64 is { } raw && blocks is not null)
         {
             var offset = presentation.DisplayOffset(raw.Offset);

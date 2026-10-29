@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HL7v2xConformanceProfile HL7Version="2.5.1" ProfileType="Implementation">
+  <MetaData Name="Synthetic XML demonstration" OrgName="Synthetic Example Organization" Version="1"/>
+  <Encodings><Encoding>ER7</Encoding></Encodings>
+  <HL7v2xStaticDef MsgType="ADT" EventType="A01" MsgStructID="ADT_A01" Identifier="example.synthetic-xml.adt-a01">
+    <Segment Name="MSH" Usage="R" Min="1" Max="1">
+      <Field Name="Field separator" Usage="R" Datatype="ST" Length="1"/>
+      <Field Name="Encoding characters" Usage="R" Datatype="ST" Length="4"/>
+      <Field Name="Sender" Usage="O" Datatype="HD"/>
+      <Field Name="Sending facility" Usage="O" Datatype="HD"/>
+      <Field Name="Receiver" Usage="O" Datatype="HD"/>
+      <Field Name="Receiving facility" Usage="O" Datatype="HD"/>
+      <Field Name="Message time" Usage="R" Datatype="TS"/>
+      <Field Name="Security" Usage="O" Datatype="ST"/>
+      <Field Name="Message declaration" Usage="R" Datatype="MSG">
+        <Component Name="Type" Usage="R" Datatype="ID" ConstantValue="ADT"/>
+        <Component Name="Trigger" Usage="R" Datatype="ID" ConstantValue="A01"/>
+        <Component Name="Structure" Usage="R" Datatype="ID" ConstantValue="ADT_A01"/>
+      </Field>
+      <Field Name="Control ID" Usage="R" Datatype="ST" Length="20"/>
+      <Field Name="Processing ID" Usage="R" Datatype="PT"><Component Name="Processing" Usage="R" Datatype="ID" ConstantValue="T"/></Field>
+      <Field Name="Version" Usage="R" Datatype="VID"><Component Name="Version" Usage="R" Datatype="ID" ConstantValue="2.5.1"/></Field>
+    </Segment>
+    <Segment Name="EVN" Usage="R" Min="1" Max="1">
+      <Field Name="Event" Usage="O" Datatype="ID"/>
+      <Field Name="Recorded time" Usage="R" Datatype="TS"/>
+    </Segment>
+    <Segment Name="PID" Usage="R" Min="1" Max="1">
+      <Field Name="Set ID" Usage="O" Datatype="SI"/>
+      <Field Name="Unused" Usage="X" Datatype="ST"/>
+      <Field Name="Patient identifier" Usage="R" Min="1" Max="*" Datatype="CX">
+        <Component Name="Local synthetic ID" Usage="R" Datatype="ST"/>
+        <Component Name="Check digit" Usage="O" Datatype="ST"/>
+        <Component Name="Check scheme" Usage="O" Datatype="ID"/>
+        <Component Name="Authority" Usage="R" Datatype="HD"><SubComponent Name="Namespace" Usage="R" Datatype="IS" ConstantValue="SYN-HIE"/></Component>
+        <Component Name="Identifier type" Usage="R" Datatype="ID" ConstantValue="MR"/>
+      </Field>
+      <Field Name="Unused alternate ID" Usage="X" Datatype="CX"/>
+      <Field Name="Fictional name" Usage="R" Datatype="XPN"/>
+    </Segment>
+    <Segment Name="ZPI" Usage="R" Min="1" Max="1">
+      <Field Name="Partner code" Usage="R" Datatype="ID" ConstantValue="SYN-HIE"/>
+      <Field Name="Local routing" Usage="O" Datatype="ST" Length="40"/>
+    </Segment>
+    <Segment Name="PV1" Usage="R" Min="1" Max="1">
+      <Field Name="Set ID" Usage="O" Datatype="SI"/>
+      <Field Name="Class" Usage="R" Datatype="IS" ConstantValue="I"/>
+    </Segment>
+  </HL7v2xStaticDef>
+</HL7v2xConformanceProfile>

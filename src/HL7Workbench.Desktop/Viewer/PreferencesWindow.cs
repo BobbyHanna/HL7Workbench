@@ -12,15 +12,17 @@ public sealed class PreferencesWindow : Window
     public CheckBox EditByDefault { get; } = new() { Content = "Open documents in Edit Mode by default" };
     public ComboBox RibbonVisibility { get; } = new() { ItemsSource = new[] { "Collapsed", "Expanded" }, Width = 170 };
     public ComboBox ThemeSelection { get; } = new() { ItemsSource = new[] { "Follow System", "Light", "Dark" }, Width = 170 };
-    public ComboBox SchemaMode { get; } = new() { ItemsSource = new[] { "Use message-declared schema", "Use selected target schema" }, IsEnabled = false, MinWidth = 290 };
-    public TextBox TargetSchema { get; } = new() { IsEnabled = false, PlaceholderText = "No schema engine installed" };
+    public ComboBox SchemaMode { get; } = new() { ItemsSource = new[] { "Auto-detect built-in from MSH-9 / MSH-12", "Select a default validation profile" }, MinWidth = 290 };
+    // Retain the old preference draft API for callers with an unavailable ID.
+    public TextBox TargetSchema { get; } = new() { IsVisible = false };
+    public ComboBox DefaultValidationProfile { get; } = new() { MinWidth = 290, MaxDropDownHeight = 280 };
     public Button ApplyButton { get; } = new() { Content = "Apply" };
     public Button OkButton { get; } = new() { Content = "OK", IsDefault = true };
     public Button CancelButton { get; } = new() { Content = "Cancel", IsCancel = true };
-    public ListBox Categories { get; } = new() { ItemsSource = new[] { "General", "HL7", "Appearance" }, SelectedIndex = 0, Width = 140 };
+    public ListBox Categories { get; } = new() { ItemsSource = new[] { "General", "HL7", "Appearance", "Validation" }, SelectedIndex = 0, Width = 140 };
     public TextBlock Feedback { get; } = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ApplicationPreferences preferences;
-    public PreferencesWindow(ApplicationPreferences preferences)
+    public PreferencesWindow(ApplicationPreferences preferences, ValidationProfileLibrary? library = null)
     {
         this.preferences = preferences;
         Title = "Preferences"; Width = 700; Height = 420; MinWidth = 580; MinHeight = 350;
@@ -31,6 +33,12 @@ public sealed class PreferencesWindow : Window
         Avalonia.Automation.AutomationProperties.SetName(ThemeSelection, "Application theme");
         ToolTip.SetTip(ThemeSelection, "Apply Follow System, Light or Dark without restarting");
         SchemaMode.SelectedIndex = (int)preferences.Current.SchemaMode; TargetSchema.Text = preferences.Current.TargetSchema;
+        library ??= new(); DefaultValidationProfile.ItemsSource = library.Entries;
+        DefaultValidationProfile.SelectedItem = library.Entries.FirstOrDefault(e => e.Profile.Id == preferences.Current.TargetSchema);
+        DefaultValidationProfile.IsEnabled = SchemaMode.SelectedIndex == 1;
+        SchemaMode.SelectionChanged += (_, _) => DefaultValidationProfile.IsEnabled = SchemaMode.SelectedIndex == 1;
+        Avalonia.Automation.AutomationProperties.SetName(SchemaMode, "Default validation selection mode");
+        Avalonia.Automation.AutomationProperties.SetName(DefaultValidationProfile, "Default validation profile");
         var general = new StackPanel { Spacing = 14, Children =
         {
             Heading("General"), EditByDefault,
@@ -41,14 +49,15 @@ public sealed class PreferencesWindow : Window
         var hl7 = new StackPanel { Spacing = 12, Children =
         {
             Heading("HL7 interpretation"),
-            Explanation("Declared HL7 version is read from each message's MSH-12. A selected target schema would be an independent inspection choice, including for batches with mixed declarations."),
-            SchemaMode, new TextBlock { Text = "Selected target schema (reserved)" }, TargetSchema,
-            Explanation("Schema interpretation and target-schema validation are not implemented. These controls are reserved and disabled. Current inspection is structural; no conformance or version-conflict results are produced. Preferences never rewrite MSH-12 or source bytes.")
+            Explanation("Declared HL7 version is read from MSH-12. Structural inspection stays tolerant and lossless. Schema validation is a separate explicit Apply Schema action in the raw editor; preferences never rewrite declarations or source bytes.")
         } };
         var panel = new ContentControl { Content = general, Margin = new Thickness(20, 0, 0, 0) };
         var appearance = new StackPanel { Spacing = 14, Children = { Heading("Appearance"), new TextBlock { Text = "Application theme" }, ThemeSelection,
             Explanation("Follow System tracks the operating system's light/dark preference where supported. Apply changes all windows immediately; no restart is required.") } };
-        Categories.SelectionChanged += (_, _) => panel.Content = Categories.SelectedIndex switch { 1 => hl7, 2 => appearance, _ => general };
+        var validation = new StackPanel { Spacing = 12, Children = { Heading("Validation"), SchemaMode, DefaultValidationProfile,
+            Explanation("This preference selects the initial choice in Apply Schema. It never validates newly opened messages automatically. Auto-detect considers only matching built-ins; trading-partner profiles require explicit selection. Import/reimport/remove profiles from the editor's Apply Schema dialog."),
+            Explanation("Applied selections and diagnostics are session-only per message. Unsupported checks display Incomplete; no conformance certification is implied.") } };
+        Categories.SelectionChanged += (_, _) => panel.Content = Categories.SelectedIndex switch { 1 => hl7, 2 => appearance, 3 => validation, _ => general };
         var scroll = new ScrollViewer { Content = panel, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
             VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         var body = new Grid { ColumnDefinitions = new("Auto,*") }; body.Children.Add(Categories); Grid.SetColumn(scroll, 1); body.Children.Add(scroll);
@@ -61,9 +70,10 @@ public sealed class PreferencesWindow : Window
     }
     public bool Apply()
     {
-        // Leave reserved schema metadata and unknown future fields intact.
+        // Unknown future fields and an unavailable profile ID remain intact.
         var result = preferences.Apply(preferences.Current with { StartInEditMode = EditByDefault.IsChecked == true, RibbonExpanded = RibbonVisibility.SelectedIndex == 1,
-            Theme = (ApplicationThemePreference)Math.Max(0, ThemeSelection.SelectedIndex) });
+            Theme = (ApplicationThemePreference)Math.Max(0, ThemeSelection.SelectedIndex), SchemaMode = (SchemaInterpretationMode)Math.Max(0, SchemaMode.SelectedIndex),
+            TargetSchema = (DefaultValidationProfile.SelectedItem as ValidationProfileEntry)?.Profile.Id ?? TargetSchema.Text });
         if (result) ApplicationTheme.Apply(preferences.Current.Theme);
         Feedback.Text = preferences.Status; return result;
     }

@@ -13,6 +13,9 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
     public MessageDocument? ActiveDocument { get; private set; }
     public ActivityLog Activity { get; }
     public EditorPreferences Preferences { get; set; } = new();
+    public ValidationProfileLibrary ValidationProfiles { get; private set; } = new();
+    public void ConfigureValidationLibrary(ValidationProfileLibrary library)
+    { if (documents.Count != 0) throw new InvalidOperationException("Configure the validation library before opening documents."); ValidationProfiles = library; }
     public event PropertyChangedEventHandler? PropertyChanged;
     public DocumentManager(ActivityLog? activity = null) { Documents = new(documents); Activity = activity ?? new(); }
 
@@ -20,6 +23,7 @@ public sealed class DocumentManager : INotifyPropertyChanged, IDisposable
     {
         if (documents.Any(d => d.Id == document.Id)) throw new ArgumentException("Duplicate document identity.");
         document.IsEditMode = Preferences.StartInEditMode;
+        document.AttachValidationLibrary(ValidationProfiles, () => Preferences);
         documents.Add(document);
         if (document.ActivityNumber == 0) document.ActivityNumber = Activity.NextDocumentNumber();
         document.AttachActivity(Activity);

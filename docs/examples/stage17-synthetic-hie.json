@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "id": "example.synthetic-hie.adt-a01",
+  "name": "Synthetic Regional HIE ADT",
+  "description": "Entirely synthetic demonstration of narrowed patient authority, visit class, a placed Z segment and a conditional local requirement.",
+  "profileVersion": "1",
+  "hl7Version": "2.5.1",
+  "messageType": "ADT",
+  "triggerEvent": "A01",
+  "messageStructure": "ADT_A01",
+  "baseProfile": "hl7.v251.ADT.A01",
+  "tradingPartner": "Synthetic Regional HIE",
+  "organization": "Synthetic Example Organization",
+  "source": "Message Workbench synthetic demonstration; no patient dataset",
+  "unknownZSegments": "Reject",
+  "structure": [
+    { "key": "ZPI", "segment": "ZPI", "min": 1, "max": 1, "after": "PID" }
+  ],
+  "segments": [
+    {
+      "id": "PID",
+      "fields": [
+        {
+          "position": 3, "min": 1, "max": null, "dataType": "CX",
+          "children": [
+            { "position": 1, "min": 1, "dataType": "ST" },
+            {
+              "position": 4, "min": 1, "dataType": "HD",
+              "children": [
+                { "position": 1, "min": 1, "dataType": "IS", "allowedValues": ["SYN-HIE"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PV1",
+      "fields": [
+        { "position": 2, "min": 1, "max": 1, "dataType": "IS", "table": "0004", "allowedValues": ["I", "O"] }
+      ]
+    },
+    {
+      "id": "ZPI",
+      "fields": [
+        { "position": 1, "min": 1, "dataType": "ID", "allowedValues": ["SYN-HIE"] },
+        { "position": 2, "min": 0, "dataType": "ST", "maxLength": 40 }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "id": "inpatient-routing-code",
+      "ifPath": "PV1-2",
+      "equalsValue": "I",
+      "thenPath": "ZPI-2",
+      "severity": "Error"
+    }
+  ]
+}

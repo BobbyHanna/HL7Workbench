@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <InternalsVisibleTo Include="HL7Workbench.Core.Tests" />
+    <EmbeddedResource Include="ValidationCatalog/v251-model.json" />
   </ItemGroup>
 </Project>
