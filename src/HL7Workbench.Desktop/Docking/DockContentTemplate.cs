@@ -31,6 +31,7 @@ public sealed class DockContentTemplate : IDataTemplate
         if (context is ScriptEditorViewModel script) return new Viewer.ScriptEditorView(script);
         if (context is SqlQueryViewModel sql) return new Viewer.SqlQueryView(sql);
         if (context is ScriptApiReferenceViewModel reference) return new Viewer.ScriptApiReferenceView(reference);
+        if (context is DocumentationViewModel documentation) return new Viewer.DocumentationView(documentation);
         if (context is FieldExtractionViewModel extraction) return new Viewer.FieldExtractionView(extraction);
         if (context is SyntheticPatientsViewModel patients) return new Viewer.SyntheticPatientsView(patients);
         if (context is GenerationReportViewModel report) return new Viewer.GenerationReportView(report);

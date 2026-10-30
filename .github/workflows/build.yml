@@ -24,3 +24,6 @@ jobs:
       - run: dotnet restore HL7Workbench.sln --locked-mode
       - run: dotnet build HL7Workbench.sln --configuration Release --no-restore
       - run: dotnet test HL7Workbench.sln --configuration Release --no-build --no-restore
+      - run: python -B -m unittest build/test_documentation_catalog.py
+      - run: python build/WriteDocumentationCatalog.py --check
+      - run: python build/WriteScriptApiReference.py --check

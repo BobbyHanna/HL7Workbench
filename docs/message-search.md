@@ -1,8 +1,9 @@
 # Find Messages and navigator filtering (Stages 6A–6B)
 
 Stage 8B.4 extends this pipeline to inserted logical messages and stable identities;
-see [compatibility acceptance](stage8b4-compatibility-acceptance.md). Earlier milestone
-Git authorizations below are historical; current 8B work remains intentionally uncommitted.
+see [compatibility acceptance](stage8b4-compatibility-acceptance.md). Milestone
+Git authorizations below are historical. For a current short task, start with
+[Find messages and filter navigation](user/search-and-filter.md).
 
 Stage 6A, including the final Find Messages naming/open-focus cleanup, passed native
 Windows acceptance on 2026-10-16. The user explicitly authorized the accepted milestone's
@@ -17,8 +18,8 @@ Use **View → HL7 Inspection → Find Messages**, **HL7 Tools → Search → Fi
 All three use the same command: open/reveal the retained dockable/floating Find Messages
 tool and focus/select its search-value input, including from floating tool windows.
 Opening/focusing never executes a search or clears existing results/filter state. The
-redundant Focus Search ribbon command is removed. The permanent menus remain File |
-Settings | View. The ribbon keeps its existing collapsed/pinned overlay behavior and theme resources.
+redundant Focus Search ribbon command is removed. The permanent menus are File |
+Settings | View | Help. The ribbon keeps its existing collapsed/pinned overlay behavior and theme resources.
 
 The persisted tool identity remains `tool.search-results`, preserving layouts saved with
 the former Search Results title. Existing floating/hidden placement, View recovery and

@@ -1,5 +1,13 @@
 # Architecture
 
+For the current project/process map and invariants, start with
+[developer architecture](developer/architecture.md) and
+[workspace lifecycle](developer/workspace-lifecycle.md). The chronological sections
+below are retained engineering records: older deferred-feature, no-validator and
+pending-acceptance statements describe their original checkpoint, not current scope.
+Use the [history/ADR index](history-index.md) to follow amendments without treating
+historical Git authorizations as product behavior or current release permission.
+
 ## Stage 17 explicit inline validation
 
 Core adds immutable declarative profiles, strict bounded XML/JSON import, narrowing

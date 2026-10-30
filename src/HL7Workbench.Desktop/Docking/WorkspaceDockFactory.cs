@@ -20,6 +20,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public const string ScriptEditorId = "tool.script-editor";
     public const string SqlQueryId = "tool.sql-query";
     public const string ScriptApiReferenceId = "tool.script-api-reference";
+    public const string DocumentationId = "tool.documentation";
     public const string FieldExtractionId = "tool.field-extraction";
     public const string SyntheticPatientsId = "tool.synthetic-patients";
     public const string GenerationReportId = "tool.generation-report";

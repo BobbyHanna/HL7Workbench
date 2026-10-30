@@ -1,0 +1,22 @@
+[
+  { "id": "contents", "source": "docs/user/index.md", "keywords": "start contents tutorials workflows analysis help" },
+  { "id": "installation", "source": "docs/user/installation.md", "keywords": "install launch source build release preview version" },
+  { "id": "getting-started", "source": "docs/user/getting-started.md", "keywords": "first task synthetic sample open save" },
+  { "id": "workspace", "source": "docs/user/workspace.md", "keywords": "dock float layout recover ribbon navigation" },
+  { "id": "inspect-and-edit", "source": "docs/user/inspect-and-edit.md", "keywords": "HL7 original draft encoding inspector navigator undo source" },
+  { "id": "search-and-filter", "source": "docs/user/search-and-filter.md", "keywords": "find messages filter search library ALL ANY" },
+  { "id": "compare-messages", "source": "docs/user/compare-messages.md", "keywords": "diff comparison original pasted" },
+  { "id": "extract-fields", "source": "docs/user/extract-fields.md", "keywords": "extraction table CSV columns repeats" },
+  { "id": "query-with-sql", "source": "docs/user/query-with-sql.md", "keywords": "SQLite query database CSV pagination matching" },
+  { "id": "run-and-manage-scripts", "source": "docs/user/run-and-manage-scripts.md", "keywords": "C# scripts library Main Complete API sandbox trusted" },
+  { "id": "generate-synthetic-hl7", "source": "docs/user/generate-synthetic-hl7.md", "keywords": "generate ADT ORM ORU random seed replay realistic placeholder scenario" },
+  { "id": "validate-with-profiles", "source": "docs/user/validate-with-profiles.md", "keywords": "schema validation profile import incomplete F8" },
+  { "id": "import-fhir-and-generate-hl7", "source": "docs/user/import-fhir-and-generate-hl7.md", "keywords": "FHIR R4 Synthea patients mapping Bundle" },
+  { "id": "test-with-mllp", "source": "docs/user/test-with-mllp.md", "keywords": "TCP MLLP ACK sender listener socket network" },
+  { "id": "batch-and-load-tests", "source": "docs/user/batch-and-load-tests.md", "keywords": "batch load rate concurrency pause resume cancel" },
+  { "id": "preferences-and-shortcuts", "source": "docs/user/preferences-and-shortcuts.md", "keywords": "settings keyboard focus theme light dark DPI" },
+  { "id": "privacy-and-storage", "source": "docs/user/privacy-and-storage.md", "keywords": "privacy security PHI retention temporary permissions" },
+  { "id": "troubleshooting", "source": "docs/user/troubleshooting.md", "keywords": "errors limits recovery failure unavailable" },
+  { "id": "limits", "source": "docs/reference/limits.md", "keywords": "budgets bytes characters maximum coverage" },
+  { "id": "storage-and-formats", "source": "docs/reference/storage-and-formats.md", "keywords": "storage formats versions compatibility persistence" }
+]

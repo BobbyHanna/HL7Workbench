@@ -49,13 +49,13 @@ public sealed class PreferencesWindow : Window
         var hl7 = new StackPanel { Spacing = 12, Children =
         {
             Heading("HL7 interpretation"),
-            Explanation("Declared HL7 version is read from MSH-12. Structural inspection stays tolerant and lossless. Schema validation is a separate explicit Apply Schema action in the raw editor; preferences never rewrite declarations or source bytes.")
+            Explanation("Declared HL7 version is read from MSH-12. Structural inspection stays tolerant and lossless. Use HL7 Tools → Schema Validation → Apply/Change Schema explicitly; preferences never rewrite declarations or source bytes.")
         } };
         var panel = new ContentControl { Content = general, Margin = new Thickness(20, 0, 0, 0) };
         var appearance = new StackPanel { Spacing = 14, Children = { Heading("Appearance"), new TextBlock { Text = "Application theme" }, ThemeSelection,
             Explanation("Follow System tracks the operating system's light/dark preference where supported. Apply changes all windows immediately; no restart is required.") } };
         var validation = new StackPanel { Spacing = 12, Children = { Heading("Validation"), SchemaMode, DefaultValidationProfile,
-            Explanation("This preference selects the initial choice in Apply Schema. It never validates newly opened messages automatically. Auto-detect considers only matching built-ins; trading-partner profiles require explicit selection. Import/reimport/remove profiles from the editor's Apply Schema dialog."),
+            Explanation("This preference selects the initial choice in Apply Schema. It never validates newly opened messages automatically. Auto-detect considers only matching built-ins; trading-partner profiles require explicit selection. Use HL7 Tools → Schema Validation → Manage Schemas for the existing import/reimport/remove workflow."),
             Explanation("Applied selections and diagnostics are session-only per message. Unsupported checks display Incomplete; no conformance certification is implied.") } };
         Categories.SelectionChanged += (_, _) => panel.Content = Categories.SelectedIndex switch { 1 => hl7, 2 => appearance, 3 => validation, _ => general };
         var scroll = new ScrollViewer { Content = panel, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,

@@ -38,7 +38,7 @@
           <MenuItem Header="Controlled _Load Testing" Click="ShowLoadTesting" />
         </MenuItem>
         <MenuItem Header="_Reports">
-          <MenuItem Header="_Generation Report" Click="ShowGenerationReport" ToolTip.Tip="Review the selected document's FHIR generation report" />
+          <MenuItem Header="_Generation Report" Click="ShowGenerationReport" ToolTip.Tip="Review the selected document's synthetic HL7 or FHIR generation report" />
           <MenuItem Header="_De-identification Report" Click="ShowDeidentificationReport" ToolTip.Tip="Review the selected output's de-identification execution and findings" />
         </MenuItem>
         <Separator />
@@ -46,6 +46,7 @@
         <MenuItem Header="_Activity Log" Click="ShowActivity" ToolTip.Tip="Show session operation history, warnings and errors" />
       </MenuItem>
       <MenuItem Header="_Help">
+        <MenuItem x:Name="DocumentationMenu" Header="_Documentation" Click="ShowDocumentation" />
         <MenuItem x:Name="ScriptApiReferenceMenu" Header="Script _API Reference" Click="ShowScriptApiReference" />
         <MenuItem x:Name="AboutMenu" Header="_About Message Workbench…" Click="ShowAbout" />
       </MenuItem>

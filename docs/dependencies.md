@@ -1,5 +1,20 @@
 # Dependency inventory
 
+## Adapted validation metadata (current source)
+
+Stage 17 embeds adapted pinned nHapi v2.5.1 model declarations as a JSON resource
+under **MPL-2.0**. This is a redistributed metadata resource, not a new NuGet
+dependency or nHapi runtime/parser. Preserve its
+[source/digest/change notice](../src/HL7Workbench.Core/ValidationCatalog/NOTICE.md)
+and [license](../build/third-party/nHapi-MPL-2.0-LICENSE.txt). Standards prose and a
+complete terminology service are not bundled. Runtime does not fetch definitions;
+the pinned regeneration tool is an explicit development operation.
+
+The permissive-package table below does not classify every adapted resource or
+grant legal clearance. This source inventory does not update the older accepted
+portable preview's binaries, notices or manifest; any future distribution needs
+its own reviewed resource/package provenance. See [validation architecture](developer/validation.md).
+
 ## Stage 15A/15B/15C query worker (post-beta source milestone)
 
 QueryHost alone adds `SQLitePCLRaw.bundle_e_sqlite3` 3.0.5. Stage 15B adds no package
@@ -60,7 +75,8 @@ SDK are omitted after compatibility testing identified incompatible runner wirin
 Package lock files contain the complete transitive inventory, including native
 rendering dependencies. NuGet package metadata and bundled notices are the
 authoritative license records; review them when updating or distributing builds.
-No HL7 dictionary or terminology dependency is included.
+No runtime HL7 dictionary/terminology package is included. The adapted validation
+model resource described above has separate attribution/license obligations.
 
 Stage 5A's ScriptHost lock graph additionally includes Microsoft.CodeAnalysis.Common,
 Microsoft.CodeAnalysis.CSharp and Microsoft.CodeAnalysis.Scripting.Common 5.9.0, and

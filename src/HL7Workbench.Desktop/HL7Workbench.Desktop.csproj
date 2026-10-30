@@ -15,6 +15,7 @@
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <ItemGroup><AvaloniaResource Include="Assets/**" /></ItemGroup>
+  <ItemGroup><EmbeddedResource Include="Documentation/catalog.json" LogicalName="HL7Workbench.Documentation.json" /></ItemGroup>
   <ItemGroup>
     <!-- Compiler-only editor colors and documentation assistance; execution stays in ScriptHost. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />

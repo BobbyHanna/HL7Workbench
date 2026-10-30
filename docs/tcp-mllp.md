@@ -1,15 +1,11 @@
 # Interactive TCP/MLLP testing
 
-Stage 13A is checkpointed at 45e7cdbad9a32cdaebb7834ae0026b10914622aa. A separate
-[Controlled Load Testing tool](load-testing.md) now implements Stage 13B bounds,
-authorization and measurements; it remains uncommitted for native acceptance.
-The single-send contract below is unchanged; earlier load deferrals are historical.
-
-Stage 12 passed native Windows acceptance and is checkpointed at
-`e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. Stage 13A adds a separate explicitly
-reviewed [Batch Transmission tool](batch-transmission.md); the one-message workflow
-below is unchanged. Concurrent loads/scheduling/retries remain deferred. Stage 13A
-passed native acceptance including report polish; its local checkpoint is authorized.
+Interactive exchange/listener, [Batch Transmission](batch-transmission.md) and
+[Controlled Load Testing](load-testing.md) are implemented separate workflows.
+The single-send contract below is unchanged by batch/load support. TLS,
+scheduling, automatic reconnect and automatic retries remain unsupported.
+For a short synthetic loopback task, start with the [current user guide](user/test-with-mllp.md).
+Historical acceptance/checkpoint evidence remains in the Stage 12/13 reports.
 
 Open **View → Connectivity & Testing → Connection Manager** and **View → Connectivity & Testing → MLLP Listener**, or the TCP/MLLP
 ribbon tab. Both are optional dockable tools. Opening/restoring the application

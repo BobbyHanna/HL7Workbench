@@ -50,6 +50,7 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.ScriptEditorId, "Script Editor", () => scripts, Optional: true));
         registry.Register(new(WorkspaceDockFactory.SqlQueryId, "SQL Query", CreateSqlQuery, Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ScriptApiReferenceId, "Script API Reference", () => scriptReference, Optional: true, RestoreVisibility: true));
+        registry.Register(new(WorkspaceDockFactory.DocumentationId, "Documentation", CreateDocumentation, Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         scriptReference.CreateScriptAsync = scripts.CreateFromReferenceAsync;
         registry.Register(new(WorkspaceDockFactory.FieldExtractionId, "Field Extraction", CreateFieldExtraction, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SyntheticPatientsId, "FHIR Patient Workspace", CreateSyntheticPatients, Optional: true, ReleaseOnClose: true));

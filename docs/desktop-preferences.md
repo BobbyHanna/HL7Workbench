@@ -1,8 +1,9 @@
 # Desktop menus, ribbon and Preferences
 
-The permanent menu bar is **File | Settings | View**. Scripts and Window dropdowns
-are removed. View retains Message Browser, Activity Log, Segment Navigator, Field
-Inspector, Script Editor and Full Source Viewer. File → Save/Save As still save HL7
+The permanent menu bar is **File | Settings | View | Help**. Scripts and Window dropdowns
+are removed. View groups inspection, data/query, connectivity/testing and report tools,
+with FHIR Patient Workspace and Activity Log also available. Help opens Script API
+Reference and About/privacy. File → Save/Save As still save HL7
 documents. Script saving is explicitly Save Script in the editor and Save in the ribbon.
 View → Data & Query → Script Editor and Scripts ribbon → Open Script Editor reveal/focus the retained
 dockable/floating tool. The Scripts ribbon and editor use the same commands and model.
@@ -24,7 +25,10 @@ tabs; Down enters commands; Tab navigates controls. Pin ribbon persists expansio
 Unpin persists collapse. The selected tab stays the same when switching modes; it is
 session-only and starts at Home on restart. Pinned expansion deliberately uses workspace
 height. Horizontal scrolling keeps command groups accessible in a narrow main window.
-TCP/MLLP Sender and Listener are disabled and labeled Planned; no networking is added.
+TCP/MLLP provides Connection Manager, MLLP Listener, Batch Transmission and Load Testing.
+These are implemented explicit test workflows; opening/restoring them never starts
+network activity. TLS, automatic retry/reconnect and scheduling are unsupported.
+See the [current user guides](user/index.md#test-interfaces).
 
 Ribbon correction: the tab/pin strip is excluded from overlay dismissal, so another
 tab changes content on its first click and the selected tab toggles temporary content.
@@ -100,8 +104,9 @@ A later milestone can supply a named/custom immutable Hl7EditorPalette through t
 WorkbenchHl7EditorPalette dynamic resource and replace semantic application resources per
 Light/Dark variant. Renderers already read the resolved palette; they need no new scanner
 or rendering logic. A virtualized canvas uses the corresponding WorkbenchEditorBackground
-resource. Future profile storage/validation, editing/preview, color pickers and import/
-export remain deferred. No custom profile fields are added to Preferences now.
+resource. Custom editor color-palette storage, color pickers and palette import/export
+remain deferred. This palette extension point is distinct from the implemented
+HL7 validation profile library and Preferences → Validation described below.
 
 ## Find Messages split position
 

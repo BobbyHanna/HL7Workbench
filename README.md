@@ -1,352 +1,70 @@
 # Message Workbench
 
-Message Workbench is an independent, local-first healthcare interoperability
-development tool built with C#/.NET 10 and Avalonia. It supports HL7 v2 viewing,
-editing, analysis and scripting, synthetic generation, FHIR R4 conversion and
-TCP/MLLP testing. Windows is the initial desktop platform. `HL7Workbench` remains
-the internal namespace, assembly, repository and settings identifier; existing user
-data paths are unchanged. See [product branding](docs/branding.md) and the
-[reference/provenance audit](docs/product-reference-audit.md).
-Viewer/editor Stages 1–4 are complete and have passed native Windows acceptance.
+Message Workbench is an independent, local-first Windows desktop development tool
+for HL7 v2 inspection, bounded editing, analysis, trusted C# scripting, synthetic
+generation, local FHIR R4 import/partial conversion and TCP/MLLP testing.
+It uses .NET 10, Avalonia and Dock. `HL7Workbench` remains the internal assembly,
+namespace and per-user settings identity.
+
+Start with [the user guide](docs/user/index.md),
+[the first synthetic-file walkthrough](docs/user/getting-started.md) or
+[the documentation index](docs/index.md). Existing
+[developer guides](docs/developer/index.md) cover architecture, build/test,
+parser invariants, lifecycles, scripting, SQL and validation. Shared
+[limits/storage references](docs/reference/index.md) link their source definitions;
+**Help → Documentation** opens the curated user/shared guides locally without internet
+or repository access. Script API links reuse the existing reference tool.
 
 ## Implemented capabilities
 
-Stage 17 adds explicit **Apply Schema** in the existing raw editor, with inline
-diagnostics, hover explanations, F8/Shift+F8 navigation and edit-triggered refresh.
-The local library supports scoped v2.5.1 built-ins, strict conformance-profile XML
-and native JSON HIE/trading-partner profiles with inheritance and Z segments.
-Preferences → Validation chooses the initial profile; opening files never validates
-automatically. Unsupported coverage displays Incomplete, without a conformance
-certification claim. See [formats, provenance, limits and native acceptance](docs/stage17-hl7-schema-validation.md).
+- View combined HL7 files, navigate messages, inspect fields/segments and original
+  source bytes; edit supported complete messages with undo/redo and safe Save/Save As.
+- Find/filter messages, compare pasted/current/original messages, extract tables/CSV,
+  and run local read-only SQLite over current or selected open HL7 documents.
+- Manage trusted C# scripts and run them against Current message or Whole document,
+  with independent outputs, reports and searchable offline Script API help.
+- Generate standalone or connected synthetic ADT/ORM/ORU scenarios with realistic
+  or placeholder styles, automatic seeds and explicit reproducible replay.
+- Explicitly apply scoped v2.5.1 schemas/custom profiles from
+  **HL7 Tools → Schema Validation**, with inline findings and Incomplete coverage.
+- Import supported local FHIR R4 Bundles, browse patients/history and generate a
+  partial versioned HL7 mapping into independent documents.
+- Test single TCP/MLLP exchanges, receive test traffic, or authorize bounded
+  sequential batch and controlled load runs. Arrange docked/floating tools and
+  retain placement/preferences separately from content.
 
-Stage 14 prepares a **Windows x64 portable self-contained v0.1.0-beta candidate**:
-startup/layout stability corrections, adjacent apphost worker launch, stable beta
-metadata, deterministic local candidate assembly, checksums/provenance, and reviewed
-dependency notices. One local Stage 14 checkpoint and a fresh clean-source ZIP are
-authorized; coworker distribution remains unapproved.
-See [portable build instructions](docs/portable-release.md), [candidate user guide](docs/beta-user-guide.md)
-and [Stage 14 acceptance](docs/stage14-release-readiness-acceptance.md). The short
-[recipient README](docs/beta-readme.md), [distribution review](docs/beta-distribution-review.md)
-and [proposed beta terms](docs/beta-usage-terms-proposed.md) support final human review.
-Branding passed native acceptance and is checkpointed as
-`84fdc22925173250fad132d0d4b4c6768d3c68e0`.
+See [task selection](docs/user/index.md#choose-an-analysis-workflow) and
+[supported limits](docs/user/troubleshooting.md#limits-and-coverage).
+No TLS, automatic retry/reconnect, scheduling, remote FHIR integration, external
+SQL database connectivity or universal conformance is advertised.
 
-Stage 13B adds **Controlled Load Testing**: explicitly authorized synthetic test
-traffic with bounded concurrency/global rate, duration/attempt/safety stops, separate
-write/ACK/application metrics and privacy-safe local reports. No automatic retry,
-startup activity or identity rewriting. Stage 13B passed all 16 user-reported
-native Windows acceptance checks and is checkpointed locally as
-`738e3d7697fb7b2d2d8e668fe7b02edbddea28f2`. See the [load guide](docs/load-testing.md) and
-[acceptance record](docs/stage13b-load-testing-acceptance.md).
+## Privacy and trust
 
-Stage 13A adds **Batch Transmission** for explicitly reviewed, paced, sequential
-test sends from an immutable document selection. Pause/resume/cancel, per-message
-ACK outcomes and privacy-safe CSV reuse the Stage 12 transport. No automatic retries,
-concurrent loads or scheduling. Stage 13A passed native Windows acceptance,
-including report polish; it is checkpointed as
-`45e7cdbad9a32cdaebb7834ae0026b10914622aa`. See the [batch guide](docs/batch-transmission.md) and
-[acceptance record](docs/stage13a-batch-transmission-acceptance.md).
+There is no automatic cloud upload, account requirement or runtime telemetry.
+TCP/MLLP tools intentionally communicate through explicit review workflows.
+C# scripts execute with the user's account permissions and can access files or
+networks; worker containment is **not an operating-system security sandbox**.
+Socket write completion does not establish application acceptance.
 
-Stage 12 adds optional **Connection Manager** and **MLLP Listener** tools for explicit
-one-message TCP/MLLP testing, exact local capture, correlated original/enhanced ACKs
-and bounded listener test responses. Profiles persist metadata only; there is no
-automatic reconnect/retry. TLS and concurrent load testing remain deferred. Stage 12
-passed native Windows acceptance and is checkpointed as
-`e575ebe47921f33b3431d32bf26a5fc87aee4a0a`. See the [transport guide](docs/tcp-mllp.md)
-and [Stage 12 acceptance](docs/stage12-tcp-mllp-acceptance.md).
+Temporary snapshots/journals and explicitly saved definitions/exports can contain
+sensitive plaintext. De-identification aids require review and do not guarantee
+anonymization or compliance. See [privacy and storage](docs/user/privacy-and-storage.md).
+Use only reviewed synthetic data in repository examples/tests and feedback.
 
-**FHIR Patient Workspace** (formerly Synthetic Patients) opens from File/View: local
-FHIR R4 Bundle import, bounded master-detail patient/encounter/timeline browsing,
-conservative seeded ADT A04/A01/A03 and ORU R01 generation into new unsaved HL7
-documents, and document-associated count-only Generation Reports. No server or
-manual event selection is required for the default Selected Patient history scope;
-Entire Import combines all patients, and Selected Events retains targeted testing.
-Output remains one independent combined document with explicit preview limits. No
-Synthea installation is required by Workbench. Mapping is partial; review warnings
-and use synthetic/test input only. See the [import guide](docs/synthea-fhir-import.md),
-[versioned mapping](docs/fhir-to-hl7v2-mapping.md) and
-[acceptance record](docs/stage11-synthea-fhir-acceptance.md). Stage 11, including
-complete histories, passed user native Windows acceptance on 2026-10-21; one local
-checkpoint is `af717a66608d3277402bd6696cd4f50712c7ecf5`.
+## Release status
 
-Stage 9C is checkpointed locally. Stage 10 adds read-only **Field Extraction** from
-View or an HL7 document's **Extract Fields** action: configurable paths, first or
-expanded matches, paged results, literal/state/numeric filters, sorting, saved user
-configurations and complete selected-result CSV export. Captured revisions and
-stale/closed sources remain explicit. See the [extraction guide](docs/field-extraction.md)
-for alignment, value states, privacy and limits. Stage 10 passed user native Windows
-acceptance on 2026-10-21 and is checkpointed as
-`1b04e1849b2ba3c03d135cf324bae28b8af4cba8`. Stage 11 is checkpointed as above.
+These docs describe the current source application. The previously accepted
+Windows x64 v0.1.0-beta private preview is a separate, older binary/provenance
+baseline. It does not include every later source feature. No new current-source
+package, public release or distribution approval is implied. Follow
+[installation/version scope](docs/user/installation.md) and the exact approved
+artifact's [recipient guide](docs/beta-user-guide.md).
 
-Stage 8D synthetic generation passed user native Windows acceptance on 2026-10-20.
-Earlier pending-acceptance notes below are retained as historical implementation records.
-The approved M/W application icon is integrated; see [branding](docs/branding.md)
-for the unchanged source, reproducible derivatives and native Windows checks.
-Patient Deidentifier now substitutes realistic fictional demographics from a bundled
-deterministic identity library. Each transformed output exposes its own expanded
-**Transformation Report — Review required**; narrow Identifier/Timestamp presets
-keep their existing purposes. See [Stage 9 acceptance](docs/stage9-deidentification-acceptance.md)
-for coverage, privacy limits and native retest steps. These corrections passed user
-native Windows acceptance on 2026-10-20; earlier pending notes are historical.
+## Build and run from source
 
-- **Local files and multi-message navigation:** Open files in document tabs and
-  navigate concatenated or MLLP-framed messages with First, Previous, Next, Last,
-  and direct message-number controls.
-- **Structural inspection:** Delimiter-aware syntax highlighting, Segment
-  Navigator, and Field Inspector expose fields, repetitions, components, and
-  subcomponents. Raw-editor hover shows structural paths; double-click reveals
-  the corresponding structure. Field Inspector → Copy Path copies a search-compatible
-  segment/field/component/subcomponent coordinate without its value.
-- **Source-backed large-message handling:** Immutable file snapshots, bounded
-  previews, and virtualized display blocks support inspection without loading
-  entire large payloads into editor strings. The optional Full Source Viewer
-  provides contiguous source windows and exact original-byte export. Attachments
-  are not decoded or rendered.
-- **Dockable workspace:** Resize, move, float, hide, and reopen tools. Saved layouts
-  retain placement and geometry without storing message contents.
-- **Activity Log:** Review application-session operations and structured
-  diagnostics, with severity filtering and status counts. Log entries exclude
-  message contents, patient identifiers, filenames, paths, and exception text.
-- **Per-document Edit Mode:** Documents start read-only by default. Enable editing
-  for a supported message without changing other documents. A persistent
-  Settings → Preferences → General edit-mode preference applies only to newly opened documents.
-- **Undo/redo and dirty tracking:** Document-owned edit history and modified-tab
-  indicators survive message navigation and view reconstruction. Turning Edit
-  Mode off retains unsaved work. Inspection stays visible while edits are parsed;
-  previous inspection data is labeled and stale structural actions are paused.
-- **Save and Save As:** Publish edits from a temporary file while preserving
-  untouched original bytes, encoding/BOM, framing, and unedited line endings.
-  Save As sets the destination for later saves. Dirty tab and application closure
-  offer Save, Discard, or Cancel; canceled or failed saves retain working edits.
-
-### Editing scope and limits
-
-**Generate Messages** in Home or File opens the local synthetic HL7 v2.5.1 generator.
-Stage 16 also offers **Admission to discharge**, **Order to result** and
-**Combined encounter**, sharing fictional patients, visits, providers, orders and
-results across related messages. Choose patient/encounter/order/report quantities,
-review the exact message estimate, and optionally configure transfer events or
-collapsed Advanced options. Inpatient admission and outpatient registration
-are separate variations. Reports progress from preliminary to final by default.
-Both modes default to **Realistic Synthetic**: plausible fictional American-style
-patients/providers, marked synthetic addresses, reserved example phones, named
-fictional facility codes and coherent MEDSURG/OUTPATIENT locations. Choose
-**Obvious Placeholders** to reproduce original standalone v1 or scenario placeholder bytes.
-Advanced application/facility fields use automatic defaults when blank; explicit
-codes always take precedence in realistic standalone output and scenarios. Both
-realistic generators use v2 and remain deterministic for the same settings, seed,
-base time and demographic style. Realistic names and addresses
-can coincide with real identities; the test marker is not a reserved postal space.
-Seed starts blank in both standalone and scenario modes: each Generate selects one cryptographically random seed.
-Generation Report shows that actual value and provides **Copy seed** for replay with
-the same settings. Explicit seeds, including 0 and 42, remain deterministic. Scenario
-and standalone seed drafts are separate; resolved seeds never fill either editable field.
-The existing Generation Report tool summarizes each successful batch without patient
-details. See [scenario generation](docs/stage16-synthetic-generation.md) for settings,
-validated shared overrides, deterministic seeds, limits and native acceptance steps.
-
-In **Standalone messages**, realistic generator v2 reuses the original v1 message structures.
-Select **Obvious Placeholders** to retain version-1 explicit-seed output byte-for-byte.
-Choose ADT^A01 (admission), ADT^A04 (registration), ADT^A08 (update), ORM^O01 (order)
-or ORU^R01 (results). Defaults create one new unsaved ADT^A01 with an automatic seed,
-timestamp `2030-01-01T00:00:00+00:00` and prefix `SYN`. Explicit 42 reproduces the former
-default bytes when Obvious Placeholders is selected; blank no longer means 42.
-Seeds are unsigned integers, so negatives are unsupported.
-Hover Seed's label/input for context-specific help. This
-seed controls realistic profiles/providers/facilities, birth dates, numeric ORU
-values and synthetic IDs; identical settings repeat output for the same generator
-version and style. Explicit facility/application settings and configured times stay
-fixed. Standalone transport/patient-prefix overrides require realistic style; clear
-them when selecting legacy placeholders. Old style-less Core configurations keep
-their original v1 meaning.
-Use a timestamp with seconds and an explicit offset (or Z); it normalizes to UTC.
-Prefixes normalize to uppercase ASCII letters/digits/hyphens/underscores, 1–12 characters.
-The preview shows configuration and, for explicit seeds, the expected control-ID range without generating
-message bodies. Data is conspicuously fictional, generated entirely locally, and
-never derived from the active patient or an external dataset.
-
-Choose a new independent unsaved tab, or the document captured when the dialog opened
-and Before Current/After Current/Beginning/End. Generation enables that document's
-Edit Mode and selects/focuses the first generated message. One Ctrl+Z removes the
-whole batch; one Ctrl+Y restores the same identities/order, also with Edit Mode off.
-Save As uses the normal workflow; generation never saves automatically.
-
-Requests allow 1–1,000 messages and at most 4 Mi UTF-16 units, within existing editor,
-document and history budgets. Generation/validation run in the background; Cancel
-or closing the busy dialog cancels before publication. Existing-document insertion
-first proves the prospective save in private temporary storage. This needs temporary
-disk space for the whole prospective file and can take time on large sources. Unsafe
-joins, ambiguous/batch containers, incomplete drafts or exhausted budgets reject the
-whole request. Complete/undo the draft, choose a safe position, or use a new document.
-No source bytes are repaired or rewritten.
-
-Identical normalized options produce identical canonical UTF-8/CR bytes within
-generator version 1; future versions may change output. Control IDs repeat for repeated
-configurations and guarantee uniqueness within each batch. These are useful synthetic
-examples, without a clinical or implementation-guide conformance claim. Stage 8D
-awaits native Windows acceptance; see the [acceptance record](docs/stage8d-synthetic-generator-acceptance.md).
-
-Stage 8C adds **Add Message** in the Home ribbon, File menu and existing message
-navigator. Choose Before Current, After Current, Beginning or End; positions always
-refer to the current logical sequence. A successful insertion selects a blank draft,
-enables Edit Mode for that document and focuses its HL7 editor. The saved Start in
-Edit Mode preference stays unchanged. No content is generated or saved automatically.
-
-**Next Message (`>`) at unfiltered document EOF** appends and selects a blank draft.
-Repeated Next reuses a trailing inserted draft containing only whitespace/segment
-terminators. A non-whitespace partial draft permits another append, but saving still
-requires safe HL7 boundaries. Filtered Next stays within matching results and never
-appends, even at the last logical message; clear the filter to use EOF append.
-Explicit Add Message invalidates the filter/results while retaining the authored query.
-
-Paste into the HL7 editor retains clipboard delimiters, tabs and mixed line endings.
-Insertions and edits share document-wide Ctrl+Z/Ctrl+Y history, including with Edit
-Mode off. A blank/incomplete inserted draft blocks safe Save and identifies its
-logical message number; complete it or undo insertion. Original bytes and the
-destination remain unchanged after validation failure. Documents support up to
-100,000 logical messages, within the existing draft/history budgets. See the
-[Stage 8C acceptance record](docs/stage8c-message-insertion-acceptance.md) for limits,
-verification and native Windows retest steps. Stage 8C has passed user native Windows acceptance.
-
-Raw editing is bounded to complete messages within the existing editor limits:
-1,048,576 UTF-16 units per message and 16,384 per line, with bounded document
-history. Large/source-backed messages remain read-only; supported smaller messages
-in the same file can still be edited. Temporarily malformed drafts are retained;
-inspection and saving enforce the existing structural and encoding limits.
-
-Saving preserves unchanged file regions and refuses unsupported message-boundary
-or transport-framing restructuring. Original-source inspection/export for an edited
-message requires reopening the saved file. See the
-[editable-document decision](docs/decisions/0004-editable-document-foundation.md)
-for supported encodings, budgets, and save guarantees. Structural inspection and
-basic diagnostics do not provide HL7 version/profile conformance validation.
-
-## C# scripting (Stages 5A–5B)
-
-**Help → Script API Reference**, **Scripts ribbon → API Reference** and the Script
-Editor's **API Reference** button open searchable offline API help, exact runtime
-contracts, copyable complete examples and six editable starters. In code, **F1**
-opens context-sensitive help; **Ctrl+Space** explicitly opens documented facade
-completion and **Ctrl+Shift+Space** shows invocation signatures. Lookup never runs
-scripts or changes source. Copy API catalog JSON exports the verified metadata.
-Browse [the generated reference](docs/script-api-reference.md) or see
-[Stage 18 architecture and acceptance](docs/stage18-script-api-reference.md).
-Built-ins are read-only; Duplicate Script creates an independent My Scripts copy to
-rename, edit, save, reopen and run. Application updates do not replace those copies.
-
-The Script Library includes **Patient Deidentifier**, **Identifier Pseudonymizer** and
-**Timestamp Shifter**. Review a preset, duplicate it to configure seed/day displacement,
-and Run against Current or Whole document. Output opens independently and unsaved with
-a Review Required filename and bounded count-only CSV report. Sources are retained.
-These workflows assist de-identification; they do not certify anonymity, PHI removal,
-compliance or unrestricted sharing. Narrow presets and unassessed container/nested
-content can retain identifying information. See the [coverage and native checklist](docs/stage9-deidentification-acceptance.md).
-
-Use New Script in the dockable/floating Script Editor and write `void Main()`.
-The same source runs against Apply to: Current message or Whole document. A fresh
-Roslyn worker initializes shared variables once, calls Main in source order and
-calls optional `void Complete()` once on success. Helpers and shared state work
-across messages and reset each Run. The worker executes trusted code with the
-user's permissions; it is not a security sandbox.
-
-The Script Library preserves names, dirty drafts and immutable duplicable examples.
-Old development records retain their source but show Needs update and require an
-explicit rewrite/save before Run. `Batch` supplies advanced reports and deferred
-output without a separate script type. The consistent synthetic-patient example
-maintains identities within a run and reports counts; it is not complete clinical
-de-identification. Successful runs open independent unsaved HL7 output, preserving
-source documents and unsaved input edits. CSV exports permit explicitly confirmed safe replacement,
-and retain the producing script name/scope in the editor even after switching scripts.
-Failures and cancellation publish no partial output or reports.
-
-See the [script API](docs/script-api.md), [unified scripting decision](docs/decisions/0007-unified-csharp-scripting.md)
-and [native Windows acceptance checklist](docs/stage5b-batch-scripting-acceptance.md).
-Stage 5B, including the unified redesign and final save/dialog corrections, passed
-native Windows acceptance on 2026-10-16.
-
-The permanent menu is File | Settings | View | Help. The collapsible Scripts ribbon and compact
-editor share commands; Home contains Save/Restore/Reset Layout, including window recovery.
-Click the script name to rename; Delete Script protects bundled examples and prompts for
-dirty drafts/confirmation. Reports / Export CSV opens contextual retained results.
-Settings → Preferences controls new-document Edit Mode, saved ribbon visibility and
-Appearance: Follow System (default), Light or Dark, applied without restarting. HL7 editors
-and source views follow the effective theme while retaining drafts, undo and selection.
-HL7 schema controls are reserved/disabled until an interpretation engine exists. TCP/MLLP
-opens Connection Manager and MLLP Listener. See [desktop preferences](docs/desktop-preferences.md)
-and the [UI finishing checklist](docs/stage5b-ui-finishing-acceptance.md).
-See [save/export safety](docs/save-and-export-safety.md) for picker authorization,
-destination-version checks, transactional replacement and the final native retest.
-
-## Message search and filtering (Stages 6A–6B)
-
-Use Ctrl+F, View → HL7 Inspection → Find Messages, or HL7 Tools → Find Messages for read-only literal text and
-HL7 field/component searches across the current document, including unsaved edits.
-Results keep original ordinals, support double-click/Enter navigation and 200-row pages,
-and can filter the existing message navigator. Edits, switching and closure invalidate
-results safely. Opening/focusing never runs a search. Queries are saved only by explicit
-library actions; results stay ephemeral and query values are never logged. Stage 6A,
-including the final Find Messages UX cleanup, passed
-native Windows acceptance on 2026-10-16.
-
-Stage 6B adds a Simple/Advanced selector, up to 16 visual conditions in nested ALL/ANY
-groups (16 groups, four levels including the root),
-negative literal comparisons and field/segment existence checks. The separate Search
-Library explicitly saves/updates named queries with a nonmodal local unencrypted-storage
-disclosure; sensitive queries are allowed. Version-1 flat definitions migrate safely to
-version-2 trees on explicit update. Loading never runs
-a search. Query edits cancel/clear stale results and filters. Clear retains the query.
-Advanced has a draggable query/results splitter (initially 60/40), with its proportion
-saved independently of compact Simple mode; resizing never runs or invalidates a search.
-Stage 6B passed native Windows acceptance and is accepted; the user authorized its
-milestone commit and normal push to main. See
-[search semantics](docs/message-search.md) and [Stage 6A acceptance](docs/stage6a-search-acceptance.md).
-The [Stage 6B acceptance checklist](docs/stage6b-advanced-search-acceptance.md) covers the
-builder, local library, restart persistence and compatibility checks.
-
-## Message comparison (Stage 7)
-
-HL7 Tools → Message Comparison opens a document-sized, dockable/floating workspace.
-The default **Side-by-Side** view immediately shows both syntax-highlighted source panes,
-ready for temporary pasted text even with no documents open. **Differences** groups
-readable before/after changes by segment through the existing view toggle.
-Switching views retains results, selection and loaded source panes. Copy and ignore
-settings live in compact menus, alongside Next/Previous (F7/Shift+F7) and the count.
-
-With no documents open, paste directly into the A/B panes, or focus the A/B source control
-and press Ctrl+V. Results update after a short pause. Each source control offers
-Open Message, Original Message and editable temporary Pasted Text; switching kinds
-preserves that side's pasted draft. Document-backed sources remain read-only and use
-original message ordinals, including with search filters. Compare With Original on
-the ribbon/raw-editor context menu compares an unsaved draft with its initially loaded
-content. Comparison never changes document content, history or save state.
-
-Pasted text is retained exactly, including line endings, within the existing complete
-editor limits (1 Mi UTF-16 characters, 16 Ki per line). Paste one message per side;
-multiple MSH messages receive an explicit explanation. Temporary pasted text is cleared
-when the comparison workspace closes. Large document-backed messages retain bounded
-source windows. Settings now contains Preferences only; its edit-mode default remains
-persisted and applies to newly opened documents.
-
-Implementation, automated verification and user-confirmed native Windows acceptance
-are complete. See [comparison instructions](docs/message-comparison.md),
-[architecture decision](docs/decisions/0010-read-only-message-comparison.md) and the
-[Stage 7 acceptance checklist](docs/stage7-message-comparison-acceptance.md), including
-the reproducible synthetic sample generator. No comparison content/history is persisted.
-
-## Planned capabilities
-
-SQL-style querying, additional batch analysis and automated batch/load transmission
-remain planned. Synthetic generation, FHIR import and interactive TCP/MLLP are
-described above; Stage 12 still requires native Windows acceptance.
-
-## Windows setup
-
-Install the .NET 10 SDK (10.0.401 or a newer compatible .NET 10 feature band),
-VS Code, and Microsoft's C# extension. No additional .NET workloads or paid
-Avalonia tooling are required. Open this folder in VS Code.
-[global.json](global.json) specifies the SDK floor and feature-band roll-forward.
-
-Run from the repository root in PowerShell:
+Install the .NET 10 SDK: floor 10.0.401 with `latestFeature` roll-forward in
+[global.json](global.json). Initial dependency restore needs NuGet access.
+From the repository root in PowerShell:
 
 ```powershell
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
@@ -358,108 +76,42 @@ dotnet test HL7Workbench.sln --configuration Release --no-build --no-restore
 dotnet run --project src/HL7Workbench.Desktop --configuration Release --no-build --no-restore
 ```
 
-The final command opens the workspace. Use File → Open File to select local files,
-then enable Edit Mode in the raw pane when needed. File → Save / Save As and
-Ctrl+S / Ctrl+Shift+S publish edits; Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z use document history.
-
-Dependency restore needs NuGet access. The application has no runtime network
-features, cloud integration, or telemetry. Avalonia's transitive build telemetry
-assets are excluded; the environment opt-outs above are also configured in CI.
+Keep deployed ScriptHost/ and QueryHost/ output intact. Tests use Microsoft Testing
+Platform via xUnit, as selected in global.json. [Windows CI](.github/workflows/build.yml)
+uses locked restore and Release build/test. Native clipboard/IME, monitor/DPI and
+window-manager checks supplement headless tests. Extra large Workspace cases use
+`HL7WORKBENCH_STRESS=1`; run opt-ins deliberately rather than treating them as
+ordinary CI failures/skips. See [repository guidance](AGENTS.md) and
+[current test/lifecycle context](docs/PROJECT_CONTEXT.md).
 
 ## Projects and dependencies
 
-- `HL7Workbench.Core`: UI-independent parser, message model, paths, controlled
-  edits, escapes, diagnostics, and lossless serialization. No file I/O or NuGet
-  dependencies.
-- `HL7Workbench.Workspace`: UI-independent file snapshots/indexing, document and
-  inspection state, edit history, saving, preferences, tool registry, and bounded
-  layout metadata. No Avalonia or Dock dependencies.
-- `HL7Workbench.Desktop`: Avalonia/AvaloniaEdit UI and Dock shell, file pickers,
-  editing commands, and close prompts. Dock adapters remain isolated from Core
-  and Workspace.
-- The corresponding Core, Workspace, and Desktop test projects cover synthetic
-  parser, preservation, resource-limit, lifecycle, editor-input, and Dock regressions.
-
-Versions are centralized in [Directory.Packages.props](Directory.Packages.props);
-committed package lock files record the resolved graph. To intentionally update
-dependencies, edit the central versions, then run:
-
-```powershell
-dotnet restore HL7Workbench.sln --force-evaluate
-dotnet build HL7Workbench.sln --configuration Release --no-restore
-dotnet test HL7Workbench.sln --configuration Release --no-build --no-restore
-```
-
-Review all version and lock-file changes before accepting an update.
-[Windows CI](.github/workflows/build.yml) restores in locked mode and builds/tests
-Release. Tests use the Microsoft Testing Platform runner selected in `global.json`,
-supplied transitively by xUnit. See the [dependency inventory](docs/dependencies.md).
-
-## Testing
-
-CI allows test projects to overlap. Desktop and Workspace already disable parallel
-collections within their own processes; other projects retain xUnit's defaults.
-Headless transport tests must await the final model notification and visible controls,
-not just `Session.Execution`: its UI observer is a separate continuation. Use the
-bounded, event-based `ObservableCompletion` helper rather than fixed sleeps or
-retries. SQL worker `StartupTimeout` covers connection and initialization through
-Ready; `OperationTimeout` applies afterward. Keep short execution-deadline tests
-independent of startup speed and verify worker reaping and fresh-query recovery.
-`SessionTimeout` is a total lifetime including startup, not an inactivity timeout.
-Do not use a one-second real lifetime to arrange an idle-worker test: control the
-test session clock, reach Ready, advance its deadline, then await actual process
-exit. Startup phase/reason diagnostics and timer boundaries are documented in
-[ADR 0020](docs/decisions/0020-isolated-read-only-sql.md#startup-reliability-clarification-ci-round-3).
-
-For Desktop batch/load lifecycle tests, use the completion signal for the operation:
-
-| Operation | Completion required before assertions |
+| Production project | Responsibility |
 | --- | --- |
-| Prepare, review, export, rejected Start | Returned command task; model status is assigned before it returns. |
-| Run or cancellation with a retained view | Engine task plus final model notification and visible export/results state. |
-| View reconstruction | Same prepared run and execution task; configuration remains locked until that run ends. |
-| Tool close or layout reset | Model disposal drain; detached views do not own or cancel the run. |
-| Application window close | `Window.Closed`, then model disposal; visibility alone is insufficient. |
+| Core | UI/file/network-independent HL7 parser/scanner, edits/serializer, generation, FHIR mapping and profile validation. |
+| Workspace | UI-independent snapshots, documents/history, captures/publication, tools' sessions and local definitions/preferences/layout DTOs. |
+| Desktop | Avalonia/AvaloniaEdit shell, native controls/pickers and Dock integration. |
+| Scripting | Supported script facade/contracts and deterministic helper policies; no UI. |
+| ScriptHost | Separate trusted-C# execution process and worker protocol. |
+| Querying | UI/SQLite-independent query contracts and worker client. |
+| QueryHost | Separate read-only SQL process; owns native SQLite and enforcement. |
+| Transport | UI-independent incremental MLLP framing, TCP/listener and exchange lifecycles. |
 
-`ObservableCompletion.RunAsync` bounds waits for action plus observation to 10 seconds and
-removes subscriptions on failure/cancellation. Listener snapshots lack change events;
-their condition polling retains the existing 5-second deadline with count/state
-diagnostics. `UiObservationBarrier` tests intentionally delay the run's UI observer
-while real engine cancellation drains, then release it to the dispatcher. These
-controlled schedules demonstrate the completion contract, not a reproduced hosted
-runner schedule. Keep the deferred case alongside the ordinary execution case.
-
-The setup commands run the full automated suite. For the additional Workspace
-stress cases, use the same telemetry opt-outs and completed Release build:
-
-```powershell
-$env:HL7WORKBENCH_STRESS = '1'
-dotnet test tests/HL7Workbench.Workspace.Tests/HL7Workbench.Workspace.Tests.csproj --configuration Release --no-build --no-restore
-Remove-Item Env:HL7WORKBENCH_STRESS
-git diff --check
-```
-
-Stress mode includes synthetic 256/512 MiB source-backed cases. Headless tests
-exercise real AvaloniaEdit input and Dock integration; native clipboard/IME,
-window-manager, monitor, and DPI behavior also require manual regression checks.
-The [Stage 4 acceptance report](docs/stage4-editable-document-acceptance.md) records
-the accepted milestone's automated results and native Windows checklist.
+Five test projects cover Core, Workspace, Desktop, Scripting and Querying.
+Package versions are centralized in [Directory.Packages.props](Directory.Packages.props)
+with committed lock files. See [dependency inventory](docs/dependencies.md),
+[architecture/ADRs](docs/index.md#developer-references) and
+[validation metadata attribution](src/HL7Workbench.Core/ValidationCatalog/NOTICE.md).
+Keep Core free of UI and Dock, Workspace independent of Avalonia/Dock, and Dock
+adapters in Desktop. Do not change locks or dependencies without deliberate review.
 
 ## Documentation and repository data
 
-- [Architecture](docs/architecture.md) and [project context](docs/PROJECT_CONTEXT.md)
-- [Parser API](docs/parser-api.md) and [path grammar](docs/hl7-paths.md)
-- [Stage 1 acceptance](docs/viewer-stage1-acceptance.md) and
-  [Stage 2 acceptance](docs/viewer-stage2-acceptance.md)
-- [Stage 3 navigation and source inspection](docs/viewer-stage3-acceptance.md),
-  [source-viewer UX](docs/viewer-stage3-ux-acceptance.md), and
-  [large-file measurements](docs/stage3-performance.md)
-- [Activity Log](docs/stage3-activity-log-acceptance.md) and
-  [workspace layout](docs/stage3-workspace-layout-acceptance.md)
-- [Stage 4 editing and saving](docs/stage4-editable-document-acceptance.md) and
-  [inspection continuity](docs/stage4-inspection-continuity.md)
-- [Foundation decision](docs/decisions/0001-foundation.md) and
-  [docking acceptance](docs/docking-acceptance.md)
+[Documentation home](docs/index.md) separates current tasks from developer references
+and dated milestone evidence. The [initial specification](HL7_Workbench_Specification.md)
+and [starter prompt](Codex_Starter_Prompt.md) are historical planning, not current
+feature scope or security guarantees. Historical reports and accepted artifacts
+retain their established paths.
 
-Only reviewed synthetic fixtures belong in [samples/synthetic-only](samples/synthetic-only/).
-Never commit real patient data (PHI), secrets, or third-party proprietary materials.
+[Reviewed synthetic fixtures](samples/synthetic-only/README.md) support walkthroughs
+and regression tests. Never commit PHI, secrets or proprietary third-party materials.
