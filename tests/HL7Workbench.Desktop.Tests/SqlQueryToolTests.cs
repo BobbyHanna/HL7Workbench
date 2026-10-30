@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Collections.Specialized;
 using System.Text;
 using Avalonia;
 using Avalonia.Automation;
@@ -39,7 +40,15 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         using var input = new MemoryStream(Encoding.UTF8.GetBytes(string.Concat(Enumerable.Range(1, count).Select(n => Header + "PID|1||" + patient + "-" + n + "||Synthetic^Example\rPV1|1|I\r"))));
         return await MessageFileReader.OpenFileAsync(documents, "Synthetic.hl7", input, Token);
     }
-    private SqlQueryViewModel Model(DocumentManager documents, SqlQueryHistory? history = null) => new(documents, Library, history, Options);
+    private readonly List<OwnedSqlScope> ownedScopes = [];
+    private OwnedSqlScope OwnDocuments()
+    { var scope = new OwnedSqlScope(); ownedScopes.Add(scope); return scope; }
+    private SqlQueryViewModel Model(DocumentManager documents, SqlQueryHistory? history = null)
+    {
+        var model = new SqlQueryViewModel(documents, Library, history, Options);
+        ownedScopes.Single(scope => ReferenceEquals(scope.Documents, documents)).Models.Add(model);
+        return model;
+    }
     private static Window Host(SqlQueryView view, int width = 1150)
     { var window = new Window { Content = view, Width = width, Height = 800 }; window.Show(); Pump(window); return window; }
     [Fact]
@@ -48,7 +57,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); var source = await OpenDocument(documents, 205); var other = await OpenDocument(documents);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; var source = await OpenDocument(documents, 205); var other = await OpenDocument(documents);
             using var model = Model(documents); model.SelectedScope = true; model.ScopeDocuments.Single(c => c.Document == source).Selected = true;
             model.Sql = "SELECT DocumentId,MessageId,MessageNumber FROM Messages";
             var view = new SqlQueryView(model); var window = Host(view, 350); window.Height = 300;
@@ -73,20 +82,21 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
     public async Task MenuOpensAnOptionalSqlToolAndDefaultLayoutRemainsUnchanged()
     {
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
-        await ui.Dispatch(() =>
+        await ui.Dispatch(async () =>
         {
             var window = new MainWindow(root); window.Show(); Pump(window);
+            SqlQueryViewModel? model = null;
             try
             {
                 var factory = (WorkspaceDockFactory)typeof(MainWindow).GetField("factory", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(window)!;
                 var tool = factory.GetDockable<ITool>(WorkspaceDockFactory.SqlQueryId)!;
                 Assert.Null(tool.Context); Assert.Contains(tool, factory.Root.HiddenDockables!);
                 window.FindControl<MenuItem>("SqlQueryMenu")!.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent)); Pump(window);
-                Assert.IsType<SqlQueryViewModel>(tool.Context);
+                model = Assert.IsType<SqlQueryViewModel>(tool.Context);
                 Assert.Single(window.GetVisualDescendants().OfType<SqlQueryView>());
                 Assert.DoesNotContain("SELECT", LayoutCodec.Encode(factory.Capture()), StringComparison.Ordinal);
             }
-            finally { window.Close(); }
+            finally { window.Close(); if (model is not null) await model.Disposal; }
             return true;
         }, Token);
     }
@@ -97,7 +107,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); await OpenDocument(documents, 130);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents, 130);
             using var model = Model(documents); await model.LibraryTask; var view = new SqlQueryView(model); var window = Host(view, width);
             try
             {
@@ -121,7 +131,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); var first = await OpenDocument(documents, patient: "SYN-FIRST"); var second = await OpenDocument(documents, patient: "SYN-SECOND");
+            await using var owned = OwnDocuments(); var documents = owned.Documents; var first = await OpenDocument(documents, patient: "SYN-FIRST"); var second = await OpenDocument(documents, patient: "SYN-SECOND");
             using var model = Model(documents); var view = new SqlQueryView(model); var window = Host(view);
             try
             {
@@ -145,7 +155,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); await OpenDocument(documents, 130);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents, 130);
             using var model = Model(documents); var view = new SqlQueryView(model); var window = Host(view);
             try
             {
@@ -177,7 +187,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); var first = await OpenDocument(documents, 3); var second = await OpenDocument(documents);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; var first = await OpenDocument(documents, 3); var second = await OpenDocument(documents);
             using var model = Model(documents); model.SelectedScope = true; model.ScopeDocuments.Single(c => c.Document == first).Selected = true;
             model.Sql = "SELECT DocumentId,MessageId,MessageNumber FROM Messages ORDER BY MessageNumber DESC";
             var view = new SqlQueryView(model); var window = Host(view); var opened = new List<string>();
@@ -206,7 +216,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); var original = await OpenDocument(documents, 130); var before = original.Snapshot!.ReadBytes(new(0, original.Snapshot.Length), int.MaxValue);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; var original = await OpenDocument(documents, 130); var before = original.Snapshot!.ReadBytes(new(0, original.Snapshot.Length), int.MaxValue);
             using var model = Model(documents); var view = new SqlQueryView(model); var window = Host(view);
             model.ChooseExportAsync = () => Task.FromResult<FileSaveDestination?>(FileSaveDestination.NewFile(Path.Combine(root, "all-results.csv")));
             try
@@ -231,7 +241,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); var source = await OpenDocument(documents);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; var source = await OpenDocument(documents);
             using var model = Model(documents); var view = new SqlQueryView(model); var window = Host(view);
             try
             {
@@ -253,7 +263,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); await OpenDocument(documents);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents);
             using var model = Model(documents); var view = new SqlQueryView(model); var window = Host(view);
             try
             {
@@ -271,7 +281,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
     [Fact]
     public async Task SavedQueryActionsPromptForDraftChangesAndRenameDoesNotSaveSql()
     {
-        using var documents = new DocumentManager(); using var model = Model(documents); await model.LibraryTask;
+        await using var owned = OwnDocuments(); var documents = owned.Documents; using var model = Model(documents); await model.LibraryTask;
         Assert.False(Directory.Exists(Path.Combine(root, "queries")));
         model.Name = "Synthetic saved"; model.Sql = "SELECT 'SYN-EXPLICIT-SAVE'"; await model.SaveAsync(); Assert.False(model.IsDirty);
         var id = model.SavedId!.Value; model.Sql = "SELECT 'SYN-UNSAVED'"; model.Name = "Synthetic renamed"; await model.RenameAsync();
@@ -289,7 +299,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); using var model = Model(documents); await model.LibraryTask;
+            await using var owned = OwnDocuments(); var documents = owned.Documents; using var model = Model(documents); await model.LibraryTask;
             var view = new SqlQueryView(model); var window = Host(view);
             model.PromptUnsavedAsync = () => Task.FromResult(UnsavedChangesDecision.Discard);
             try
@@ -314,7 +324,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
     [Fact]
     public async Task CloseConsentIsVersionGuardedAndLaterShutdownCancellationKeepsDraft()
     {
-        using var documents = new DocumentManager(); using var model = Model(documents); await model.LibraryTask; model.Sql = "SELECT 2";
+        await using var owned = OwnDocuments(); var documents = owned.Documents; using var model = Model(documents); await model.LibraryTask; model.Sql = "SELECT 2";
         model.PromptUnsavedAsync = () => Task.FromResult(UnsavedChangesDecision.Discard);
         Assert.True(await model.ConfirmCloseAsync(discardImmediately: false)); Assert.True(model.IsDirty); Assert.Equal("SELECT 2", model.Sql);
         model.PromptUnsavedAsync = () => { model.Sql = "SELECT 3"; return Task.FromResult(UnsavedChangesDecision.Discard); };
@@ -331,7 +341,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); await OpenDocument(documents);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents);
             using var model = Model(documents); var view = new SqlQueryView(model); var window = Host(view);
             try
             {
@@ -354,7 +364,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
     [Fact]
     public async Task DockCloseReopenAndFloatingPersistOnlyPlacementAndRetainBoundedSessionHistory()
     {
-        using var documents = new DocumentManager(); await OpenDocument(documents); var tools = new ToolWindowRegistry(); var history = new SqlQueryHistory();
+        await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents); var tools = new ToolWindowRegistry(); var history = new SqlQueryHistory();
         tools.Register(new(WorkspaceDockFactory.DiagnosticsId, "Activity Log", () => new object()));
         tools.Register(new(WorkspaceDockFactory.SqlQueryId, "SQL Query", () => Model(documents, history), Optional: true, ReleaseOnClose: true, RestoreVisibility: true));
         using var factory = new WorkspaceDockFactory(documents, tools) { HostWindowLocator = new() { [nameof(IDockWindow)] = () => new FakeHostWindow() } };
@@ -373,7 +383,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
     [Fact]
     public async Task ToolClosureDrainsAnActiveOperationBeforeReleasingItsModel()
     {
-        using var documents = new DocumentManager(); await OpenDocument(documents);
+        await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents);
         var history = new SqlQueryHistory(); using var model = Model(documents, history); await model.LibraryTask;
         model.Sql = Slow; model.PromptUnsavedAsync = () => Task.FromResult(UnsavedChangesDecision.Discard);
         var run = model.RunAsync(); Assert.True(model.IsBusy);
@@ -389,7 +399,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         for (var n = 0; n < 40; n++) history.Add(new string('S', 16384), "Completed", n);
         Assert.InRange(history.Entries.Count, 1, 32); Assert.True(history.Entries.Sum(e => e.Sql.Length) <= 256 * 1024);
         Assert.DoesNotContain(new string('S', 50), history.Entries[0].ToString(), StringComparison.Ordinal);
-        using var documents = new DocumentManager(); await OpenDocument(documents, 100);
+        await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents, 100);
         using var model = Model(documents, history); await model.LibraryTask;
         model.Sql = "SELECT '" + new string('S', 16000) + "' FROM Messages"; await model.RunAsync();
         model.SelectCell(0, 0); model.SelectCell(99, 0, extend: true);
@@ -406,7 +416,7 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
         await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
         await ui.Dispatch(async () =>
         {
-            using var documents = new DocumentManager(); await OpenDocument(documents, 130);
+            await using var owned = OwnDocuments(); var documents = owned.Documents; await OpenDocument(documents, 130);
             using var model = Model(documents); await model.LibraryTask;
             model.Sql = "SELECT MessageNumber,MessageType,HL7_VALUE(MessageId,'PID-3.1') AS PatientId,HL7_VALUE(MessageId,'PV1-2') AS Class,NULL AS Missing,'' AS Empty FROM Messages ORDER BY MessageNumber";
             var view = new SqlQueryView(model); var window = new Window { Content = view, Width = width, Height = 800, RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light };
@@ -429,8 +439,96 @@ public sealed class SqlQueryToolTests : IAsyncDisposable
             return true;
         }, Token);
     }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task CleanupAwaitsExtractedSnapshotReadersIncludingAlreadyClosedDocuments(bool closeBeforeScope)
+    {
+        await using var ui = HeadlessUnitTestSession.StartNew(TestApplication);
+        await ui.Dispatch(async () =>
+        {
+            await using var owned = OwnDocuments(); var documents = owned.Documents;
+            var original = await OpenDocument(documents);
+            using var model = Model(documents); await model.RunAsync(); await model.ExtractAsync();
+            var output = documents.Documents.Single(d => d != original);
+            var snapshotDirectory = output.Snapshot!.DirectoryPath;
+            Assert.StartsWith(Path.GetFullPath(Options.StorageRoot!) + Path.DirectorySeparatorChar,
+                Path.GetFullPath(snapshotDirectory), StringComparison.OrdinalIgnoreCase);
+            using var release = new ManualResetEventSlim();
+            var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var read = output.ReadTextAsync(_ =>
+            {
+                entered.TrySetResult(); release.Wait(Token); return "Synthetic reader completed";
+            }, Token);
+            Task? cleanup = null;
+            try
+            {
+                await entered.Task.WaitAsync(TimeSpan.FromSeconds(10), Token);
+                if (closeBeforeScope) Assert.True(documents.Close(output.Id, true));
+                cleanup = owned.DisposeAsync().AsTask();
+                Assert.False(cleanup.IsCompleted); // A scheduler yield cannot satisfy this read lease.
+                Assert.True(Directory.Exists(snapshotDirectory));
+            }
+            finally
+            {
+                release.Set(); await read;
+                if (cleanup is not null) await cleanup.WaitAsync(TimeSpan.FromSeconds(10), Token);
+            }
+            Assert.True(model.Disposal.IsCompletedSuccessfully);
+            Assert.True(output.Disposal.IsCompletedSuccessfully);
+            Assert.False(Directory.Exists(snapshotDirectory));
+            await DisposeAsync(); Assert.False(Directory.Exists(root));
+            return true;
+        }, Token);
+    }
+
+    [Fact]
+    public async Task CleanupToleratesAnAlreadyRemovedOwnedDirectory()
+    {
+        Directory.CreateDirectory(root); DeleteOwnedDirectory(root);
+        await DisposeAsync(); await DisposeAsync(); Assert.False(Directory.Exists(root));
+    }
+
     public async ValueTask DisposeAsync()
-    { await Task.Yield(); if (Directory.Exists(root)) Directory.Delete(root, true); }
+    {
+        foreach (var scope in ownedScopes) await scope.DisposeAsync();
+        DeleteOwnedDirectory(root);
+    }
+    private static void DeleteOwnedDirectory(string directory)
+    {
+        // There is no Exists/Delete transaction. A previously removed owned
+        // directory is harmless; access, sharing and other IO errors still fail.
+        try { Directory.Delete(directory, true); }
+        catch (DirectoryNotFoundException) { }
+    }
+
+    /// <summary>Test-owned work drains on the creating context, before the headless
+    /// dispatcher or fixture directory goes away. Production Dispose is deliberately asynchronous.</summary>
+    private sealed class OwnedSqlScope : IAsyncDisposable
+    {
+        public DocumentManager Documents { get; } = new();
+        public List<SqlQueryViewModel> Models { get; } = [];
+        private readonly HashSet<MessageDocument> opened = [];
+        private Task? disposal;
+        public OwnedSqlScope() => ((INotifyCollectionChanged)Documents.Documents).CollectionChanged += Opened;
+        private void Opened(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Retain removed/closed documents too: their snapshot disposal may
+            // still be draining after DocumentManager no longer lists them.
+            if (e.NewItems is not null) foreach (MessageDocument document in e.NewItems) opened.Add(document);
+        }
+        public ValueTask DisposeAsync() => new(disposal ??= DrainAsync());
+        private async Task DrainAsync()
+        {
+            foreach (var model in Models) model.Dispose();
+            try { await Task.WhenAll(Models.Select(model => model.Disposal)); }
+            finally
+            {
+                Documents.Dispose();
+                try { await Task.WhenAll(opened.Select(document => document.Disposal)); }
+                finally { ((INotifyCollectionChanged)Documents.Documents).CollectionChanged -= Opened; }
+            }
+        }
+    }
 }
 
 public sealed class SqlQueryRenderTestApplication : App
