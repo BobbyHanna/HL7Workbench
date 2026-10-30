@@ -4,9 +4,13 @@
 
 Reference version 1 · scripting API 2 · available offline in Help → Script API Reference.
 
-Source SHA-256: `3832002eedd54c01701769378596dbf55cfeecb1822d9881f7d905e874705f22`.
+Source SHA-256: `34ce2a37d3f7cc9e2e46fd9a335c7deca910f14a9abc968bd778a64775e69318`.
 
-Supported user-script facade and helpers in HL7Workbench.Scripting, API 2. Inherited .NET members and compiler-generated record equality, printing, copying and deconstruction use ordinary C# semantics; they are not host operations. Host transport/orchestration types are classified separately and are not supported authoring facilities.
+Supported user-script facade and helpers in HL7Workbench.Scripting, API 2. Inherited .NET members and compiler-generated record equality, printing, copying and deconstruction use ordinary C# semantics; they are not host operations. Host transport/orchestration types are classified separately and are not supported authoring facilities. Public infrastructure types in the same referenced assembly can be named by trusted C#, but are unsupported host-orchestration facilities, not internal methods or a security boundary. Their exact metadata is included separately; it is excluded from facade completion and has no runnable authoring example.
+
+Signatures below are a verified snapshot of declared runtime contracts. The integrated reference derives exact signatures from the ScriptHost facade assembly; Copy API catalog JSON exports the complete machine-readable catalog. Permanent tests require this snapshot to match that runtime inventory.
+
+In the Script Editor, F1 looks up the supported API symbol at the cursor. Ctrl+Space explicitly opens documented facade completion; Ctrl+Shift+Space shows invocation signatures. No automatic popups, script execution or source mutation occur during lookup. Ordinary .NET APIs and arbitrary user code are outside facade completion.
 
 Search `starter` in the application to find the six editable starter examples. Built-in de-identification presets remain in the Script Library; duplicate them to customize their complete policies.
 
@@ -17,14 +21,21 @@ Search `starter` in the application to find the six editable starter examples. B
 Initialization runs once, Main once per captured selected message in logical input order, then optional Complete once after all Main calls succeed. Top-level variables persist within a run; each Run starts a fresh worker. Select Current message or Whole document in the editor. The host performs iteration; there is no document enumeration/navigation API in scripts.
 
 ```csharp
-void Main()
-void Complete() // optional
-enum ScriptScope { CurrentMessage, WholeDocument }
+ScriptScope.CurrentMessage = 0
+ScriptScope.WholeDocument = 1
 ```
 
 **Parameters:** Main/Complete: no parameters. Scope is selected by the application, not changed from inside Main.
 
 **Returns:** Both entry points return void. A successful run publishes a new independent unsaved output document.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Exactly one top-level instance, synchronous, nongeneric, parameterless void Main and at most one matching Complete. No overloads, static/async/Task entries or background work. Failure skips Complete and discards staged output/reports. Never retain Message or ScriptSegment across invocations.
 
@@ -42,6 +53,8 @@ void Complete()
 }
 ```
 
+Related topic IDs: `globals`, `publication`, `limits`.
+
 Starter: **Count selected messages**. Use Create editable script in the reference.
 
 ### Built-ins, My Scripts and starter examples
@@ -56,6 +69,14 @@ Duplicate Script → Rename Script → Save Script
 
 **Returns:** Saved user records keep their own stable identity and source. Ctrl+S in the script editor saves the script.
 
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
+
 **Limits and important behavior:** Saving a script does not save HL7 output. Dirty drafts prompt before switching; failed saves keep the draft. Old development scripts require explicit rewrite/adoption. Duplicate Patient Deidentifier to configure its supported policy rather than creating another library preset.
 
 ```csharp
@@ -65,6 +86,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ## Lifecycle and globals
 
 ### ScriptGlobals: Message, Batch, Cancellation
@@ -72,14 +95,22 @@ void Main()
 The worker supplies these globals without construction. Message resolves to the current Main invocation; Batch owns this job’s advanced facilities; Cancellation is the run token.
 
 ```csharp
-ScriptMessage Message { get; }
-ScriptBatch Batch { get; }
-CancellationToken Cancellation { get; }
+ScriptBatch ScriptGlobals.Batch { get; }
+CancellationToken ScriptGlobals.Cancellation { get; }
+ScriptMessage ScriptGlobals.Message { get; }
 ```
 
 **Parameters:** No parameters. Use Cancellation.ThrowIfCancellationRequested() inside long loops.
 
 **Returns:** Message is the bounded current facade, Batch the same run object and Cancellation the same execution token.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Accessors do not mutate message text. Message methods may transform the worker copy; Batch facilities manage staged output/reports.
+
+**Errors:** Message throws ScriptRunException(LifecyclePhase) outside Main. Cancellation.ThrowIfCancellationRequested is the standard .NET cooperative cancellation helper.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Message is unavailable during initialization and Complete (LifecyclePhase). Do not cache a facade, start background callbacks, or suppress cancellation.
 
@@ -90,6 +121,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `states`, `paths`, `publication`.
+
 ## Read and write
 
 ### ScriptMessage.Read: inspect value state
@@ -97,12 +130,20 @@ void Main()
 Reads the original encoded spelling and its structural state without implicitly decoding HL7 escapes. Prefer this before Text when a field may be absent or explicitly null.
 
 ```csharp
-ScriptValue Read(string path)
+ScriptValue ScriptMessage.Read(string path)
 ```
 
 **Parameters:** path: Core path such as PID-5.1, PID[2]-3[2].4.1, or OBX-5.1.2. Omitted segment/repetition indexes mean 1.
 
 **Returns:** ScriptValue with State and nullable Raw; no value is silently substituted for missing/null.
+
+**Null and missing values:** Read returns ScriptValue: Missing has Raw=null; Empty has Raw=""; ExplicitNull retains the raw two-quote spelling; Value retains original escaped text. Read never decodes or silently normalizes.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** InvalidPath is reported as ScriptRunException. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -117,6 +158,8 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
 
 Starter: **Read and modify PID**. Use Create editable script in the reference.
 
@@ -125,12 +168,20 @@ Starter: **Read and modify PID**. Use Create editable script in the reference.
 Explicitly decodes HL7 escape sequences using the message’s delimiters. An existing empty value returns an empty string.
 
 ```csharp
-string Text(string path)
+string ScriptMessage.Text(string path)
 ```
 
 **Parameters:** path: one-based Core HL7 coordinates, independent of actual separator characters.
 
 **Returns:** Decoded string; throws a fixed MissingValue diagnostic for missing/null or DecodeDiagnostic for unresolved escapes.
+
+**Null and missing values:** Missing and explicit null throw MissingValue. Empty returns an empty string. Other values are decoded only if their escape interpretation has no diagnostic.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** ScriptRunException: InvalidPath, MissingValue for missing/explicit null, DecodeDiagnostic for unresolved escapes; cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -146,18 +197,33 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### ScriptValue and ValueState
 
 State distinguishes no structural position, an existing empty position, HL7 explicit null (two quotes), and a nonempty value. Raw preserves escape spelling rather than decoded text.
 
 ```csharp
-record ScriptValue(ValueState State, string? Raw)
-enum ValueState { Missing, Empty, ExplicitNull, Value }
+ScriptValue(ValueState State, string? Raw)
+string? ScriptValue.Raw { get; init; }
+ValueState ScriptValue.State { get; init; }
+ValueState.Empty = 1
+ValueState.ExplicitNull = 2
+ValueState.Missing = 0
+ValueState.Value = 3
 ```
 
 **Parameters:** State: structural state. Raw: original spelling supplied by Read; null for missing positions.
 
 **Returns:** Read returns a value record; constructing one does not modify a message.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Record equality/with/deconstruction are ordinary generated C# features. Only controlled ScriptMessage/ScriptSegment methods mutate HL7.
 
@@ -173,17 +239,27 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### ScriptMessage.SetText: write a literal
 
 Writes a literal value through Core, escaping reserved characters for the actual message delimiters. Use for generated names and other literal replacements.
 
 ```csharp
-void SetText(string path, string value)
+void ScriptMessage.SetText(string path, string value)
 ```
 
 **Parameters:** path: supported existing or expandable field coordinate. value: literal text, not pre-escaped HL7.
 
 **Returns:** No return value; invalid paths/unsafe edits fail with fixed diagnostics.
+
+**Null and missing values:** value is non-null literal text; empty text is allowed. Text is encoded using the current delimiters/encoding. Use SetNull for HL7 explicit null.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -197,6 +273,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 Starter: **Independent output**. Use Create editable script in the reference.
 
 ### ScriptMessage.SetRaw: explicit HL7 spelling
@@ -204,12 +282,20 @@ Starter: **Independent output**. Use Create editable script in the reference.
 Writes explicitly encoded HL7 spelling through Core validation. Prefer SetText for literal data so custom delimiters and escape characters are encoded correctly.
 
 ```csharp
-void SetRaw(string path, string value)
+void ScriptMessage.SetRaw(string path, string value)
 ```
 
 **Parameters:** path: supported Core coordinate. value: raw HL7 spelling in the message’s delimiters.
 
 **Returns:** No return value; rejection retains the previous model.
+
+**Null and missing values:** value is non-null encoded ER7 spelling, not decoded text. Empty/raw explicit-null spelling remains meaningful. Core rejects unsafe structural/encoding changes.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -220,18 +306,28 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### ScriptMessage.SetNull and Clear
 
 SetNull writes an explicit HL7 null. Clear empties an existing position without removing it; a missing target is a no-op.
 
 ```csharp
-void SetNull(string path)
-void Clear(string path)
+void ScriptMessage.Clear(string path)
+void ScriptMessage.SetNull(string path)
 ```
 
 **Parameters:** path: Core one-based coordinate.
 
 **Returns:** No return value. Missing, empty and explicit null have different meanings.
+
+**Null and missing values:** SetNull writes the HL7 explicit-null token. Clear writes an empty existing position; a missing target is a no-op. These operations do not remove a field or its position.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -244,18 +340,28 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### ScriptMessage.CanEdit / HasDiagnostics
 
 CanEdit exposes Core editability. HasDiagnostics reports any structural/encoding diagnostic, allowing conservative scripts to refuse malformed input before writing.
 
 ```csharp
-bool CanEdit { get; }
-bool HasDiagnostics { get; }
+bool ScriptMessage.CanEdit { get; }
+bool ScriptMessage.HasDiagnostics { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Booleans, not a conformance or privacy guarantee.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Do not silently normalize malformed input. A script may explicitly throw to fail the run or leave the message unchanged for review.
 
@@ -271,6 +377,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ## Segments and paths
 
 ### Segments and repeated fields
@@ -278,7 +386,7 @@ void Main()
 Enumerates address views for a three-character segment identifier, in occurrence order. Each view re-resolves against the current model after writes; Identifier and one-based Occurrence identify the segment.
 
 ```csharp
-IReadOnlyList<ScriptSegment> Segments(string identifier)
+IReadOnlyList<ScriptSegment> ScriptMessage.Segments(string identifier)
 string ScriptSegment.Identifier { get; }
 int ScriptSegment.Occurrence { get; }
 ```
@@ -287,6 +395,14 @@ int ScriptSegment.Occurrence { get; }
 
 **Returns:** Read-only list (empty if no match). Repetition indexes remain explicit in relative paths.
 
+**Null and missing values:** A valid identifier with no occurrences returns an empty list. Identifier must be a non-null valid Core segment name.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** Invalid identifiers can throw ArgumentException from Core; cancellation can throw OperationCanceledException. No synthesized missing segments.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
+
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
 ```csharp
@@ -301,6 +417,8 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
 
 Starter: **Edit existing repetition**. Use Create editable script in the reference.
 
@@ -309,13 +427,21 @@ Starter: **Edit existing repetition**. Use Create editable script in the referen
 Reads a segment-relative value with structural state and original spelling.
 
 ```csharp
-ScriptValue Read(string relativePath)
+ScriptValue ScriptSegment.Read(string relativePath)
 ```
 
 **Parameters:** relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.
 
 **Returns:** ScriptValue with State and Raw.
 
+**Null and missing values:** Read returns ScriptValue: Missing has Raw=null; Empty has Raw=""; ExplicitNull retains the raw two-quote spelling; Value retains original escaped text. Read never decodes or silently normalizes.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** InvalidPath is reported as ScriptRunException. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
+
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
 ```csharp
@@ -330,19 +456,29 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `segments`, `paths`, `states`, `read`.
 
 ### ScriptSegment.Text
 
 Decodes a segment-relative value, with the same missing/null/escape rules as Message.Text.
 
 ```csharp
-string Text(string relativePath)
+string ScriptSegment.Text(string relativePath)
 ```
 
 **Parameters:** relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.
 
 **Returns:** Decoded string or fixed diagnostic.
 
+**Null and missing values:** Missing and explicit null throw MissingValue. Empty returns an empty string. Other values are decoded only if their escape interpretation has no diagnostic.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** ScriptRunException: InvalidPath, MissingValue for missing/explicit null, DecodeDiagnostic for unresolved escapes; cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
+
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
 ```csharp
@@ -357,18 +493,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `segments`, `paths`, `states`, `text`.
 
 ### ScriptSegment.SetText
 
 Escapes and writes a segment-relative literal through Core.
 
 ```csharp
-void SetText(string relativePath, string value)
+void ScriptSegment.SetText(string relativePath, string value)
 ```
 
 **Parameters:** relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.
 
 **Returns:** No return value.
+
+**Null and missing values:** value is non-null literal text; empty text is allowed. Text is encoded using the current delimiters/encoding. Use SetNull for HL7 explicit null.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -384,18 +530,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `segments`, `paths`, `states`, `set-text`.
 
 ### ScriptSegment.SetRaw
 
 Writes explicit encoded HL7 spelling through Core.
 
 ```csharp
-void SetRaw(string relativePath, string value)
+void ScriptSegment.SetRaw(string relativePath, string value)
 ```
 
 **Parameters:** relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.
 
 **Returns:** No return value.
+
+**Null and missing values:** value is non-null encoded ER7 spelling, not decoded text. Empty/raw explicit-null spelling remains meaningful. Core rejects unsafe structural/encoding changes.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -411,18 +567,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `segments`, `paths`, `states`, `set-raw`.
 
 ### ScriptSegment.SetNull
 
 Writes an explicit null at a segment-relative coordinate.
 
 ```csharp
-void SetNull(string relativePath)
+void ScriptSegment.SetNull(string relativePath)
 ```
 
 **Parameters:** relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.
 
 **Returns:** No return value.
+
+**Null and missing values:** SetNull writes the HL7 explicit-null token. Clear writes an empty existing position; a missing target is a no-op. These operations do not remove a field or its position.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -438,18 +604,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `segments`, `paths`, `states`, `null-clear`.
 
 ### ScriptSegment.Clear
 
 Empties an existing relative position; missing targets remain absent.
 
 ```csharp
-void Clear(string relativePath)
+void ScriptSegment.Clear(string relativePath)
 ```
 
 **Parameters:** relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.
 
 **Returns:** No return value.
+
+**Null and missing values:** SetNull writes the HL7 explicit-null token. Clear writes an empty existing position; a missing target is a no-op. These operations do not remove a field or its position.
+
+**Mutation:** Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.
+
+**Errors:** ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
@@ -465,6 +641,8 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `segments`, `paths`, `states`, `null-clear`.
 
 ### HL7 paths, repetitions and custom delimiters
 
@@ -480,6 +658,14 @@ segment.Read("5[2].1")
 
 **Returns:** Read/Text/controlled mutations use the same coordinate grammar.
 
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
+
 **Limits and important behavior:** Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.
 
 ```csharp
@@ -495,6 +681,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ## Batch and output
 
 ### ScriptMessage.Exclude
@@ -502,12 +690,20 @@ void Main()
 Omits the current message’s normal output. It does not cancel the job or suppress an already held/deferred copy.
 
 ```csharp
-void Exclude()
+void ScriptMessage.Exclude()
 ```
 
 **Parameters:** No parameters. Call during Main.
 
 **Returns:** No return value.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Marks the current message excluded from normal staged output. It does not delete the source message. Explicitly deferred/held copies remain separately controlled.
+
+**Errors:** OperationCanceledException on cancellation. Filtering/extraction with unsafe container framing can fail the host transaction with ContainerExtraction.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Filtering/deferred output requires extractable plain messages or complete unambiguous MLLP envelopes. Batch wrappers/opaque regions cannot be silently discarded; unsafe boundaries fail atomically.
 
@@ -518,17 +714,27 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### ScriptBatch.MessageNumber
 
 One-based job-local input ordinal during Main; zero in initialization and Complete. With Current scope it is 1 even when the selected source message has a different document position.
 
 ```csharp
-int MessageNumber { get; }
+int ScriptBatch.MessageNumber { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Job ordinal, not a stable MessageId, document position, output counter or navigation command.
+
+**Null and missing values:** MessageNumber is a one-based job-local captured ordinal during Main; zero in initialization and Complete. It is not a persistent MessageId or UI selection index.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Source mapping stays in the parent. Tab switches do not retarget a captured run. Never persist job ordinals as document identity.
 
@@ -546,17 +752,27 @@ void Complete()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### ScriptBatch.SetOutputFileName
 
 Suggests an output filename in initialization, Main or Complete. The last valid suggestion wins. Invalid suggestions are ignored with a fixed nonfatal notice; they never erase a valid suggestion.
 
 ```csharp
-void SetOutputFileName(string? fileName)
+void ScriptBatch.SetOutputFileName(string? fileName)
 ```
 
 **Parameters:** fileName: filename only, up to 128 UTF-16 units including .hl7; the extension is appended/standardized. Paths, reserved Windows devices, controls, format characters and unsafe endings are refused.
 
 **Returns:** No return value. Without an override, the captured script name or Script Result.hl7 is used.
+
+**Null and missing values:** Null/empty/unsafe suggestions fail normalization. TryNormalize returns false and an empty out fileName. FromScriptName falls back to Script Result.hl7. SetOutputFileName ignores invalid suggestions, retaining the last valid one.
+
+**Mutation:** Suggestions only: no path resolution, file creation, source save, source rename or modify-in-place operation.
+
+**Errors:** Invalid filename suggestions are ignored/rejected without failing the job. SetOutputFileName can throw for cancellation or finished lifecycle state.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** A filename suggestion never saves, chooses a directory or authorizes replacement. Duplicate tab labels may gain a display counter without changing the suggestion.
 
@@ -570,20 +786,30 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### ScriptOutputFileName validation
 
 The same portable Windows filename policy is available to scripts. FromScriptName uses Fallback if normalization fails; TryNormalize returns a success flag and an empty out string on failure.
 
 ```csharp
-const string Fallback = "Script Result.hl7";
-const int MaximumCharacters = 128;
-static string FromScriptName(string? name)
-static bool TryNormalize(string? suggestion, out string fileName)
+const string ScriptOutputFileName.Fallback = "Script Result.hl7"
+static string ScriptOutputFileName.FromScriptName(string? name)
+const int ScriptOutputFileName.MaximumCharacters = 128
+static bool ScriptOutputFileName.TryNormalize(string? suggestion, out string fileName)
 ```
 
 **Parameters:** name/suggestion: proposed filename, never a path. fileName: normalized output when true.
 
 **Returns:** FromScriptName returns a safe suggestion. TryNormalize returns bool and normalized text.
+
+**Null and missing values:** Null/empty/unsafe suggestions fail normalization. TryNormalize returns false and an empty out fileName. FromScriptName falls back to Script Result.hl7. SetOutputFileName ignores invalid suggestions, retaining the last valid one.
+
+**Mutation:** Suggestions only: no path resolution, file creation, source save, source rename or modify-in-place operation.
+
+**Errors:** Invalid filename suggestions are ignored/rejected without failing the job. SetOutputFileName can throw for cancellation or finished lifecycle state.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** No filesystem lookup, truncation, normalization of Unicode or extraction from paths. Other suffixes become part of the stem before .hl7 is appended.
 
@@ -595,18 +821,27 @@ void Complete()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### ScriptBatch.Hold and ScriptDeferredMessage
 
 Retains an immutable bounded copy of the current transformed message for a later decision. Normal output remains included unless Exclude is called separately.
 
 ```csharp
-ScriptDeferredMessage Hold(ScriptMessage message)
-sealed class ScriptDeferredMessage // opaque; no public constructor or members
+ScriptDeferredMessage ScriptBatch.Hold(ScriptMessage message)
 ```
 
 **Parameters:** message: exactly the current Message during Main.
 
 **Returns:** Opaque copy owned by this run; no raw byte or mapping-table access.
+
+**Null and missing values:** The message/copy must belong to this run; no arbitrary source-free messages can be constructed or emitted.
+
+**Mutation:** Copies/queues worker output only. Hold/Defer do not exclude the normal message; call Message.Exclude separately when delayed-only output is intended. Emit order determines held-output order.
+
+**Errors:** ScriptRunException: LifecyclePhase for wrong phase/ownership; DeferredLimit for the retained/emitted copy budgets; OperationCanceledException on cancellation.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Hold is unavailable outside Main. Up to 128 retained copies / 16 MiB per job. Copies retain original input attribution and framing constraints.
 
@@ -623,17 +858,27 @@ void Complete()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### ScriptBatch.Defer
 
 Holds and queues a copy immediately during Main. Queued copies drain after Complete in queue order, after normal output.
 
 ```csharp
-void Defer(ScriptMessage message)
+void ScriptBatch.Defer(ScriptMessage message)
 ```
 
 **Parameters:** message: exactly the current Message during Main.
 
 **Returns:** No return value.
+
+**Null and missing values:** The message/copy must belong to this run; no arbitrary source-free messages can be constructed or emitted.
+
+**Mutation:** Copies/queues worker output only. Hold/Defer do not exclude the normal message; call Message.Exclude separately when delayed-only output is intended. Emit order determines held-output order.
+
+**Errors:** ScriptRunException: LifecyclePhase for wrong phase/ownership; DeferredLimit for the retained/emitted copy budgets; OperationCanceledException on cancellation.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.
 
 **Limits and important behavior:** Retained and queued copies have separate 128-message/16 MiB shared job budgets. Defer does not exclude normal output by itself. No source-free message generation.
 
@@ -645,17 +890,27 @@ void Main()
 }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### ScriptBatch.Emit
 
 Queues one of this run’s held copies during Complete. Emission follows normal output and already deferred copies, in Emit call order.
 
 ```csharp
-void Emit(ScriptDeferredMessage copy)
+void ScriptBatch.Emit(ScriptDeferredMessage copy)
 ```
 
 **Parameters:** copy: immutable handle returned by this run’s Hold.
 
 **Returns:** No return value.
+
+**Null and missing values:** The message/copy must belong to this run; no arbitrary source-free messages can be constructed or emitted.
+
+**Mutation:** Copies/queues worker output only. Hold/Defer do not exclude the normal message; call Message.Exclude separately when delayed-only output is intended. Emit order determines held-output order.
+
+**Errors:** ScriptRunException: LifecyclePhase for wrong phase/ownership; DeferredLimit for the retained/emitted copy budgets; OperationCanceledException on cancellation.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Emit requires Complete; Hold and Defer require the current Message in Main.
 
 **Limits and important behavior:** Only Complete and same-owner handles are accepted. Repeated emission consumes the queue budget again. Failure or cancellation publishes neither partial output nor reports.
 
@@ -672,9 +927,11 @@ void Complete()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### Atomic output, attribution and source edits
 
-Workspace captures stable input identity/revision, stages all transformed messages and CSV privately, validates output framing and publishes only after success. Original source bytes, drafts, undo history and save destination are untouched.
+Workspace captures stable input identity/revision, stages all transformed messages and CSV privately, validates output framing and publishes only after success. Original source bytes, drafts, undo history and save destination are untouched. There is no modify-in-place execution option: edits inside Main affect only staged output. A filename suggestion does not save a file. Use the existing Save/Save As or explicit CSV export after successful publication.
 
 ```csharp
 Main → Complete → deferred drain → validated independent output
@@ -683,6 +940,14 @@ Main → Complete → deferred drain → validated independent output
 **Parameters:** Choose Current or Whole in the editor; output always opens as a new unsaved document.
 
 **Returns:** A successful result keeps producing-run attribution. Source edits during execution preserve independent captured output with explicit stale-source attribution.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Closing the source, cancellation or failures prevent publication. Invalid input/output, unsafe extraction or framing changes fail explicitly. Reports require explicit export. Arbitrary external C# side effects cannot be rolled back.
 
@@ -696,6 +961,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `limits`.
+
 ## Reports and diagnostics
 
 ### ScriptBatch.Report / ScriptCsvReport.Row
@@ -703,13 +970,21 @@ void Main()
 Define ordered report schemas only during initialization. Append rows during initialization, Main or Complete. Reports are staged with output and become exportable only after a successful run.
 
 ```csharp
-ScriptCsvReport Report(string name, params string[] columns)
+ScriptCsvReport ScriptBatch.Report(string name, params string[] columns)
 void ScriptCsvReport.Row(params string?[] values)
 ```
 
 **Parameters:** name: 1–64 ASCII letters/digits/_/-, case-insensitively unique. columns: 1–64 headings in order. values: same count/order; null and empty both export as empty quoted cells.
 
 **Returns:** Report returns a run-owned CSV writer. Row returns void.
+
+**Null and missing values:** Null row cells encode as empty CSV cells. The values array itself must be non-null and match the declared column count.
+
+**Mutation:** Stages CSV report rows in the run journal. Reports publish only on whole-job success and require explicit export; no automatic file IO.
+
+**Errors:** ScriptRunException: ReportSchema for name/schema/phase/column-count violations; ReportLimit for cell/row/byte budgets; cancellation can throw OperationCanceledException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Define Batch.Report in initialization only. Append report.Row in any active phase; both scopes support CSV reports.
 
 **Limits and important behavior:** 8 reports; 100,000 data rows/16 MiB UTF-8 globally; 16,384 UTF-16 units/cell; 256 KiB per lifecycle operation. UTF-8 no BOM, CRLF, all cells quoted. Formula-like cells gain an apostrophe. Keep reports bounded and avoid sensitive content.
 
@@ -724,6 +999,8 @@ void Complete()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 Starter: **Bounded count report**. Use Create editable script in the reference.
 
 ### ScriptBatch.ValidReportName
@@ -731,12 +1008,20 @@ Starter: **Bounded count report**. Use Create editable script in the reference.
 Checks the bounded ASCII report-label grammar without accessing a filesystem.
 
 ```csharp
-static bool ValidReportName(string name)
+static bool ScriptBatch.ValidReportName(string name)
 ```
 
 **Parameters:** name: non-null candidate label, 1–64 ASCII letters/digits, underscore or hyphen.
 
 **Returns:** True for a valid label; uniqueness is checked by Report.
+
+**Null and missing values:** Accepts 1-64 ASCII letters/digits/underscore/hyphen only. No whitespace trimming, null normalization or file-path interpretation.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** Invalid non-null names return false. Passing null is outside the non-nullable contract and can throw NullReferenceException.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** A report label is not a file path. Invalid Report schemas fail ReportSchema; byte/row/cell exhaustion fails ReportLimit.
 
@@ -745,20 +1030,42 @@ var valid = ScriptBatch.ValidReportName("summary");
 void Main() {}
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### ScriptDiagnostic and ScriptPhase
 
 Diagnostics describe safe codes/locations, not imported exception messages. The editor presents compiler locations and captured input attribution. Description maps codes to fixed text; ToString formats that safe metadata.
 
 ```csharp
-record ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line = null, int? Column = null, int? MessageNumber = null, string? Path = null)
-string Description { get; }
-string ToString()
-enum ScriptPhase { Configuration, Compilation, Execution, Protocol, Worker, Input, Output }
+ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line = null, int? Column = null, int? MessageNumber = null, string? Path = null)
+string ScriptDiagnostic.Code { get; init; }
+int? ScriptDiagnostic.Column { get; init; }
+string ScriptDiagnostic.Description { get; }
+int? ScriptDiagnostic.Line { get; init; }
+int? ScriptDiagnostic.MessageNumber { get; init; }
+string? ScriptDiagnostic.Path { get; init; }
+ScriptPhase ScriptDiagnostic.Phase { get; init; }
+string ScriptDiagnostic.ToString()
+ScriptPhase.Compilation = 1
+ScriptPhase.Configuration = 0
+ScriptPhase.Execution = 2
+ScriptPhase.Input = 5
+ScriptPhase.Output = 6
+ScriptPhase.Protocol = 3
+ScriptPhase.Worker = 4
 ```
 
 **Parameters:** Phase: failing operation. Code: fixed/CS compiler code. Line/Column: one-based script location. MessageNumber: job-local ordinal. Path: validated HL7 coordinate when available.
 
 **Returns:** Read-only metadata and formatted description. Constructing metadata does not publish it automatically.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Worker sanitization accepts a closed code/path set and omits arbitrary source text and exception messages. Never put identifiers or patient values in diagnostics; unknown text is not a safe logging channel. Compiler codes take precedence before initialization.
 
@@ -769,27 +1076,44 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ### ScriptRunException.Diagnostics
 
 Signals a fixed scripting failure to the worker. Prefer allowing transformation and resource-limit failures to abort the run.
 
 ```csharp
 ScriptRunException(params ScriptDiagnostic[] diagnostics)
-IReadOnlyList<ScriptDiagnostic> Diagnostics { get; }
+IReadOnlyList<ScriptDiagnostic> ScriptRunException.Diagnostics { get; }
 ```
 
 **Parameters:** diagnostics: fixed safe diagnostic records, without source values.
 
 **Returns:** Exception carries the diagnostic list; inherited Exception members are ordinary .NET members.
 
+**Null and missing values:** Diagnostics and required constructor arguments follow their non-nullable C# contracts. ScriptDiagnostic optional locations/path may be null; missing-value errors never silently become empty strings.
+
+**Mutation:** Catching an exception does not undo earlier successful worker mutations or external side effects. The example only reads a missing synthetic field and writes its fixed diagnostic code to a staged report.
+
+**Errors:** Uncaught ScriptRunException aborts the job and prevents staged publication. The example catches a recoverable MissingValue read. Do not suppress cancellation or continue after workflow/budget failures.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
+
 **Limits and important behavior:** Do not catch errors merely to publish partial data; cancellation/limits should propagate. Imported exception text is omitted by the worker.
 
 ```csharp
+var handled = Batch.Report("handled-errors", "Code");
 void Main()
 {
-    if (Message.HasDiagnostics) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Execution, "EditRejected"));
+    try { _ = Message.Text("ZPI-1"); } // Missing in the synthetic example.
+    catch (ScriptRunException error)
+    {
+        foreach (var diagnostic in error.Diagnostics) handled.Row(diagnostic.Code);
+    }
 }
 ```
+
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
 
 ## Limits and security
 
@@ -798,25 +1122,33 @@ void Main()
 These public constants bound script source UTF-16 units, complete-message UTF-16 units, segment units, encoded message bytes, diagnostics, inputs, deferred copies and CSV operations. They are not user-settable options.
 
 ```csharp
-const int ScriptCharacters = 65536;
-const int MessageCharacters = 1048576;
-const int LineCharacters = 16384;
-const int MessageBytes = 8388608;
-const int Diagnostics = 100;
-const int BatchMessages = 100000;
-const int DeferredMessages = 128;
-const int DeferredBytes = 16777216;
-const int Reports = 8;
-const int ReportColumns = 64;
-const int ReportCellCharacters = 16384;
-const int ReportRows = 100000;
-const int ReportBytes = 16777216;
-const int ReportOperationBytes = 262144;
+const int ScriptLimits.BatchMessages = 100000
+const int ScriptLimits.DeferredBytes = 16777216
+const int ScriptLimits.DeferredMessages = 128
+const int ScriptLimits.Diagnostics = 100
+const int ScriptLimits.LineCharacters = 16384
+const int ScriptLimits.MessageBytes = 8388608
+const int ScriptLimits.MessageCharacters = 1048576
+const int ScriptLimits.ReportBytes = 16777216
+const int ScriptLimits.ReportCellCharacters = 16384
+const int ScriptLimits.ReportColumns = 64
+const int ScriptLimits.ReportOperationBytes = 262144
+const int ScriptLimits.ReportRows = 100000
+const int ScriptLimits.Reports = 8
+const int ScriptLimits.ScriptCharacters = 65536
 ```
 
 **Parameters:** No parameters. Character limits use UTF-16; byte limits count encoded payload or UTF-8 CSV, as named.
 
 **Returns:** Compile-time integer constants.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Defaults outside this facade: 768 MiB worker memory, 30s startup, 60s compilation, 10s each operation, 10min job, 1 GiB input/output storage, 12 MiB IPC frame. Host configuration may impose tighter bounds. Long loops must check Cancellation; timeout forcibly stops an uncooperative worker.
 
@@ -826,6 +1158,8 @@ void Main()
     Cancellation.ThrowIfCancellationRequested();
 }
 ```
+
+Related topic IDs: `lifecycle`, `globals`, `publication`.
 
 ### Trusted C#, isolation and cancellation
 
@@ -839,6 +1173,14 @@ Cancellation.ThrowIfCancellationRequested();
 
 **Returns:** Canceled/failed runs publish no partial output or reports; safe diagnostics omit imported exception text.
 
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
+
 **Limits and important behavior:** #r, #load and #line directives are refused. This does not prevent arbitrary trusted C# filesystem/network side effects; those cannot be rolled back. The documented synthetic helpers themselves have no IO/network or persistent mappings. No new execution capability is added by the reference. No async/background facade use.
 
 ```csharp
@@ -848,6 +1190,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `lifecycle`, `globals`, `publication`, `limits`.
+
 ## Synthetic identities
 
 ### SyntheticIdentityLibrary construction and Get
@@ -856,13 +1200,21 @@ Allocates deterministic fictional profiles from the bundled vocabulary, with bou
 
 ```csharp
 SyntheticIdentityLibrary(uint seed, int maximumIdentities = 100000)
-SyntheticIdentity Get(string identityKey, CancellationToken cancellation = default)
-const int DictionaryVersion = 1;
+const int SyntheticIdentityLibrary.DictionaryVersion = 1
+SyntheticIdentity SyntheticIdentityLibrary.Get(string identityKey, CancellationToken cancellation = default)
 ```
 
 **Parameters:** seed: reproducibility configuration, not an anonymity secret. maximumIdentities: 1–100,000. identityKey: nonempty opaque key, at most 256 UTF-16 units. cancellation: execution token.
 
 **Returns:** Same library/key returns the cached complete profile; distinct allocations do not reuse complete identities. No mapping tables are exposed.
+
+**Null and missing values:** identityKey must be non-null and 1-256 characters. Omit cancellation for its default non-canceled token; no missing-identity inference occurs.
+
+**Mutation:** Allocates/caches execution-local synthetic identities. Does not edit HL7 or persist a crosswalk. Results depend on seed, opaque key and allocation order.
+
+**Errors:** ArgumentOutOfRangeException for constructor bounds; ArgumentNullException for null identityKey; ScriptRunException(TransformationLimit) for invalid key lengths or exhausted mappings; OperationCanceledException on cancellation.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Determinism requires the same seed, key/allocation order, dictionary and implementation. New runs require new instances; no key/profile map is persisted. Exhaustion uses TransformationLimit. Names and finite fictional phone numbers can repeat. Do not use source demographics to select replacements. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -882,6 +1234,8 @@ void Main()
 }
 ```
 
+Related topic IDs: `identity-profile`, `workflow`.
+
 Starter: **Synthetic identity helper**. Use Create editable script in the reference.
 
 ### SyntheticIdentity profile and construction
@@ -889,12 +1243,29 @@ Starter: **Synthetic identity helper**. Use Create editable script in the refere
 Library-generated profiles contain allocation slot, invented given/middle/family names, fictional street/locality, a fixed-pool DOB, administrative sex and marital status. Source demographics and the clock do not choose these values.
 
 ```csharp
-record SyntheticIdentity(int Allocation, string GivenName, string MiddleName, string FamilyName, string Street, string Locality, DateOnly DateOfBirth, string AdministrativeSex, string MaritalStatus)
+SyntheticIdentity(int Allocation, string GivenName, string MiddleName, string FamilyName, string Street, string Locality, DateOnly DateOfBirth, string AdministrativeSex, string MaritalStatus)
+string SyntheticIdentity.AdministrativeSex { get; init; }
+int SyntheticIdentity.Allocation { get; init; }
+DateOnly SyntheticIdentity.DateOfBirth { get; init; }
+string SyntheticIdentity.FamilyName { get; init; }
+string SyntheticIdentity.GivenName { get; init; }
+string SyntheticIdentity.Locality { get; init; }
+string SyntheticIdentity.MaritalStatus { get; init; }
+string SyntheticIdentity.MiddleName { get; init; }
+string SyntheticIdentity.Street { get; init; }
 ```
 
 **Parameters:** Allocation: library slot. GivenName/MiddleName/FamilyName: vocabulary names. Street/Locality: fictional address. DateOfBirth: generated date. AdministrativeSex/MaritalStatus: generated codes.
 
 **Returns:** A value record; prefer library.Get rather than manually constructing an inconsistent profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Positional properties support record init/with syntax but do not validate manually created records. DOB pool spans 1945–2013; profiles are test values, not clinical conformance or real-world identities. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -914,17 +1285,27 @@ void Main()
 }
 ```
 
+Related topic IDs: `identity-library`, `workflow`.
+
 ### SyntheticIdentity.Identifier
 
 Nine-digit local synthetic ID (100000000 + allocation).
 
 ```csharp
-string Identifier { get; }
+string SyntheticIdentity.Identifier { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -943,18 +1324,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.Region
 
 ZZ, deliberately non-deliverable.
 
 ```csharp
-string Region { get; }
+string SyntheticIdentity.Region { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -973,18 +1364,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.PostalCode
 
 00000, deliberately non-deliverable.
 
 ```csharp
-string PostalCode { get; }
+string SyntheticIdentity.PostalCode { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1003,18 +1404,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.Country
 
 USA example country code.
 
 ```csharp
-string Country { get; }
+string SyntheticIdentity.Country { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1033,18 +1444,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.DwellingNumber
 
 Street number extracted from the generated street.
 
 ```csharp
-string DwellingNumber { get; }
+string SyntheticIdentity.DwellingNumber { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1063,18 +1484,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.Unit
 
 Allocation-dependent fictional unit.
 
 ```csharp
-string Unit { get; }
+string SyntheticIdentity.Unit { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1093,18 +1524,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.AreaCode
 
 Fixed example area code 202.
 
 ```csharp
-string AreaCode { get; }
+string SyntheticIdentity.AreaCode { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1123,18 +1564,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.LocalTelephone
 
 555-0100 through 555-0199 fictional subscriber pool.
 
 ```csharp
-string LocalTelephone { get; }
+string SyntheticIdentity.LocalTelephone { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1153,18 +1604,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.Telephone
 
 +1 plus area code/subscriber.
 
 ```csharp
-string Telephone { get; }
+string SyntheticIdentity.Telephone { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1183,18 +1644,28 @@ void Main()
     }
 }
 ```
+
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
 
 ### SyntheticIdentity.Email
 
 Generated name/slot at reserved example.org.
 
 ```csharp
-string Email { get; }
+string SyntheticIdentity.Email { get; }
 ```
 
 **Parameters:** No parameters.
 
 **Returns:** Derived string for the generated profile.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1214,17 +1685,27 @@ void Main()
 }
 ```
 
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
+
 ### SyntheticIdentity.AgeOn
 
 Calculates whole birthday years from the generated DOB using the supplied reference date; no current clock or timezone lookup.
 
 ```csharp
-int AgeOn(DateOnly reference)
+int SyntheticIdentity.AgeOn(DateOnly reference)
 ```
 
 **Parameters:** reference: explicit date for age calculation.
 
 **Returns:** Integer age; reference dates before birth can yield negative values.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Caller chooses a sensible date and clinical context; this does not validate arbitrary source age observations. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1234,6 +1715,8 @@ int age = identity.AgeOn(new DateOnly(2030, 1, 1));
 void Main() {}
 ```
 
+Related topic IDs: `identity-library`, `identity-profile`, `workflow`.
+
 ## De-identification
 
 ### DeidentificationWorkflow construction and Apply
@@ -1242,15 +1725,23 @@ Construct once in initialization; Apply the current Message in Main. Summary ret
 
 ```csharp
 DeidentificationWorkflow(DeidentificationOptions options, CancellationToken cancellation = default)
-void Apply(ScriptMessage message)
-int ShiftDays { get; }
-DeidentificationSummary Summary { get; }
-IReadOnlyList<DeidentificationFinding> Findings { get; }
+void DeidentificationWorkflow.Apply(ScriptMessage message)
+IReadOnlyList<DeidentificationFinding> DeidentificationWorkflow.Findings { get; }
+int DeidentificationWorkflow.ShiftDays { get; }
+DeidentificationSummary DeidentificationWorkflow.Summary { get; }
 ```
 
 **Parameters:** options: supported preset/seed/shift/mapping bounds. cancellation: run token. message: current invocation facade.
 
 **Returns:** Apply returns void; Summary is a count snapshot suitable for one Complete report row. Existing library built-ins provide the complete reviewable presets.
+
+**Null and missing values:** Supported fields preserve missing/empty/explicit null where policy specifies. Unresolved identity/timestamp cases produce bounded review findings; no silent assumption of safe data.
+
+**Mutation:** Apply transforms the supplied worker message and updates run-local mappings/counts/findings. Source files/history remain unchanged; it is a de-identification aid, not certification.
+
+**Errors:** ArgumentNullException for null options; ArgumentException for invalid options; ScriptRunException: EditRejected for malformed/non-editable input, BatchLimit, TransformationLimit for work/mapping budgets; OperationCanceledException on cancellation.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Initialize one workflow per run; call Apply(Message) in Main, inspect aggregate Summary/Findings in Complete.
 
 **Limits and important behavior:** Do not instantiate per Main when cross-message consistency matters. Apply requires editable input without diagnostics. Patient unsupported/narrative/ED leaves are suppressed; narrower presets retain other sensitive values. Qualified identity ambiguity is counted, never guessed. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1266,24 +1757,36 @@ void Main() { workflow.Apply(Message); }
 void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
+Related topic IDs: `globals`, `lifecycle`, `states`, `paths`, `publication`.
+
 ### DeidentificationOptions and presets
 
 Immutable configuration for existing helpers. Patient Deidentifier replaces supported identity/demographics and suppresses unsupported leaves. Identifier Pseudonymizer changes supported references only; Timestamp Shifter changes supported timestamps only.
 
 ```csharp
-new DeidentificationOptions()
-DeidentificationPreset Preset { get; init; } = DeidentificationPreset.PatientDeidentifier;
-uint Seed { get; init; } = 42;
-int? ShiftDays { get; init; }
-int MaximumMappings { get; init; } = 100000;
-const int ImplementationVersion = 1;
-const int PatientImplementationVersion = 2;
-enum DeidentificationPreset { PatientDeidentifier, IdentifierPseudonymizer, TimestampShifter }
+DeidentificationOptions()
+const int DeidentificationOptions.ImplementationVersion = 1
+int DeidentificationOptions.MaximumMappings { get; init; }
+const int DeidentificationOptions.PatientImplementationVersion = 2
+DeidentificationPreset DeidentificationOptions.Preset { get; init; }
+uint DeidentificationOptions.Seed { get; init; }
+int? DeidentificationOptions.ShiftDays { get; init; }
+DeidentificationPreset.IdentifierPseudonymizer = 1
+DeidentificationPreset.PatientDeidentifier = 0
+DeidentificationPreset.TimestampShifter = 2
 ```
 
 **Parameters:** Preset: one of three enum values. Seed: deterministic run seed. ShiftDays: -3660…3660, or null for a derived nonzero -365…365 displacement. MaximumMappings: 1–100,000 per map.
 
 **Returns:** A configuration record validated by the workflow constructor.
+
+**Null and missing values:** ShiftDays=null derives a common seed-based displacement. Other nullable inputs are not introduced. Object creation applies the documented existing defaults.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** Options are ordinary init properties; DeidentificationWorkflow construction validates preset, ShiftDays (-3660..3660) and MaximumMappings (1..100000), throwing ArgumentException for invalid values.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Full-day through second precision, up to four fraction digits and explicit offsets are preserved. Missing offsets stay absent. Partial/malformed/overflow/leap-second/unsupported timestamps are cleared in Patient or retained with counts in Timestamp mode. No timezone/locale guessing. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1299,17 +1802,37 @@ void Main() { workflow.Apply(Message); }
 void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
+Related topic IDs: `workflow`, `workflow-report`, `workflow-findings`.
+
 ### DeidentificationSummary counters
 
 Messages: processed count. MissingIdentities/AmbiguousIdentities: unresolved correlation counts. ReplacedValues/SuppressedValues: transformed/suppressed leaves. ShiftedTimestamps/UnsupportedTimestamps: supported/unsupported time counts. UnknownSegments/HighRiskFields/RetainedValues: review evidence counts.
 
 ```csharp
-record DeidentificationSummary(long Messages, long MissingIdentities, long AmbiguousIdentities, long ReplacedValues, long SuppressedValues, long ShiftedTimestamps, long UnsupportedTimestamps, long UnknownSegments, long HighRiskFields, long RetainedValues)
+DeidentificationSummary(long Messages, long MissingIdentities, long AmbiguousIdentities, long ReplacedValues, long SuppressedValues, long ShiftedTimestamps, long UnsupportedTimestamps, long UnknownSegments, long HighRiskFields, long RetainedValues)
+long DeidentificationSummary.AmbiguousIdentities { get; init; }
+long DeidentificationSummary.HighRiskFields { get; init; }
+long DeidentificationSummary.Messages { get; init; }
+long DeidentificationSummary.MissingIdentities { get; init; }
+long DeidentificationSummary.ReplacedValues { get; init; }
+long DeidentificationSummary.RetainedValues { get; init; }
+long DeidentificationSummary.ShiftedTimestamps { get; init; }
+long DeidentificationSummary.SuppressedValues { get; init; }
+long DeidentificationSummary.UnknownSegments { get; init; }
+long DeidentificationSummary.UnsupportedTimestamps { get; init; }
 ```
 
 **Parameters:** Constructor parameters are the named long counters; workflows populate them. No source values are present.
 
 **Returns:** Count snapshot, not a persisted source-to-profile map or an assertion of anonymity.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** Counts cover the supported policy only. Do not manufacture a successful privacy report from a manually constructed summary. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1325,26 +1848,36 @@ void Main() { workflow.Apply(Message); }
 void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
+Related topic IDs: `workflow`, `workflow-options`, `workflow-report`, `workflow-findings`.
+
 ### Summary metadata, categories and CSV projection
 
 Counts and preset/category metadata from the producing execution. Status is Completed — review required when specific identity, timestamp, unknown-segment, high-risk or retained-review counts are nonzero; otherwise Completed — no flagged findings. ScopeNotice is a separate general limitation, never a detected finding.
 
 ```csharp
-DeidentificationPreset Preset { get; init; }
-int Version { get; init; }
-IReadOnlyList<DeidentificationCategoryCount> Categories { get; init; }
-string Status { get; }
-static string[] Columns { get; }
-string[] Cells { get; }
-const string ScopeNotice = "General limitation: container bytes, nested metadata and retained clinical values are not certified de-identified.";
-long RetainedValuesRequiringReview { get; init; }
-long OmittedFindings { get; init; }
-bool RequiresReview { get; }
+IReadOnlyList<DeidentificationCategoryCount> DeidentificationSummary.Categories { get; init; }
+string[] DeidentificationSummary.Cells { get; }
+static string[] DeidentificationSummary.Columns { get; }
+long DeidentificationSummary.OmittedFindings { get; init; }
+DeidentificationPreset DeidentificationSummary.Preset { get; init; }
+bool DeidentificationSummary.RequiresReview { get; }
+long DeidentificationSummary.RetainedValuesRequiringReview { get; init; }
+const string DeidentificationSummary.ScopeNotice = "General limitation: container bytes, nested metadata and retained clinical values are not certified de-identified."
+string DeidentificationSummary.Status { get; }
+int DeidentificationSummary.Version { get; init; }
 ```
 
 **Parameters:** No method parameters. Define Batch.Report with Columns in initialization and call Row(Summary.Cells) once in Complete.
 
 **Returns:** Read-only metadata and fresh arrays. A validated built-in report is associated with its output document’s Transformation Report panel.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** CSV keeps the original columns in order and appends Retained values requiring review and Omitted findings. The Status wording and unassessed-scope notice are updated. No source values, filenames or mappings. No flagged findings is not certification or permission to disclose. Existing script copies without a findings CSV show counts with details unavailable.
 
@@ -1360,18 +1893,39 @@ void Main() { workflow.Apply(Message); }
 void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
+Related topic IDs: `workflow`, `workflow-options`, `workflow-findings`.
+
 ### DeidentificationCategoryCount and categories
 
 Groups supported leaf operations into names, addresses, contacts, demographics, identifiers, providers, narratives, attachments and other fields.
 
 ```csharp
-record DeidentificationCategoryCount(DeidentificationCategory Category, long Transformed, long Suppressed)
-enum DeidentificationCategory { Names, Addresses, Contacts, Demographics, Identifiers, Providers, Narratives, Attachments, Other }
+DeidentificationCategory.Addresses = 1
+DeidentificationCategory.Attachments = 7
+DeidentificationCategory.Contacts = 2
+DeidentificationCategory.Demographics = 3
+DeidentificationCategory.Identifiers = 4
+DeidentificationCategory.Names = 0
+DeidentificationCategory.Narratives = 6
+DeidentificationCategory.Other = 8
+DeidentificationCategory.Providers = 5
+DeidentificationCategoryCount(DeidentificationCategory Category, long Transformed, long Suppressed)
+DeidentificationCategory DeidentificationCategoryCount.Category { get; init; }
+long DeidentificationCategoryCount.Suppressed { get; init; }
+long DeidentificationCategoryCount.Transformed { get; init; }
 ```
 
 **Parameters:** Category: fixed category. Transformed: replacement count. Suppressed: cleared-leaf count.
 
 **Returns:** Count record in Summary.Categories; no raw content or mapping keys.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** A category count is scope evidence, not proof that all sensitive content in that category was found. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.
 
@@ -1387,24 +1941,65 @@ void Main() { workflow.Apply(Message); }
 void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
 
+Related topic IDs: `workflow`, `workflow-options`, `workflow-report`, `workflow-findings`.
+
 ### Structural de-identification findings
 
 Fixed structural coordinates and reasons for manual review. No original values are present. Unknown segment names are replaced by the fixed Unknown vocabulary entry.
 
 ```csharp
-record DeidentificationFinding(int MessageNumber, int SegmentNumber, DeidentificationSegment Segment, int SegmentOccurrence, int FieldNumber, DeidentificationReason Reason)
-const int MaximumFindings = 1000;
-static string[] Columns { get; }
-string[] Cells { get; }
-string Path { get; }
-string Description { get; }
-enum DeidentificationSegment { Unknown, MSH, EVN, PID, PD1, NK1, PV1, PV2, IN1, IN2, GT1, ORC, OBR, OBX, NTE, DG1, AL1 }
-enum DeidentificationReason { MissingIdentity, AmbiguousIdentity, UnknownSegment, UnqualifiedIdentifier, UnsupportedIdentifier, UnsupportedTimestamp, SensitiveContentSuppressed, RetainedClinicalValue, RetainedOutsidePolicy, InvalidSyntheticAge }
+DeidentificationFinding(int MessageNumber, int SegmentNumber, DeidentificationSegment Segment, int SegmentOccurrence, int FieldNumber, DeidentificationReason Reason)
+string[] DeidentificationFinding.Cells { get; }
+static string[] DeidentificationFinding.Columns { get; }
+string DeidentificationFinding.Description { get; }
+int DeidentificationFinding.FieldNumber { get; init; }
+const int DeidentificationFinding.MaximumFindings = 1000
+int DeidentificationFinding.MessageNumber { get; init; }
+string DeidentificationFinding.Path { get; }
+DeidentificationReason DeidentificationFinding.Reason { get; init; }
+DeidentificationSegment DeidentificationFinding.Segment { get; init; }
+int DeidentificationFinding.SegmentNumber { get; init; }
+int DeidentificationFinding.SegmentOccurrence { get; init; }
+DeidentificationReason.AmbiguousIdentity = 1
+DeidentificationReason.InvalidSyntheticAge = 9
+DeidentificationReason.MissingIdentity = 0
+DeidentificationReason.RetainedClinicalValue = 7
+DeidentificationReason.RetainedOutsidePolicy = 8
+DeidentificationReason.SensitiveContentSuppressed = 6
+DeidentificationReason.UnknownSegment = 2
+DeidentificationReason.UnqualifiedIdentifier = 3
+DeidentificationReason.UnsupportedIdentifier = 4
+DeidentificationReason.UnsupportedTimestamp = 5
+DeidentificationSegment.AL1 = 16
+DeidentificationSegment.DG1 = 15
+DeidentificationSegment.EVN = 2
+DeidentificationSegment.GT1 = 10
+DeidentificationSegment.IN1 = 8
+DeidentificationSegment.IN2 = 9
+DeidentificationSegment.MSH = 1
+DeidentificationSegment.NK1 = 5
+DeidentificationSegment.NTE = 14
+DeidentificationSegment.OBR = 12
+DeidentificationSegment.OBX = 13
+DeidentificationSegment.ORC = 11
+DeidentificationSegment.PD1 = 4
+DeidentificationSegment.PID = 3
+DeidentificationSegment.PV1 = 6
+DeidentificationSegment.PV2 = 7
+DeidentificationSegment.Unknown = 0
 ```
 
 **Parameters:** MessageNumber is the one-based processed ordinal within this workflow, not a current source position. SegmentNumber is the one-based absolute segment position; SegmentOccurrence is the same-name occurrence. FieldNumber is one-based, or zero for a segment finding. Segment position zero denotes a message-level PID-3 identity finding.
 
 **Returns:** Findings snapshot and CSV projection; Path and Description use only fixed text, enum vocabulary and numeric coordinates.
+
+**Null and missing values:** No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.
+
+**Mutation:** Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.
+
+**Errors:** No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.
+
+**Execution modes:** Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.
 
 **Limits and important behavior:** At most 1,000 occurrence rows per run. Summary.OmittedFindings discloses further occurrences; summary counts remain exact. Findings and counter types can overlap. Workspace maps processed ordinals to captured logical positions, including Current message scope. These are supported-policy findings, not a comprehensive PHI detector. No raw patient values, dates, filenames or identity crosswalks.
 
@@ -1419,6 +2014,67 @@ var findings = Batch.Report("deidentification-findings", DeidentificationFinding
 void Main() { workflow.Apply(Message); }
 void Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }
 ```
+
+Related topic IDs: `workflow`, `workflow-options`, `workflow-report`.
+
+## Host boundary
+
+### Public host infrastructure (unsupported for scripts)
+
+ScriptDefinition, ScriptWorkerOptions, ScriptWorkerSession and transport DTOs are public .NET types in the referenced assembly, so trusted C# can physically name them. They are not supported script-authoring APIs. Only the application owns worker startup, output staging, framing, deadlines and source publication.
+
+```csharp
+ScriptDefinition(string Source, int ApiVersion = 2)
+int ScriptDefinition.ApiVersion { get; init; }
+string ScriptDefinition.Source { get; init; }
+ScriptMessageResult(bool Excluded, byte[]? Bytes)
+byte[]? ScriptMessageResult.Bytes { get; init; }
+bool ScriptMessageResult.Excluded { get; init; }
+ScriptProgress(string Phase, int Processed, int Total, long OutputBytes)
+long ScriptProgress.OutputBytes { get; init; }
+string ScriptProgress.Phase { get; init; }
+int ScriptProgress.Processed { get; init; }
+int ScriptProgress.Total { get; init; }
+ScriptReportChunk(string Name, byte[] Bytes, bool Header = false)
+byte[] ScriptReportChunk.Bytes { get; init; }
+bool ScriptReportChunk.Header { get; init; }
+string ScriptReportChunk.Name { get; init; }
+ScriptWorkerOptions()
+TimeSpan ScriptWorkerOptions.CompilationTimeout { get; init; }
+long ScriptWorkerOptions.MemoryLimitBytes { get; init; }
+TimeSpan ScriptWorkerOptions.MessageTimeout { get; init; }
+TimeSpan ScriptWorkerOptions.StartupTimeout { get; init; }
+Task ScriptWorkerSession.CompleteAsync(CancellationToken token = default)
+ValueTask ScriptWorkerSession.DisposeAsync()
+IReadOnlyList<ScriptReportChunk> ScriptWorkerSession.DrainReports()
+bool ScriptWorkerSession.IgnoredOutputFileNameSuggestion { get; }
+string? ScriptWorkerSession.OutputFileName { get; }
+Task<ScriptMessageResult> ScriptWorkerSession.ProcessAsync(byte[] bytes, int codePage, int messageNumber, CancellationToken token = default)
+int ScriptWorkerSession.ProcessId { get; }
+static Task<ScriptWorkerSession> ScriptWorkerSession.StartAsync(string executable, ScriptDefinition definition, ScriptWorkerOptions? options = null, CancellationToken token = default)
+Task<ValueTuple<int, byte[]>?> ScriptWorkerSession.TakeDeferredAsync(CancellationToken token = default)
+```
+
+**Parameters:** The exact metadata inventory includes declared constructors, properties, defaults and overloads. Those parameters configure application orchestration rather than the current script run.
+
+**Returns:** Host transport/lifetime values. They are not a message enumeration, modify-in-place, filesystem export or worker-reconfiguration facility for scripts.
+
+**Null and missing values:** Exact nullable/default parameter metadata is shown for inspection, not as a supported authoring promise.
+
+**Mutation:** Unsupported orchestration can have process/IO side effects; it is excluded from authoring completion. Supported facade mutations remain staged until whole-job success.
+
+**Errors:** No supported script usage contract. Calling host orchestration from a script can create side effects outside application rollback and is unsupported.
+
+**Execution modes:** Unsupported for authoring in both Current message and Whole document. The application owns these facilities in every phase.
+
+**Limits and important behavior:** Trusted C# is not an OS security sandbox. Public visibility is distinct from supported host binding. Inherited .NET methods and compiler-generated record members use ordinary C# semantics; internal implementation methods remain unavailable.
+
+```csharp
+// No runnable authoring example: these facilities belong to the application.
+// Use Message, Batch and Cancellation for supported script operations.
+```
+
+Related topic IDs: `globals`, `publication`, `security`.
 
 ## Host infrastructure outside the supported authoring facade
 

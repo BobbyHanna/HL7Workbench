@@ -1,7 +1,7 @@
 {
   "Version": 1,
   "ApiVersion": 2,
-  "Scope": "Supported user-script facade and helpers in HL7Workbench.Scripting, API 2. Inherited .NET members and compiler-generated record equality, printing, copying and deconstruction use ordinary C# semantics; they are not host operations. Host transport/orchestration types are classified separately and are not supported authoring facilities.",
+  "Scope": "Supported user-script facade and helpers in HL7Workbench.Scripting, API 2. Inherited .NET members and compiler-generated record equality, printing, copying and deconstruction use ordinary C# semantics; they are not host operations. Host transport/orchestration types are classified separately and are not supported authoring facilities. Public infrastructure types in the same referenced assembly can be named by trusted C#, but are unsupported host-orchestration facilities, not internal methods or a security boundary. Their exact metadata is included separately; it is excluded from facade completion and has no runnable authoring example.",
   "SupportedTypes": [
     "ScriptGlobals",
     "ScriptMessage",
@@ -46,14 +46,23 @@
         "ScriptScope.CurrentMessage",
         "ScriptScope.WholeDocument"
       ],
-      "Signature": "void Main()\nvoid Complete() // optional\nenum ScriptScope { CurrentMessage, WholeDocument }",
+      "Signature": "ScriptScope.CurrentMessage = 0\nScriptScope.WholeDocument = 1",
       "Description": "Initialization runs once, Main once per captured selected message in logical input order, then optional Complete once after all Main calls succeed. Top-level variables persist within a run; each Run starts a fresh worker. Select Current message or Whole document in the editor. The host performs iteration; there is no document enumeration/navigation API in scripts.",
       "Parameters": "Main/Complete: no parameters. Scope is selected by the application, not changed from inside Main.",
       "Returns": "Both entry points return void. A successful run publishes a new independent unsaved output document.",
       "Example": "int processed = 0;\nvar counts = Batch.Report(\"counts\", \"Messages\");\nvoid Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n    processed++; // The host calls Main once per selected message, in order.\n}\nvoid Complete()\n{\n    counts.Row(processed.ToString(System.Globalization.CultureInfo.InvariantCulture));\n}",
       "Limitations": "Exactly one top-level instance, synchronous, nongeneric, parameterless void Main and at most one matching Complete. No overloads, static/async/Task entries or background work. Failure skips Complete and discards staged output/reports. Never retain Message or ScriptSegment across invocations.",
       "Keywords": "lifecycle initialization scope batch loop iterate messages",
-      "TemplateName": "Count selected messages"
+      "TemplateName": "Count selected messages",
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "customization",
@@ -67,7 +76,17 @@
       "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
       "Limitations": "Saving a script does not save HL7 output. Dirty drafts prompt before switching; failed saves keep the draft. Old development scripts require explicit rewrite/adoption. Duplicate Patient Deidentifier to configure its supported policy rather than creating another library preset.",
       "Keywords": "library built-in immutable duplicate rename save reopen templates starter user scripts",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "globals",
@@ -78,14 +97,24 @@
         "ScriptGlobals.Batch",
         "ScriptGlobals.Cancellation"
       ],
-      "Signature": "ScriptMessage Message { get; }\nScriptBatch Batch { get; }\nCancellationToken Cancellation { get; }",
+      "Signature": "ScriptBatch ScriptGlobals.Batch { get; }\nCancellationToken ScriptGlobals.Cancellation { get; }\nScriptMessage ScriptGlobals.Message { get; }",
       "Description": "The worker supplies these globals without construction. Message resolves to the current Main invocation; Batch owns this job’s advanced facilities; Cancellation is the run token.",
       "Parameters": "No parameters. Use Cancellation.ThrowIfCancellationRequested() inside long loops.",
       "Returns": "Message is the bounded current facade, Batch the same run object and Cancellation the same execution token.",
       "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
       "Limitations": "Message is unavailable during initialization and Complete (LifecyclePhase). Do not cache a facade, start background callbacks, or suppress cancellation.",
       "Keywords": "ScriptGlobals token cancellation globals",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "Message throws ScriptRunException(LifecyclePhase) outside Main. Cancellation.ThrowIfCancellationRequested is the standard .NET cooperative cancellation helper.",
+      "Mutation": "Accessors do not mutate message text. Message methods may transform the worker copy; Batch facilities manage staged output/reports.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "read",
@@ -94,14 +123,25 @@
       "Members": [
         "ScriptMessage.Read"
       ],
-      "Signature": "ScriptValue Read(string path)",
+      "Signature": "ScriptValue ScriptMessage.Read(string path)",
       "Description": "Reads the original encoded spelling and its structural state without implicitly decoding HL7 escapes. Prefer this before Text when a field may be absent or explicitly null.",
       "Parameters": "path: Core path such as PID-5.1, PID[2]-3[2].4.1, or OBX-5.1.2. Omitted segment/repetition indexes mean 1.",
       "Returns": "ScriptValue with State and nullable Raw; no value is silently substituted for missing/null.",
       "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "read field component subcomponent path missing explicit null raw",
-      "TemplateName": "Read and modify PID"
+      "TemplateName": "Read and modify PID",
+      "Errors": "InvalidPath is reported as ScriptRunException. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "Read returns ScriptValue: Missing has Raw=null; Empty has Raw=\"\"; ExplicitNull retains the raw two-quote spelling; Value retains original escaped text. Read never decodes or silently normalizes.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "text",
@@ -110,14 +150,25 @@
       "Members": [
         "ScriptMessage.Text"
       ],
-      "Signature": "string Text(string path)",
+      "Signature": "string ScriptMessage.Text(string path)",
       "Description": "Explicitly decodes HL7 escape sequences using the message’s delimiters. An existing empty value returns an empty string.",
       "Parameters": "path: one-based Core HL7 coordinates, independent of actual separator characters.",
       "Returns": "Decoded string; throws a fixed MissingValue diagnostic for missing/null or DecodeDiagnostic for unresolved escapes.",
       "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "read decoded escape Text string",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath, MissingValue for missing/explicit null, DecodeDiagnostic for unresolved escapes; cancellation can throw OperationCanceledException.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "Missing and explicit null throw MissingValue. Empty returns an empty string. Other values are decoded only if their escape interpretation has no diagnostic.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "states",
@@ -132,14 +183,24 @@
         "ValueState.ExplicitNull",
         "ValueState.Value"
       ],
-      "Signature": "record ScriptValue(ValueState State, string? Raw)\nenum ValueState { Missing, Empty, ExplicitNull, Value }",
+      "Signature": "ScriptValue(ValueState State, string? Raw)\nstring? ScriptValue.Raw { get; init; }\nValueState ScriptValue.State { get; init; }\nValueState.Empty = 1\nValueState.ExplicitNull = 2\nValueState.Missing = 0\nValueState.Value = 3",
       "Description": "State distinguishes no structural position, an existing empty position, HL7 explicit null (two quotes), and a nonempty value. Raw preserves escape spelling rather than decoded text.",
       "Parameters": "State: structural state. Raw: original spelling supplied by Read; null for missing positions.",
       "Returns": "Read returns a value record; constructing one does not modify a message.",
       "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
       "Limitations": "Record equality/with/deconstruction are ordinary generated C# features. Only controlled ScriptMessage/ScriptSegment methods mutate HL7.",
       "Keywords": "ScriptValue state null empty missing",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "set-text",
@@ -148,14 +209,25 @@
       "Members": [
         "ScriptMessage.SetText"
       ],
-      "Signature": "void SetText(string path, string value)",
+      "Signature": "void ScriptMessage.SetText(string path, string value)",
       "Description": "Writes a literal value through Core, escaping reserved characters for the actual message delimiters. Use for generated names and other literal replacements.",
       "Parameters": "path: supported existing or expandable field coordinate. value: literal text, not pre-escaped HL7.",
       "Returns": "No return value; invalid paths/unsafe edits fail with fixed diagnostics.",
       "Example": "// Every successful run already creates an independent unsaved document.\nBatch.SetOutputFileName(\"Synthetic_Output.hl7\");\nvoid Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics)\n        Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "write field literal escaped SetText independent output",
-      "TemplateName": "Independent output"
+      "TemplateName": "Independent output",
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "value is non-null literal text; empty text is allowed. Text is encoded using the current delimiters/encoding. Use SetNull for HL7 explicit null.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "set-raw",
@@ -164,14 +236,25 @@
       "Members": [
         "ScriptMessage.SetRaw"
       ],
-      "Signature": "void SetRaw(string path, string value)",
+      "Signature": "void ScriptMessage.SetRaw(string path, string value)",
       "Description": "Writes explicitly encoded HL7 spelling through Core validation. Prefer SetText for literal data so custom delimiters and escape characters are encoded correctly.",
       "Parameters": "path: supported Core coordinate. value: raw HL7 spelling in the message’s delimiters.",
       "Returns": "No return value; rejection retains the previous model.",
       "Example": "void Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics) Message.SetRaw(\"PID-5.1\", \"SYNTHETIC\");\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "SetRaw encoded raw delimiters",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "value is non-null encoded ER7 spelling, not decoded text. Empty/raw explicit-null spelling remains meaningful. Core rejects unsafe structural/encoding changes.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "null-clear",
@@ -181,14 +264,25 @@
         "ScriptMessage.SetNull",
         "ScriptMessage.Clear"
       ],
-      "Signature": "void SetNull(string path)\nvoid Clear(string path)",
+      "Signature": "void ScriptMessage.Clear(string path)\nvoid ScriptMessage.SetNull(string path)",
       "Description": "SetNull writes an explicit HL7 null. Clear empties an existing position without removing it; a missing target is a no-op.",
       "Parameters": "path: Core one-based coordinate.",
       "Returns": "No return value. Missing, empty and explicit null have different meanings.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    Message.Clear(\"PID-9\");\n    if (Message.Read(\"PID-7\").State == ValueState.Value) Message.SetNull(\"PID-7\");\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "SetNull Clear delete empty null",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "SetNull writes the HL7 explicit-null token. Clear writes an empty existing position; a missing target is a no-op. These operations do not remove a field or its position.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "editability",
@@ -198,14 +292,25 @@
         "ScriptMessage.CanEdit",
         "ScriptMessage.HasDiagnostics"
       ],
-      "Signature": "bool CanEdit { get; }\nbool HasDiagnostics { get; }",
+      "Signature": "bool ScriptMessage.CanEdit { get; }\nbool ScriptMessage.HasDiagnostics { get; }",
       "Description": "CanEdit exposes Core editability. HasDiagnostics reports any structural/encoding diagnostic, allowing conservative scripts to refuse malformed input before writing.",
       "Parameters": "No parameters.",
       "Returns": "Booleans, not a conformance or privacy guarantee.",
       "Example": "void Main()\n{\n    var value = Message.Read(\"PID-5.1\");\n    if (Message.CanEdit && !Message.HasDiagnostics && value.State == ValueState.Value)\n    {\n        var previous = Message.Text(\"PID-5.1\");\n        if (previous.Length > 0) Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n    }\n}",
       "Limitations": "Do not silently normalize malformed input. A script may explicitly throw to fail the run or leave the message unchanged for review.",
       "Keywords": "CanEdit HasDiagnostics malformed validation",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "segments",
@@ -216,14 +321,25 @@
         "ScriptSegment.Identifier",
         "ScriptSegment.Occurrence"
       ],
-      "Signature": "IReadOnlyList<ScriptSegment> Segments(string identifier)\nstring ScriptSegment.Identifier { get; }\nint ScriptSegment.Occurrence { get; }",
+      "Signature": "IReadOnlyList<ScriptSegment> ScriptMessage.Segments(string identifier)\nstring ScriptSegment.Identifier { get; }\nint ScriptSegment.Occurrence { get; }",
       "Description": "Enumerates address views for a three-character segment identifier, in occurrence order. Each view re-resolves against the current model after writes; Identifier and one-based Occurrence identify the segment.",
       "Parameters": "identifier: segment ID, for example PID or OBX, without field/path suffixes.",
       "Returns": "Read-only list (empty if no match). Repetition indexes remain explicit in relative paths.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "Segments ScriptSegment occurrence repetition repeat custom delimiters",
-      "TemplateName": "Edit existing repetition"
+      "TemplateName": "Edit existing repetition",
+      "Errors": "Invalid identifiers can throw ArgumentException from Core; cancellation can throw OperationCanceledException. No synthesized missing segments.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "A valid identifier with no occurrences returns an empty list. Identifier must be a non-null valid Core segment name.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "segment-read",
@@ -232,14 +348,24 @@
       "Members": [
         "ScriptSegment.Read"
       ],
-      "Signature": "ScriptValue Read(string relativePath)",
+      "Signature": "ScriptValue ScriptSegment.Read(string relativePath)",
       "Description": "Reads a segment-relative value with structural state and original spelling.",
       "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
       "Returns": "ScriptValue with State and Raw.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "segment relative field path Read",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "InvalidPath is reported as ScriptRunException. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "Read returns ScriptValue: Missing has Raw=null; Empty has Raw=\"\"; ExplicitNull retains the raw two-quote spelling; Value retains original escaped text. Read never decodes or silently normalizes.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "segments",
+        "paths",
+        "states",
+        "read"
+      ]
     },
     {
       "Id": "segment-text",
@@ -248,14 +374,24 @@
       "Members": [
         "ScriptSegment.Text"
       ],
-      "Signature": "string Text(string relativePath)",
+      "Signature": "string ScriptSegment.Text(string relativePath)",
       "Description": "Decodes a segment-relative value, with the same missing/null/escape rules as Message.Text.",
       "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
       "Returns": "Decoded string or fixed diagnostic.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "segment relative field path Text",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath, MissingValue for missing/explicit null, DecodeDiagnostic for unresolved escapes; cancellation can throw OperationCanceledException.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "Missing and explicit null throw MissingValue. Empty returns an empty string. Other values are decoded only if their escape interpretation has no diagnostic.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "segments",
+        "paths",
+        "states",
+        "text"
+      ]
     },
     {
       "Id": "segment-settext",
@@ -264,14 +400,24 @@
       "Members": [
         "ScriptSegment.SetText"
       ],
-      "Signature": "void SetText(string relativePath, string value)",
+      "Signature": "void ScriptSegment.SetText(string relativePath, string value)",
       "Description": "Escapes and writes a segment-relative literal through Core.",
       "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
       "Returns": "No return value.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "segment relative field path SetText",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "value is non-null literal text; empty text is allowed. Text is encoded using the current delimiters/encoding. Use SetNull for HL7 explicit null.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "segments",
+        "paths",
+        "states",
+        "set-text"
+      ]
     },
     {
       "Id": "segment-setraw",
@@ -280,14 +426,24 @@
       "Members": [
         "ScriptSegment.SetRaw"
       ],
-      "Signature": "void SetRaw(string relativePath, string value)",
+      "Signature": "void ScriptSegment.SetRaw(string relativePath, string value)",
       "Description": "Writes explicit encoded HL7 spelling through Core.",
       "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
       "Returns": "No return value.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "segment relative field path SetRaw",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "value is non-null encoded ER7 spelling, not decoded text. Empty/raw explicit-null spelling remains meaningful. Core rejects unsafe structural/encoding changes.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "segments",
+        "paths",
+        "states",
+        "set-raw"
+      ]
     },
     {
       "Id": "segment-setnull",
@@ -296,14 +452,24 @@
       "Members": [
         "ScriptSegment.SetNull"
       ],
-      "Signature": "void SetNull(string relativePath)",
+      "Signature": "void ScriptSegment.SetNull(string relativePath)",
       "Description": "Writes an explicit null at a segment-relative coordinate.",
       "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
       "Returns": "No return value.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "segment relative field path SetNull",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "SetNull writes the HL7 explicit-null token. Clear writes an empty existing position; a missing target is a no-op. These operations do not remove a field or its position.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "segments",
+        "paths",
+        "states",
+        "null-clear"
+      ]
     },
     {
       "Id": "segment-clear",
@@ -312,14 +478,24 @@
       "Members": [
         "ScriptSegment.Clear"
       ],
-      "Signature": "void Clear(string relativePath)",
+      "Signature": "void ScriptSegment.Clear(string relativePath)",
       "Description": "Empties an existing relative position; missing targets remain absent.",
       "Parameters": "relativePath: field/repetition/component/subcomponent without segment prefix, for example 5[2].1. value (when present): literal for SetText, encoded spelling for SetRaw.",
       "Returns": "No return value.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "segment relative field path Clear",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: InvalidPath; writes can report EditRejected, InputLimit or InvalidEncoding. Cancellation can throw OperationCanceledException.",
+      "Mutation": "Changes only the current worker message model (or, for segment methods, its addressed field). Publication is staged until the entire run succeeds. It never changes the source document, undo history or saved file.",
+      "NullBehavior": "SetNull writes the HL7 explicit-null token. Clear writes an empty existing position; a missing target is a no-op. These operations do not remove a field or its position.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "segments",
+        "paths",
+        "states",
+        "null-clear"
+      ]
     },
     {
       "Id": "paths",
@@ -333,7 +509,17 @@
       "Example": "void Main()\n{\n    if (!Message.CanEdit || Message.HasDiagnostics) return;\n    foreach (var pid in Message.Segments(\"PID\"))\n    {\n        // Only replace an existing second repetition; never split on '~'.\n        if (pid.Read(\"5[2].1\").State == ValueState.Value)\n            pid.SetText(\"5[2].1\", \"SYNTHETIC SECOND\");\n    }\n}",
       "Limitations": "Coordinates are one-based, not byte/editor offsets. Missing, empty and explicit null stay distinct. No arbitrary segment insertion or delimiter/header replacement is exposed. Core validates writes and preserves unrelated bytes, encoding, separators and terminators.",
       "Keywords": "path syntax repeated fields custom delimiters component subcomponent MSH encoding",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "exclude",
@@ -342,14 +528,25 @@
       "Members": [
         "ScriptMessage.Exclude"
       ],
-      "Signature": "void Exclude()",
+      "Signature": "void ScriptMessage.Exclude()",
       "Description": "Omits the current message’s normal output. It does not cancel the job or suppress an already held/deferred copy.",
       "Parameters": "No parameters. Call during Main.",
       "Returns": "No return value.",
       "Example": "void Main()\n{\n    if (Batch.MessageNumber > 1) Message.Exclude();\n}",
       "Limitations": "Filtering/deferred output requires extractable plain messages or complete unambiguous MLLP envelopes. Batch wrappers/opaque regions cannot be silently discarded; unsafe boundaries fail atomically.",
       "Keywords": "Exclude filter output",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "OperationCanceledException on cancellation. Filtering/extraction with unsafe container framing can fail the host transaction with ContainerExtraction.",
+      "Mutation": "Marks the current message excluded from normal staged output. It does not delete the source message. Explicitly deferred/held copies remain separately controlled.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "number",
@@ -358,14 +555,24 @@
       "Members": [
         "ScriptBatch.MessageNumber"
       ],
-      "Signature": "int MessageNumber { get; }",
+      "Signature": "int ScriptBatch.MessageNumber { get; }",
       "Description": "One-based job-local input ordinal during Main; zero in initialization and Complete. With Current scope it is 1 even when the selected source message has a different document position.",
       "Parameters": "No parameters.",
       "Returns": "Job ordinal, not a stable MessageId, document position, output counter or navigation command.",
       "Example": "int processed = 0;\nvar counts = Batch.Report(\"counts\", \"Messages\");\nvoid Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n    processed++; // The host calls Main once per selected message, in order.\n}\nvoid Complete()\n{\n    counts.Row(processed.ToString(System.Globalization.CultureInfo.InvariantCulture));\n}",
       "Limitations": "Source mapping stays in the parent. Tab switches do not retarget a captured run. Never persist job ordinals as document identity.",
       "Keywords": "MessageNumber ordinal loop iterate navigation",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "MessageNumber is a one-based job-local captured ordinal during Main; zero in initialization and Complete. It is not a persistent MessageId or UI selection index.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "naming",
@@ -374,14 +581,24 @@
       "Members": [
         "ScriptBatch.SetOutputFileName"
       ],
-      "Signature": "void SetOutputFileName(string? fileName)",
+      "Signature": "void ScriptBatch.SetOutputFileName(string? fileName)",
       "Description": "Suggests an output filename in initialization, Main or Complete. The last valid suggestion wins. Invalid suggestions are ignored with a fixed nonfatal notice; they never erase a valid suggestion.",
       "Parameters": "fileName: filename only, up to 128 UTF-16 units including .hl7; the extension is appended/standardized. Paths, reserved Windows devices, controls, format characters and unsafe endings are refused.",
       "Returns": "No return value. Without an override, the captured script name or Script Result.hl7 is used.",
       "Example": "// Every successful run already creates an independent unsaved document.\nBatch.SetOutputFileName(\"Synthetic_Output.hl7\");\nvoid Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics)\n        Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n}",
       "Limitations": "A filename suggestion never saves, chooses a directory or authorizes replacement. Duplicate tab labels may gain a display counter without changing the suggestion.",
       "Keywords": "SetOutputFileName filename naming Save As output",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "Invalid filename suggestions are ignored/rejected without failing the job. SetOutputFileName can throw for cancellation or finished lifecycle state.",
+      "Mutation": "Suggestions only: no path resolution, file creation, source save, source rename or modify-in-place operation.",
+      "NullBehavior": "Null/empty/unsafe suggestions fail normalization. TryNormalize returns false and an empty out fileName. FromScriptName falls back to Script Result.hl7. SetOutputFileName ignores invalid suggestions, retaining the last valid one.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "filename",
@@ -393,14 +610,24 @@
         "ScriptOutputFileName.FromScriptName",
         "ScriptOutputFileName.TryNormalize"
       ],
-      "Signature": "const string Fallback = \"Script Result.hl7\";\nconst int MaximumCharacters = 128;\nstatic string FromScriptName(string? name)\nstatic bool TryNormalize(string? suggestion, out string fileName)",
+      "Signature": "const string ScriptOutputFileName.Fallback = \"Script Result.hl7\"\nstatic string ScriptOutputFileName.FromScriptName(string? name)\nconst int ScriptOutputFileName.MaximumCharacters = 128\nstatic bool ScriptOutputFileName.TryNormalize(string? suggestion, out string fileName)",
       "Description": "The same portable Windows filename policy is available to scripts. FromScriptName uses Fallback if normalization fails; TryNormalize returns a success flag and an empty out string on failure.",
       "Parameters": "name/suggestion: proposed filename, never a path. fileName: normalized output when true.",
       "Returns": "FromScriptName returns a safe suggestion. TryNormalize returns bool and normalized text.",
       "Example": "void Main() {}\nvoid Complete()\n{\n    if (ScriptOutputFileName.TryNormalize(\"Synthetic_Output\", out var name)) Batch.SetOutputFileName(name);\n}",
       "Limitations": "No filesystem lookup, truncation, normalization of Unicode or extraction from paths. Other suffixes become part of the stem before .hl7 is appended.",
       "Keywords": "ScriptOutputFileName TryNormalize FromScriptName Fallback",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "Invalid filename suggestions are ignored/rejected without failing the job. SetOutputFileName can throw for cancellation or finished lifecycle state.",
+      "Mutation": "Suggestions only: no path resolution, file creation, source save, source rename or modify-in-place operation.",
+      "NullBehavior": "Null/empty/unsafe suggestions fail normalization. TryNormalize returns false and an empty out fileName. FromScriptName falls back to Script Result.hl7. SetOutputFileName ignores invalid suggestions, retaining the last valid one.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "hold",
@@ -409,14 +636,25 @@
       "Members": [
         "ScriptBatch.Hold"
       ],
-      "Signature": "ScriptDeferredMessage Hold(ScriptMessage message)\nsealed class ScriptDeferredMessage // opaque; no public constructor or members",
+      "Signature": "ScriptDeferredMessage ScriptBatch.Hold(ScriptMessage message)",
       "Description": "Retains an immutable bounded copy of the current transformed message for a later decision. Normal output remains included unless Exclude is called separately.",
       "Parameters": "message: exactly the current Message during Main.",
       "Returns": "Opaque copy owned by this run; no raw byte or mapping-table access.",
       "Example": "ScriptDeferredMessage? first = null;\nvoid Main()\n{\n    if (first is null) first = Batch.Hold(Message);\n    Message.Exclude();\n}\nvoid Complete()\n{\n    if (first is not null) Batch.Emit(first);\n}",
       "Limitations": "Hold is unavailable outside Main. Up to 128 retained copies / 16 MiB per job. Copies retain original input attribution and framing constraints.",
       "Keywords": "ScriptDeferredMessage Hold retained deferred copy",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: LifecyclePhase for wrong phase/ownership; DeferredLimit for the retained/emitted copy budgets; OperationCanceledException on cancellation.",
+      "Mutation": "Copies/queues worker output only. Hold/Defer do not exclude the normal message; call Message.Exclude separately when delayed-only output is intended. Emit order determines held-output order.",
+      "NullBehavior": "The message/copy must belong to this run; no arbitrary source-free messages can be constructed or emitted.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "defer",
@@ -425,14 +663,25 @@
       "Members": [
         "ScriptBatch.Defer"
       ],
-      "Signature": "void Defer(ScriptMessage message)",
+      "Signature": "void ScriptBatch.Defer(ScriptMessage message)",
       "Description": "Holds and queues a copy immediately during Main. Queued copies drain after Complete in queue order, after normal output.",
       "Parameters": "message: exactly the current Message during Main.",
       "Returns": "No return value.",
       "Example": "void Main()\n{\n    if (Batch.MessageNumber == 1) Batch.Defer(Message);\n    Message.Exclude();\n}",
       "Limitations": "Retained and queued copies have separate 128-message/16 MiB shared job budgets. Defer does not exclude normal output by itself. No source-free message generation.",
       "Keywords": "Defer queue deferred ordering",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: LifecyclePhase for wrong phase/ownership; DeferredLimit for the retained/emitted copy budgets; OperationCanceledException on cancellation.",
+      "Mutation": "Copies/queues worker output only. Hold/Defer do not exclude the normal message; call Message.Exclude separately when delayed-only output is intended. Emit order determines held-output order.",
+      "NullBehavior": "The message/copy must belong to this run; no arbitrary source-free messages can be constructed or emitted.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Message access and current-message operations require Main. Initialization and Complete have no current Message.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "emit",
@@ -441,14 +690,24 @@
       "Members": [
         "ScriptBatch.Emit"
       ],
-      "Signature": "void Emit(ScriptDeferredMessage copy)",
+      "Signature": "void ScriptBatch.Emit(ScriptDeferredMessage copy)",
       "Description": "Queues one of this run’s held copies during Complete. Emission follows normal output and already deferred copies, in Emit call order.",
       "Parameters": "copy: immutable handle returned by this run’s Hold.",
       "Returns": "No return value.",
       "Example": "ScriptDeferredMessage? first = null;\nvoid Main()\n{\n    if (first is null) first = Batch.Hold(Message);\n    Message.Exclude();\n}\nvoid Complete()\n{\n    if (first is not null) Batch.Emit(first);\n}",
       "Limitations": "Only Complete and same-owner handles are accepted. Repeated emission consumes the queue budget again. Failure or cancellation publishes neither partial output nor reports.",
       "Keywords": "Emit Complete output held",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ScriptRunException: LifecyclePhase for wrong phase/ownership; DeferredLimit for the retained/emitted copy budgets; OperationCanceledException on cancellation.",
+      "Mutation": "Copies/queues worker output only. Hold/Defer do not exclude the normal message; call Message.Exclude separately when delayed-only output is intended. Emit order determines held-output order.",
+      "NullBehavior": "The message/copy must belong to this run; no arbitrary source-free messages can be constructed or emitted.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Emit requires Complete; Hold and Defer require the current Message in Main.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "publication",
@@ -456,13 +715,22 @@
       "Category": "Batch and output",
       "Members": [],
       "Signature": "Main → Complete → deferred drain → validated independent output",
-      "Description": "Workspace captures stable input identity/revision, stages all transformed messages and CSV privately, validates output framing and publishes only after success. Original source bytes, drafts, undo history and save destination are untouched.",
+      "Description": "Workspace captures stable input identity/revision, stages all transformed messages and CSV privately, validates output framing and publishes only after success. Original source bytes, drafts, undo history and save destination are untouched. There is no modify-in-place execution option: edits inside Main affect only staged output. A filename suggestion does not save a file. Use the existing Save/Save As or explicit CSV export after successful publication.",
       "Parameters": "Choose Current or Whole in the editor; output always opens as a new unsaved document.",
       "Returns": "A successful result keeps producing-run attribution. Source edits during execution preserve independent captured output with explicit stale-source attribution.",
       "Example": "// Every successful run already creates an independent unsaved document.\nBatch.SetOutputFileName(\"Synthetic_Output.hl7\");\nvoid Main()\n{\n    if (Message.CanEdit && !Message.HasDiagnostics)\n        Message.SetText(\"PID-5.1\", \"SYNTHETIC\");\n}",
       "Limitations": "Closing the source, cancellation or failures prevent publication. Invalid input/output, unsafe extraction or framing changes fail explicitly. Reports require explicit export. Arbitrary external C# side effects cannot be rolled back.",
       "Keywords": "atomic publication stale source independent snapshot output generation",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "limits"
+      ]
     },
     {
       "Id": "report",
@@ -472,14 +740,24 @@
         "ScriptBatch.Report",
         "ScriptCsvReport.Row"
       ],
-      "Signature": "ScriptCsvReport Report(string name, params string[] columns)\nvoid ScriptCsvReport.Row(params string?[] values)",
+      "Signature": "ScriptCsvReport ScriptBatch.Report(string name, params string[] columns)\nvoid ScriptCsvReport.Row(params string?[] values)",
       "Description": "Define ordered report schemas only during initialization. Append rows during initialization, Main or Complete. Reports are staged with output and become exportable only after a successful run.",
       "Parameters": "name: 1–64 ASCII letters/digits/_/-, case-insensitively unique. columns: 1–64 headings in order. values: same count/order; null and empty both export as empty quoted cells.",
       "Returns": "Report returns a run-owned CSV writer. Row returns void.",
       "Example": "int processed = 0;\nvar counts = Batch.Report(\"summary\", \"Processed\");\nvoid Main() { processed++; }\nvoid Complete()\n{\n    // One count-only row; no source values or identifiers are exported.\n    counts.Row(processed.ToString(System.Globalization.CultureInfo.InvariantCulture));\n}",
       "Limitations": "8 reports; 100,000 data rows/16 MiB UTF-8 globally; 16,384 UTF-16 units/cell; 256 KiB per lifecycle operation. UTF-8 no BOM, CRLF, all cells quoted. Formula-like cells gain an apostrophe. Keep reports bounded and avoid sensitive content.",
       "Keywords": "Report CSV ScriptCsvReport Row bounded count",
-      "TemplateName": "Bounded count report"
+      "TemplateName": "Bounded count report",
+      "Errors": "ScriptRunException: ReportSchema for name/schema/phase/column-count violations; ReportLimit for cell/row/byte budgets; cancellation can throw OperationCanceledException.",
+      "Mutation": "Stages CSV report rows in the run journal. Reports publish only on whole-job success and require explicit export; no automatic file IO.",
+      "NullBehavior": "Null row cells encode as empty CSV cells. The values array itself must be non-null and match the declared column count.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Define Batch.Report in initialization only. Append report.Row in any active phase; both scopes support CSV reports.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "report-name",
@@ -488,14 +766,24 @@
       "Members": [
         "ScriptBatch.ValidReportName"
       ],
-      "Signature": "static bool ValidReportName(string name)",
+      "Signature": "static bool ScriptBatch.ValidReportName(string name)",
       "Description": "Checks the bounded ASCII report-label grammar without accessing a filesystem.",
       "Parameters": "name: non-null candidate label, 1–64 ASCII letters/digits, underscore or hyphen.",
       "Returns": "True for a valid label; uniqueness is checked by Report.",
       "Example": "var valid = ScriptBatch.ValidReportName(\"summary\");\nvoid Main() {}",
       "Limitations": "A report label is not a file path. Invalid Report schemas fail ReportSchema; byte/row/cell exhaustion fails ReportLimit.",
       "Keywords": "ValidReportName schema",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "Invalid non-null names return false. Passing null is outside the non-nullable contract and can throw NullReferenceException.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "Accepts 1-64 ASCII letters/digits/underscore/hyphen only. No whitespace trimming, null normalization or file-path interpretation.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "diagnostics",
@@ -519,14 +807,24 @@
         "ScriptPhase.Input",
         "ScriptPhase.Output"
       ],
-      "Signature": "record ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line = null, int? Column = null, int? MessageNumber = null, string? Path = null)\nstring Description { get; }\nstring ToString()\nenum ScriptPhase { Configuration, Compilation, Execution, Protocol, Worker, Input, Output }",
+      "Signature": "ScriptDiagnostic(ScriptPhase Phase, string Code, int? Line = null, int? Column = null, int? MessageNumber = null, string? Path = null)\nstring ScriptDiagnostic.Code { get; init; }\nint? ScriptDiagnostic.Column { get; init; }\nstring ScriptDiagnostic.Description { get; }\nint? ScriptDiagnostic.Line { get; init; }\nint? ScriptDiagnostic.MessageNumber { get; init; }\nstring? ScriptDiagnostic.Path { get; init; }\nScriptPhase ScriptDiagnostic.Phase { get; init; }\nstring ScriptDiagnostic.ToString()\nScriptPhase.Compilation = 1\nScriptPhase.Configuration = 0\nScriptPhase.Execution = 2\nScriptPhase.Input = 5\nScriptPhase.Output = 6\nScriptPhase.Protocol = 3\nScriptPhase.Worker = 4",
       "Description": "Diagnostics describe safe codes/locations, not imported exception messages. The editor presents compiler locations and captured input attribution. Description maps codes to fixed text; ToString formats that safe metadata.",
       "Parameters": "Phase: failing operation. Code: fixed/CS compiler code. Line/Column: one-based script location. MessageNumber: job-local ordinal. Path: validated HL7 coordinate when available.",
       "Returns": "Read-only metadata and formatted description. Constructing metadata does not publish it automatically.",
       "Example": "void Main()\n{\n    if (!Message.CanEdit) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Execution, \"EditRejected\"));\n}",
       "Limitations": "Worker sanitization accepts a closed code/path set and omits arbitrary source text and exception messages. Never put identifiers or patient values in diagnostics; unknown text is not a safe logging channel. Compiler codes take precedence before initialization.",
       "Keywords": "ScriptDiagnostic ScriptPhase Description ToString errors compile runtime",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "exception",
@@ -536,14 +834,24 @@
         "ScriptRunException..ctor",
         "ScriptRunException.Diagnostics"
       ],
-      "Signature": "ScriptRunException(params ScriptDiagnostic[] diagnostics)\nIReadOnlyList<ScriptDiagnostic> Diagnostics { get; }",
+      "Signature": "ScriptRunException(params ScriptDiagnostic[] diagnostics)\nIReadOnlyList<ScriptDiagnostic> ScriptRunException.Diagnostics { get; }",
       "Description": "Signals a fixed scripting failure to the worker. Prefer allowing transformation and resource-limit failures to abort the run.",
       "Parameters": "diagnostics: fixed safe diagnostic records, without source values.",
       "Returns": "Exception carries the diagnostic list; inherited Exception members are ordinary .NET members.",
-      "Example": "void Main()\n{\n    if (Message.HasDiagnostics) throw new ScriptRunException(new ScriptDiagnostic(ScriptPhase.Execution, \"EditRejected\"));\n}",
+      "Example": "var handled = Batch.Report(\"handled-errors\", \"Code\");\nvoid Main()\n{\n    try { _ = Message.Text(\"ZPI-1\"); } // Missing in the synthetic example.\n    catch (ScriptRunException error)\n    {\n        foreach (var diagnostic in error.Diagnostics) handled.Row(diagnostic.Code);\n    }\n}",
       "Limitations": "Do not catch errors merely to publish partial data; cancellation/limits should propagate. Imported exception text is omitted by the worker.",
       "Keywords": "ScriptRunException Diagnostics throw fail rollback",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "Uncaught ScriptRunException aborts the job and prevents staged publication. The example catches a recoverable MissingValue read. Do not suppress cancellation or continue after workflow/budget failures.",
+      "Mutation": "Catching an exception does not undo earlier successful worker mutations or external side effects. The example only reads a missing synthetic field and writes its fixed diagnostic code to a staged report.",
+      "NullBehavior": "Diagnostics and required constructor arguments follow their non-nullable C# contracts. ScriptDiagnostic optional locations/path may be null; missing-value errors never silently become empty strings.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "limits",
@@ -565,14 +873,23 @@
         "ScriptLimits.ReportBytes",
         "ScriptLimits.ReportOperationBytes"
       ],
-      "Signature": "const int ScriptCharacters = 65536;\nconst int MessageCharacters = 1048576;\nconst int LineCharacters = 16384;\nconst int MessageBytes = 8388608;\nconst int Diagnostics = 100;\nconst int BatchMessages = 100000;\nconst int DeferredMessages = 128;\nconst int DeferredBytes = 16777216;\nconst int Reports = 8;\nconst int ReportColumns = 64;\nconst int ReportCellCharacters = 16384;\nconst int ReportRows = 100000;\nconst int ReportBytes = 16777216;\nconst int ReportOperationBytes = 262144;",
+      "Signature": "const int ScriptLimits.BatchMessages = 100000\nconst int ScriptLimits.DeferredBytes = 16777216\nconst int ScriptLimits.DeferredMessages = 128\nconst int ScriptLimits.Diagnostics = 100\nconst int ScriptLimits.LineCharacters = 16384\nconst int ScriptLimits.MessageBytes = 8388608\nconst int ScriptLimits.MessageCharacters = 1048576\nconst int ScriptLimits.ReportBytes = 16777216\nconst int ScriptLimits.ReportCellCharacters = 16384\nconst int ScriptLimits.ReportColumns = 64\nconst int ScriptLimits.ReportOperationBytes = 262144\nconst int ScriptLimits.ReportRows = 100000\nconst int ScriptLimits.Reports = 8\nconst int ScriptLimits.ScriptCharacters = 65536",
       "Description": "These public constants bound script source UTF-16 units, complete-message UTF-16 units, segment units, encoded message bytes, diagnostics, inputs, deferred copies and CSV operations. They are not user-settable options.",
       "Parameters": "No parameters. Character limits use UTF-16; byte limits count encoded payload or UTF-8 CSV, as named.",
       "Returns": "Compile-time integer constants.",
       "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
       "Limitations": "Defaults outside this facade: 768 MiB worker memory, 30s startup, 60s compilation, 10s each operation, 10min job, 1 GiB input/output storage, 12 MiB IPC frame. Host configuration may impose tighter bounds. Long loops must check Cancellation; timeout forcibly stops an uncooperative worker.",
       "Keywords": "ScriptLimits timeout memory bytes characters cancellation limits",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication"
+      ]
     },
     {
       "Id": "security",
@@ -586,7 +903,17 @@
       "Example": "void Main()\n{\n    Cancellation.ThrowIfCancellationRequested();\n}",
       "Limitations": "#r, #load and #line directives are refused. This does not prevent arbitrary trusted C# filesystem/network side effects; those cannot be rolled back. The documented synthetic helpers themselves have no IO/network or persistent mappings. No new execution capability is added by the reference. No async/background facade use.",
       "Keywords": "security offline isolation sandbox permissions directives cancellation network filesystem",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "lifecycle",
+        "globals",
+        "publication",
+        "limits"
+      ]
     },
     {
       "Id": "identity-library",
@@ -597,14 +924,22 @@
         "SyntheticIdentityLibrary.Get",
         "SyntheticIdentityLibrary.DictionaryVersion"
       ],
-      "Signature": "SyntheticIdentityLibrary(uint seed, int maximumIdentities = 100000)\nSyntheticIdentity Get(string identityKey, CancellationToken cancellation = default)\nconst int DictionaryVersion = 1;",
+      "Signature": "SyntheticIdentityLibrary(uint seed, int maximumIdentities = 100000)\nconst int SyntheticIdentityLibrary.DictionaryVersion = 1\nSyntheticIdentity SyntheticIdentityLibrary.Get(string identityKey, CancellationToken cancellation = default)",
       "Description": "Allocates deterministic fictional profiles from the bundled vocabulary, with bounded collision probing. Construct once in initialization for within-run identity consistency. Already public and usable in authored scripts; no extra facade is required.",
       "Parameters": "seed: reproducibility configuration, not an anonymity secret. maximumIdentities: 1–100,000. identityKey: nonempty opaque key, at most 256 UTF-16 units. cancellation: execution token.",
       "Returns": "Same library/key returns the cached complete profile; distinct allocations do not reuse complete identities. No mapping tables are exposed.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Determinism requires the same seed, key/allocation order, dictionary and implementation. New runs require new instances; no key/profile map is persisted. Exhaustion uses TransformationLimit. Names and finite fictional phone numbers can repeat. Do not use source demographics to select replacements. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentityLibrary Get DictionaryVersion deterministic seed identity profiles",
-      "TemplateName": "Synthetic identity helper"
+      "TemplateName": "Synthetic identity helper",
+      "Errors": "ArgumentOutOfRangeException for constructor bounds; ArgumentNullException for null identityKey; ScriptRunException(TransformationLimit) for invalid key lengths or exhausted mappings; OperationCanceledException on cancellation.",
+      "Mutation": "Allocates/caches execution-local synthetic identities. Does not edit HL7 or persist a crosswalk. Results depend on seed, opaque key and allocation order.",
+      "NullBehavior": "identityKey must be non-null and 1-256 characters. Omit cancellation for its default non-canceled token; no missing-identity inference occurs.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-profile",
@@ -622,14 +957,22 @@
         "SyntheticIdentity.AdministrativeSex",
         "SyntheticIdentity.MaritalStatus"
       ],
-      "Signature": "record SyntheticIdentity(int Allocation, string GivenName, string MiddleName, string FamilyName, string Street, string Locality, DateOnly DateOfBirth, string AdministrativeSex, string MaritalStatus)",
+      "Signature": "SyntheticIdentity(int Allocation, string GivenName, string MiddleName, string FamilyName, string Street, string Locality, DateOnly DateOfBirth, string AdministrativeSex, string MaritalStatus)\nstring SyntheticIdentity.AdministrativeSex { get; init; }\nint SyntheticIdentity.Allocation { get; init; }\nDateOnly SyntheticIdentity.DateOfBirth { get; init; }\nstring SyntheticIdentity.FamilyName { get; init; }\nstring SyntheticIdentity.GivenName { get; init; }\nstring SyntheticIdentity.Locality { get; init; }\nstring SyntheticIdentity.MaritalStatus { get; init; }\nstring SyntheticIdentity.MiddleName { get; init; }\nstring SyntheticIdentity.Street { get; init; }",
       "Description": "Library-generated profiles contain allocation slot, invented given/middle/family names, fictional street/locality, a fixed-pool DOB, administrative sex and marital status. Source demographics and the clock do not choose these values.",
       "Parameters": "Allocation: library slot. GivenName/MiddleName/FamilyName: vocabulary names. Street/Locality: fictional address. DateOfBirth: generated date. AdministrativeSex/MaritalStatus: generated codes.",
       "Returns": "A value record; prefer library.Get rather than manually constructing an inconsistent profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Positional properties support record init/with syntax but do not validate manually created records. DOB pool spans 1945–2013; profiles are test values, not clinical conformance or real-world identities. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity profile constructor properties names DOB sex demographics",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-identifier",
@@ -638,14 +981,23 @@
       "Members": [
         "SyntheticIdentity.Identifier"
       ],
-      "Signature": "string Identifier { get; }",
+      "Signature": "string SyntheticIdentity.Identifier { get; }",
       "Description": "Nine-digit local synthetic ID (100000000 + allocation).",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity Identifier address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-region",
@@ -654,14 +1006,23 @@
       "Members": [
         "SyntheticIdentity.Region"
       ],
-      "Signature": "string Region { get; }",
+      "Signature": "string SyntheticIdentity.Region { get; }",
       "Description": "ZZ, deliberately non-deliverable.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity Region address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-postalcode",
@@ -670,14 +1031,23 @@
       "Members": [
         "SyntheticIdentity.PostalCode"
       ],
-      "Signature": "string PostalCode { get; }",
+      "Signature": "string SyntheticIdentity.PostalCode { get; }",
       "Description": "00000, deliberately non-deliverable.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity PostalCode address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-country",
@@ -686,14 +1056,23 @@
       "Members": [
         "SyntheticIdentity.Country"
       ],
-      "Signature": "string Country { get; }",
+      "Signature": "string SyntheticIdentity.Country { get; }",
       "Description": "USA example country code.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity Country address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-dwellingnumber",
@@ -702,14 +1081,23 @@
       "Members": [
         "SyntheticIdentity.DwellingNumber"
       ],
-      "Signature": "string DwellingNumber { get; }",
+      "Signature": "string SyntheticIdentity.DwellingNumber { get; }",
       "Description": "Street number extracted from the generated street.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity DwellingNumber address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-unit",
@@ -718,14 +1106,23 @@
       "Members": [
         "SyntheticIdentity.Unit"
       ],
-      "Signature": "string Unit { get; }",
+      "Signature": "string SyntheticIdentity.Unit { get; }",
       "Description": "Allocation-dependent fictional unit.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity Unit address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-areacode",
@@ -734,14 +1131,23 @@
       "Members": [
         "SyntheticIdentity.AreaCode"
       ],
-      "Signature": "string AreaCode { get; }",
+      "Signature": "string SyntheticIdentity.AreaCode { get; }",
       "Description": "Fixed example area code 202.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity AreaCode address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-localtelephone",
@@ -750,14 +1156,23 @@
       "Members": [
         "SyntheticIdentity.LocalTelephone"
       ],
-      "Signature": "string LocalTelephone { get; }",
+      "Signature": "string SyntheticIdentity.LocalTelephone { get; }",
       "Description": "555-0100 through 555-0199 fictional subscriber pool.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity LocalTelephone address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-telephone",
@@ -766,14 +1181,23 @@
       "Members": [
         "SyntheticIdentity.Telephone"
       ],
-      "Signature": "string Telephone { get; }",
+      "Signature": "string SyntheticIdentity.Telephone { get; }",
       "Description": "+1 plus area code/subscriber.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity Telephone address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-email",
@@ -782,14 +1206,23 @@
       "Members": [
         "SyntheticIdentity.Email"
       ],
-      "Signature": "string Email { get; }",
+      "Signature": "string SyntheticIdentity.Email { get; }",
       "Description": "Generated name/slot at reserved example.org.",
       "Parameters": "No parameters.",
       "Returns": "Derived string for the generated profile.",
       "Example": "var identities = new SyntheticIdentityLibrary(seed: 42, maximumIdentities: 1000);\nvoid Main()\n{\n    // A fixed opaque example key shares a profile within this run.\n    // Production identity resolution needs explicit authority/ambiguity rules;\n    // use the Patient Deidentifier built-in for its supported field policy.\n    var profile = identities.Get(\"synthetic-example-key\", Cancellation);\n    if (Message.CanEdit && !Message.HasDiagnostics)\n    {\n        Message.SetText(\"PID-5.1\", profile.FamilyName);\n        Message.SetText(\"PID-5.2\", profile.GivenName);\n    }\n}",
       "Limitations": "Only library-generated profiles are covered by these invariants. IDs/email/address-unit allocations distinguish complete profiles; names/phone numbers may repeat. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "SyntheticIdentity Email address contact",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "identity-age",
@@ -798,14 +1231,23 @@
       "Members": [
         "SyntheticIdentity.AgeOn"
       ],
-      "Signature": "int AgeOn(DateOnly reference)",
+      "Signature": "int SyntheticIdentity.AgeOn(DateOnly reference)",
       "Description": "Calculates whole birthday years from the generated DOB using the supplied reference date; no current clock or timezone lookup.",
       "Parameters": "reference: explicit date for age calculation.",
       "Returns": "Integer age; reference dates before birth can yield negative values.",
       "Example": "var identity = new SyntheticIdentityLibrary(42).Get(\"synthetic-example-key\", Cancellation);\nint age = identity.AgeOn(new DateOnly(2030, 1, 1));\nvoid Main() {}",
       "Limitations": "Caller chooses a sensible date and clinical context; this does not validate arbitrary source age observations. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "AgeOn DateOnly birthday age",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "identity-library",
+        "identity-profile",
+        "workflow"
+      ]
     },
     {
       "Id": "workflow",
@@ -818,14 +1260,25 @@
         "DeidentificationWorkflow.Summary",
         "DeidentificationWorkflow.Findings"
       ],
-      "Signature": "DeidentificationWorkflow(DeidentificationOptions options, CancellationToken cancellation = default)\nvoid Apply(ScriptMessage message)\nint ShiftDays { get; }\nDeidentificationSummary Summary { get; }\nIReadOnlyList<DeidentificationFinding> Findings { get; }",
+      "Signature": "DeidentificationWorkflow(DeidentificationOptions options, CancellationToken cancellation = default)\nvoid DeidentificationWorkflow.Apply(ScriptMessage message)\nIReadOnlyList<DeidentificationFinding> DeidentificationWorkflow.Findings { get; }\nint DeidentificationWorkflow.ShiftDays { get; }\nDeidentificationSummary DeidentificationWorkflow.Summary { get; }",
       "Description": "Construct once in initialization; Apply the current Message in Main. Summary returns fixed count-only metadata, and ShiftDays exposes the common calendar-day offset for this run. Patient policy uses qualified identities and conservative field handling. Findings returns up to 1,000 structural review occurrences with fixed reasons, never original values.",
       "Parameters": "options: supported preset/seed/shift/mapping bounds. cancellation: run token. message: current invocation facade.",
       "Returns": "Apply returns void; Summary is a count snapshot suitable for one Complete report row. Existing library built-ins provide the complete reviewable presets.",
       "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvar findings = Batch.Report(\"deidentification-findings\", DeidentificationFinding.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }",
       "Limitations": "Do not instantiate per Main when cross-message consistency matters. Apply requires editable input without diagnostics. Patient unsupported/narrative/ED leaves are suppressed; narrower presets retain other sensitive values. Qualified identity ambiguity is counted, never guessed. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "DeidentificationWorkflow Apply Summary timestamp shifting consistent identity patient",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "ArgumentNullException for null options; ArgumentException for invalid options; ScriptRunException: EditRejected for malformed/non-editable input, BatchLimit, TransformationLimit for work/mapping budgets; OperationCanceledException on cancellation.",
+      "Mutation": "Apply transforms the supplied worker message and updates run-local mappings/counts/findings. Source files/history remain unchanged; it is a de-identification aid, not certification.",
+      "NullBehavior": "Supported fields preserve missing/empty/explicit null where policy specifies. Unresolved identity/timestamp cases produce bounded review findings; no silent assumption of safe data.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write. Initialize one workflow per run; call Apply(Message) in Main, inspect aggregate Summary/Findings in Complete.",
+      "Related": [
+        "globals",
+        "lifecycle",
+        "states",
+        "paths",
+        "publication"
+      ]
     },
     {
       "Id": "workflow-options",
@@ -843,14 +1296,23 @@
         "DeidentificationPreset.IdentifierPseudonymizer",
         "DeidentificationPreset.TimestampShifter"
       ],
-      "Signature": "new DeidentificationOptions()\nDeidentificationPreset Preset { get; init; } = DeidentificationPreset.PatientDeidentifier;\nuint Seed { get; init; } = 42;\nint? ShiftDays { get; init; }\nint MaximumMappings { get; init; } = 100000;\nconst int ImplementationVersion = 1;\nconst int PatientImplementationVersion = 2;\nenum DeidentificationPreset { PatientDeidentifier, IdentifierPseudonymizer, TimestampShifter }",
+      "Signature": "DeidentificationOptions()\nconst int DeidentificationOptions.ImplementationVersion = 1\nint DeidentificationOptions.MaximumMappings { get; init; }\nconst int DeidentificationOptions.PatientImplementationVersion = 2\nDeidentificationPreset DeidentificationOptions.Preset { get; init; }\nuint DeidentificationOptions.Seed { get; init; }\nint? DeidentificationOptions.ShiftDays { get; init; }\nDeidentificationPreset.IdentifierPseudonymizer = 1\nDeidentificationPreset.PatientDeidentifier = 0\nDeidentificationPreset.TimestampShifter = 2",
       "Description": "Immutable configuration for existing helpers. Patient Deidentifier replaces supported identity/demographics and suppresses unsupported leaves. Identifier Pseudonymizer changes supported references only; Timestamp Shifter changes supported timestamps only.",
       "Parameters": "Preset: one of three enum values. Seed: deterministic run seed. ShiftDays: -3660…3660, or null for a derived nonzero -365…365 displacement. MaximumMappings: 1–100,000 per map.",
       "Returns": "A configuration record validated by the workflow constructor.",
       "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvar findings = Batch.Report(\"deidentification-findings\", DeidentificationFinding.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }",
       "Limitations": "Full-day through second precision, up to four fraction digits and explicit offsets are preserved. Missing offsets stay absent. Partial/malformed/overflow/leap-second/unsupported timestamps are cleared in Patient or retained with counts in Timestamp mode. No timezone/locale guessing. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "DeidentificationOptions Preset Seed ShiftDays MaximumMappings timestamp date precision",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "Options are ordinary init properties; DeidentificationWorkflow construction validates preset, ShiftDays (-3660..3660) and MaximumMappings (1..100000), throwing ArgumentException for invalid values.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "ShiftDays=null derives a common seed-based displacement. Other nullable inputs are not introduced. Object creation applies the documented existing defaults.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "workflow",
+        "workflow-report",
+        "workflow-findings"
+      ]
     },
     {
       "Id": "workflow-summary",
@@ -869,14 +1331,24 @@
         "DeidentificationSummary.HighRiskFields",
         "DeidentificationSummary.RetainedValues"
       ],
-      "Signature": "record DeidentificationSummary(long Messages, long MissingIdentities, long AmbiguousIdentities, long ReplacedValues, long SuppressedValues, long ShiftedTimestamps, long UnsupportedTimestamps, long UnknownSegments, long HighRiskFields, long RetainedValues)",
+      "Signature": "DeidentificationSummary(long Messages, long MissingIdentities, long AmbiguousIdentities, long ReplacedValues, long SuppressedValues, long ShiftedTimestamps, long UnsupportedTimestamps, long UnknownSegments, long HighRiskFields, long RetainedValues)\nlong DeidentificationSummary.AmbiguousIdentities { get; init; }\nlong DeidentificationSummary.HighRiskFields { get; init; }\nlong DeidentificationSummary.Messages { get; init; }\nlong DeidentificationSummary.MissingIdentities { get; init; }\nlong DeidentificationSummary.ReplacedValues { get; init; }\nlong DeidentificationSummary.RetainedValues { get; init; }\nlong DeidentificationSummary.ShiftedTimestamps { get; init; }\nlong DeidentificationSummary.SuppressedValues { get; init; }\nlong DeidentificationSummary.UnknownSegments { get; init; }\nlong DeidentificationSummary.UnsupportedTimestamps { get; init; }",
       "Description": "Messages: processed count. MissingIdentities/AmbiguousIdentities: unresolved correlation counts. ReplacedValues/SuppressedValues: transformed/suppressed leaves. ShiftedTimestamps/UnsupportedTimestamps: supported/unsupported time counts. UnknownSegments/HighRiskFields/RetainedValues: review evidence counts.",
       "Parameters": "Constructor parameters are the named long counters; workflows populate them. No source values are present.",
       "Returns": "Count snapshot, not a persisted source-to-profile map or an assertion of anonymity.",
       "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvar findings = Batch.Report(\"deidentification-findings\", DeidentificationFinding.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }",
       "Limitations": "Counts cover the supported policy only. Do not manufacture a successful privacy report from a manually constructed summary. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "DeidentificationSummary counts counters missing ambiguous timestamps",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "workflow",
+        "workflow-options",
+        "workflow-report",
+        "workflow-findings"
+      ]
     },
     {
       "Id": "workflow-report",
@@ -894,14 +1366,23 @@
         "DeidentificationSummary.OmittedFindings",
         "DeidentificationSummary.RequiresReview"
       ],
-      "Signature": "DeidentificationPreset Preset { get; init; }\nint Version { get; init; }\nIReadOnlyList<DeidentificationCategoryCount> Categories { get; init; }\nstring Status { get; }\nstatic string[] Columns { get; }\nstring[] Cells { get; }\nconst string ScopeNotice = \"General limitation: container bytes, nested metadata and retained clinical values are not certified de-identified.\";\nlong RetainedValuesRequiringReview { get; init; }\nlong OmittedFindings { get; init; }\nbool RequiresReview { get; }",
+      "Signature": "IReadOnlyList<DeidentificationCategoryCount> DeidentificationSummary.Categories { get; init; }\nstring[] DeidentificationSummary.Cells { get; }\nstatic string[] DeidentificationSummary.Columns { get; }\nlong DeidentificationSummary.OmittedFindings { get; init; }\nDeidentificationPreset DeidentificationSummary.Preset { get; init; }\nbool DeidentificationSummary.RequiresReview { get; }\nlong DeidentificationSummary.RetainedValuesRequiringReview { get; init; }\nconst string DeidentificationSummary.ScopeNotice = \"General limitation: container bytes, nested metadata and retained clinical values are not certified de-identified.\"\nstring DeidentificationSummary.Status { get; }\nint DeidentificationSummary.Version { get; init; }",
       "Description": "Counts and preset/category metadata from the producing execution. Status is Completed — review required when specific identity, timestamp, unknown-segment, high-risk or retained-review counts are nonzero; otherwise Completed — no flagged findings. ScopeNotice is a separate general limitation, never a detected finding.",
       "Parameters": "No method parameters. Define Batch.Report with Columns in initialization and call Row(Summary.Cells) once in Complete.",
       "Returns": "Read-only metadata and fresh arrays. A validated built-in report is associated with its output document’s Transformation Report panel.",
       "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvar findings = Batch.Report(\"deidentification-findings\", DeidentificationFinding.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }",
       "Limitations": "CSV keeps the original columns in order and appends Retained values requiring review and Omitted findings. The Status wording and unassessed-scope notice are updated. No source values, filenames or mappings. No flagged findings is not certification or permission to disclose. Existing script copies without a findings CSV show counts with details unavailable.",
       "Keywords": "Categories Columns Cells Status ScopeNotice Transformation Report export",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "workflow",
+        "workflow-options",
+        "workflow-findings"
+      ]
     },
     {
       "Id": "workflow-categories",
@@ -922,14 +1403,24 @@
         "DeidentificationCategory.Attachments",
         "DeidentificationCategory.Other"
       ],
-      "Signature": "record DeidentificationCategoryCount(DeidentificationCategory Category, long Transformed, long Suppressed)\nenum DeidentificationCategory { Names, Addresses, Contacts, Demographics, Identifiers, Providers, Narratives, Attachments, Other }",
+      "Signature": "DeidentificationCategory.Addresses = 1\nDeidentificationCategory.Attachments = 7\nDeidentificationCategory.Contacts = 2\nDeidentificationCategory.Demographics = 3\nDeidentificationCategory.Identifiers = 4\nDeidentificationCategory.Names = 0\nDeidentificationCategory.Narratives = 6\nDeidentificationCategory.Other = 8\nDeidentificationCategory.Providers = 5\nDeidentificationCategoryCount(DeidentificationCategory Category, long Transformed, long Suppressed)\nDeidentificationCategory DeidentificationCategoryCount.Category { get; init; }\nlong DeidentificationCategoryCount.Suppressed { get; init; }\nlong DeidentificationCategoryCount.Transformed { get; init; }",
       "Description": "Groups supported leaf operations into names, addresses, contacts, demographics, identifiers, providers, narratives, attachments and other fields.",
       "Parameters": "Category: fixed category. Transformed: replacement count. Suppressed: cleared-leaf count.",
       "Returns": "Count record in Summary.Categories; no raw content or mapping keys.",
       "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvar findings = Batch.Report(\"deidentification-findings\", DeidentificationFinding.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }",
       "Limitations": "A category count is scope evidence, not proof that all sensitive content in that category was found. Review required: these are test-data aids, not a guarantee of PHI removal or compliance. Container bytes, nested metadata and retained clinical values require separate review. Do not log keys, profiles or source values.",
       "Keywords": "DeidentificationCategoryCount category transformed suppressed",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "workflow",
+        "workflow-options",
+        "workflow-report",
+        "workflow-findings"
+      ]
     },
     {
       "Id": "workflow-findings",
@@ -976,14 +1467,47 @@
         "DeidentificationReason.RetainedOutsidePolicy",
         "DeidentificationReason.InvalidSyntheticAge"
       ],
-      "Signature": "record DeidentificationFinding(int MessageNumber, int SegmentNumber, DeidentificationSegment Segment, int SegmentOccurrence, int FieldNumber, DeidentificationReason Reason)\nconst int MaximumFindings = 1000;\nstatic string[] Columns { get; }\nstring[] Cells { get; }\nstring Path { get; }\nstring Description { get; }\nenum DeidentificationSegment { Unknown, MSH, EVN, PID, PD1, NK1, PV1, PV2, IN1, IN2, GT1, ORC, OBR, OBX, NTE, DG1, AL1 }\nenum DeidentificationReason { MissingIdentity, AmbiguousIdentity, UnknownSegment, UnqualifiedIdentifier, UnsupportedIdentifier, UnsupportedTimestamp, SensitiveContentSuppressed, RetainedClinicalValue, RetainedOutsidePolicy, InvalidSyntheticAge }",
+      "Signature": "DeidentificationFinding(int MessageNumber, int SegmentNumber, DeidentificationSegment Segment, int SegmentOccurrence, int FieldNumber, DeidentificationReason Reason)\nstring[] DeidentificationFinding.Cells { get; }\nstatic string[] DeidentificationFinding.Columns { get; }\nstring DeidentificationFinding.Description { get; }\nint DeidentificationFinding.FieldNumber { get; init; }\nconst int DeidentificationFinding.MaximumFindings = 1000\nint DeidentificationFinding.MessageNumber { get; init; }\nstring DeidentificationFinding.Path { get; }\nDeidentificationReason DeidentificationFinding.Reason { get; init; }\nDeidentificationSegment DeidentificationFinding.Segment { get; init; }\nint DeidentificationFinding.SegmentNumber { get; init; }\nint DeidentificationFinding.SegmentOccurrence { get; init; }\nDeidentificationReason.AmbiguousIdentity = 1\nDeidentificationReason.InvalidSyntheticAge = 9\nDeidentificationReason.MissingIdentity = 0\nDeidentificationReason.RetainedClinicalValue = 7\nDeidentificationReason.RetainedOutsidePolicy = 8\nDeidentificationReason.SensitiveContentSuppressed = 6\nDeidentificationReason.UnknownSegment = 2\nDeidentificationReason.UnqualifiedIdentifier = 3\nDeidentificationReason.UnsupportedIdentifier = 4\nDeidentificationReason.UnsupportedTimestamp = 5\nDeidentificationSegment.AL1 = 16\nDeidentificationSegment.DG1 = 15\nDeidentificationSegment.EVN = 2\nDeidentificationSegment.GT1 = 10\nDeidentificationSegment.IN1 = 8\nDeidentificationSegment.IN2 = 9\nDeidentificationSegment.MSH = 1\nDeidentificationSegment.NK1 = 5\nDeidentificationSegment.NTE = 14\nDeidentificationSegment.OBR = 12\nDeidentificationSegment.OBX = 13\nDeidentificationSegment.ORC = 11\nDeidentificationSegment.PD1 = 4\nDeidentificationSegment.PID = 3\nDeidentificationSegment.PV1 = 6\nDeidentificationSegment.PV2 = 7\nDeidentificationSegment.Unknown = 0",
       "Description": "Fixed structural coordinates and reasons for manual review. No original values are present. Unknown segment names are replaced by the fixed Unknown vocabulary entry.",
       "Parameters": "MessageNumber is the one-based processed ordinal within this workflow, not a current source position. SegmentNumber is the one-based absolute segment position; SegmentOccurrence is the same-name occurrence. FieldNumber is one-based, or zero for a segment finding. Segment position zero denotes a message-level PID-3 identity finding.",
       "Returns": "Findings snapshot and CSV projection; Path and Description use only fixed text, enum vocabulary and numeric coordinates.",
       "Example": "var workflow = new DeidentificationWorkflow(new DeidentificationOptions\n{\n    Preset = DeidentificationPreset.PatientDeidentifier,\n    Seed = 42\n}, Cancellation);\nvar review = Batch.Report(\"deidentification-review\", DeidentificationSummary.Columns);\nvar findings = Batch.Report(\"deidentification-findings\", DeidentificationFinding.Columns);\nvoid Main() { workflow.Apply(Message); }\nvoid Complete() { review.Row(workflow.Summary.Cells); foreach (var finding in workflow.Findings) findings.Row(finding.Cells); }",
       "Limitations": "At most 1,000 occurrence rows per run. Summary.OmittedFindings discloses further occurrences; summary counts remain exact. Findings and counter types can overlap. Workspace maps processed ordinals to captured logical positions, including Current message scope. These are supported-policy findings, not a comprehensive PHI detector. No raw patient values, dates, filenames or identity crosswalks.",
       "Keywords": "DeidentificationFinding findings path reason review CSV privacy retained",
-      "TemplateName": null
+      "TemplateName": null,
+      "Errors": "No facade operation is performed by reading this topic. Refer to the linked method contracts for failure behavior.",
+      "Mutation": "Reading this metadata/value does not change an HL7 message. Constructed records and option objects are ordinary C# values; their public init accessors change only the newly constructed copy.",
+      "NullBehavior": "No implicit conversion of missing, empty or explicitly null HL7 values. Non-nullable .NET inputs remain caller contracts; not every helper provides a runtime null guard.",
+      "Modes": "Current message and Whole document use the same Main/Complete lifecycle. Successful Run creates independent unsaved output; there is no script modify-in-place mode or automatic file write.",
+      "Related": [
+        "workflow",
+        "workflow-options",
+        "workflow-report"
+      ]
+    },
+    {
+      "Id": "host-infrastructure",
+      "Title": "Public host infrastructure (unsupported for scripts)",
+      "Category": "Host boundary",
+      "Members": [],
+      "IsInfrastructure": true,
+      "Signature": "ScriptDefinition(string Source, int ApiVersion = 2)\nint ScriptDefinition.ApiVersion { get; init; }\nstring ScriptDefinition.Source { get; init; }\nScriptMessageResult(bool Excluded, byte[]? Bytes)\nbyte[]? ScriptMessageResult.Bytes { get; init; }\nbool ScriptMessageResult.Excluded { get; init; }\nScriptProgress(string Phase, int Processed, int Total, long OutputBytes)\nlong ScriptProgress.OutputBytes { get; init; }\nstring ScriptProgress.Phase { get; init; }\nint ScriptProgress.Processed { get; init; }\nint ScriptProgress.Total { get; init; }\nScriptReportChunk(string Name, byte[] Bytes, bool Header = false)\nbyte[] ScriptReportChunk.Bytes { get; init; }\nbool ScriptReportChunk.Header { get; init; }\nstring ScriptReportChunk.Name { get; init; }\nScriptWorkerOptions()\nTimeSpan ScriptWorkerOptions.CompilationTimeout { get; init; }\nlong ScriptWorkerOptions.MemoryLimitBytes { get; init; }\nTimeSpan ScriptWorkerOptions.MessageTimeout { get; init; }\nTimeSpan ScriptWorkerOptions.StartupTimeout { get; init; }\nTask ScriptWorkerSession.CompleteAsync(CancellationToken token = default)\nValueTask ScriptWorkerSession.DisposeAsync()\nIReadOnlyList<ScriptReportChunk> ScriptWorkerSession.DrainReports()\nbool ScriptWorkerSession.IgnoredOutputFileNameSuggestion { get; }\nstring? ScriptWorkerSession.OutputFileName { get; }\nTask<ScriptMessageResult> ScriptWorkerSession.ProcessAsync(byte[] bytes, int codePage, int messageNumber, CancellationToken token = default)\nint ScriptWorkerSession.ProcessId { get; }\nstatic Task<ScriptWorkerSession> ScriptWorkerSession.StartAsync(string executable, ScriptDefinition definition, ScriptWorkerOptions? options = null, CancellationToken token = default)\nTask<ValueTuple<int, byte[]>?> ScriptWorkerSession.TakeDeferredAsync(CancellationToken token = default)",
+      "Description": "ScriptDefinition, ScriptWorkerOptions, ScriptWorkerSession and transport DTOs are public .NET types in the referenced assembly, so trusted C# can physically name them. They are not supported script-authoring APIs. Only the application owns worker startup, output staging, framing, deadlines and source publication.",
+      "Parameters": "The exact metadata inventory includes declared constructors, properties, defaults and overloads. Those parameters configure application orchestration rather than the current script run.",
+      "Returns": "Host transport/lifetime values. They are not a message enumeration, modify-in-place, filesystem export or worker-reconfiguration facility for scripts.",
+      "Example": "// No runnable authoring example: these facilities belong to the application.\n// Use Message, Batch and Cancellation for supported script operations.",
+      "Limitations": "Trusted C# is not an OS security sandbox. Public visibility is distinct from supported host binding. Inherited .NET methods and compiler-generated record members use ordinary C# semantics; internal implementation methods remain unavailable.",
+      "Keywords": "infrastructure host public internal unsupported orchestration transport worker boundary",
+      "TemplateName": null,
+      "Errors": "No supported script usage contract. Calling host orchestration from a script can create side effects outside application rollback and is unsupported.",
+      "Mutation": "Unsupported orchestration can have process/IO side effects; it is excluded from authoring completion. Supported facade mutations remain staged until whole-job success.",
+      "NullBehavior": "Exact nullable/default parameter metadata is shown for inspection, not as a supported authoring promise.",
+      "Modes": "Unsupported for authoring in both Current message and Whole document. The application owns these facilities in every phase.",
+      "Related": [
+        "globals",
+        "publication",
+        "security"
+      ]
     }
   ]
 }

@@ -223,10 +223,14 @@ basic diagnostics do not provide HL7 version/profile conformance validation.
 
 ## C# scripting (Stages 5A–5B)
 
-**Help → Script API Reference** and the Script Editor's **API Reference** button open
-searchable offline API help, copyable complete examples and six editable starters.
+**Help → Script API Reference**, **Scripts ribbon → API Reference** and the Script
+Editor's **API Reference** button open searchable offline API help, exact runtime
+contracts, copyable complete examples and six editable starters. In code, **F1**
+opens context-sensitive help; **Ctrl+Space** explicitly opens documented facade
+completion and **Ctrl+Shift+Space** shows invocation signatures. Lookup never runs
+scripts or changes source. Copy API catalog JSON exports the verified metadata.
 Browse [the generated reference](docs/script-api-reference.md) or see
-[Stage 9C acceptance](docs/stage9c-script-developer-experience-acceptance.md).
+[Stage 18 architecture and acceptance](docs/stage18-script-api-reference.md).
 Built-ins are read-only; Duplicate Script creates an independent My Scripts copy to
 rename, edit, save, reopen and run. Application updates do not replace those copies.
 

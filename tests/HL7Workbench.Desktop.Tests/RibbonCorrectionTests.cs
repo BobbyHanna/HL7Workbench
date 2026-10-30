@@ -80,11 +80,13 @@ public sealed partial class ScriptEditorTests
             {
                 ribbon.SelectTab(1); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
                 var buttons = RibbonButtons(ribbon.PinnedHost);
-                Assert.Equal(new[] { "New", "Save", "Duplicate", "Rename", "Delete", "Open Script Editor", "Run", "Cancel", "Review Output", "Reports" }, buttons.Select(AutomationProperties.GetName));
+                Assert.Equal(new[] { "New", "Save", "Duplicate", "Rename", "Delete", "Open Script Editor", "Run", "Cancel", "Review Output", "Reports", "API Reference" }, buttons.Select(AutomationProperties.GetName));
+                Assert.Same(model.ApiReferenceCommand, buttons.Single(b => AutomationProperties.GetName(b) == "API Reference").Command);
                 var menu = new MenuItem(); ScriptCommandMenu.Populate(menu, model);
                 // Inventory the removed menu against the live ribbon: every former
                 // entry must retain its exact command instance and operation gate.
-                Assert.Equal(menu.Items.Count, buttons.Length);
+                // Stage 18 adds reference help alongside the preserved ten actions.
+                Assert.Equal(menu.Items.Count + 1, buttons.Length);
                 foreach (var item in menu.Items.Cast<MenuItem>()) Assert.Single(buttons, b => ReferenceEquals(item.Command, b.Command));
                 Assert.Same(model.OpenCommand, buttons[5].Command);
                 Assert.Same(model.RunCommand, buttons[6].Command); Assert.Contains("accent", buttons[6].Classes);
@@ -133,7 +135,7 @@ public sealed partial class ScriptEditorTests
                     var background = Assert.IsAssignableFrom<ISolidColorBrush>(surface.Background).Color;
                     Assert.Equal(Assert.IsAssignableFrom<ISolidColorBrush>(resource).Color, background);
                     var headings = surface.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("ribbon-group-title")).ToArray();
-                    Assert.Equal(new[] { "Script Library", "Execution", "Results" }, headings.Select(h => h.Text));
+                    Assert.Equal(new[] { "Script Library", "Execution", "Results", "Help" }, headings.Select(h => h.Text));
                     Assert.All(headings, h => Assert.True(Contrast(Assert.IsAssignableFrom<ISolidColorBrush>(h.Foreground).Color, background) >= 4.5));
                     Assert.Equal(theme, surface.ActualThemeVariant);
                 }
@@ -141,7 +143,7 @@ public sealed partial class ScriptEditorTests
                 Assert.True(ribbon.Tabs[1].IsChecked);
                 Assert.InRange(surface.Bounds.Height, 80, 110);
                 var buttons = RibbonButtons(host); Assert.All(buttons, b => { Assert.True(b.Bounds.Height >= 30); Assert.True(b.FontSize >= 13); });
-                Assert.Equal(10, buttons.Length); Assert.All(buttons, b => Assert.Single(b.GetVisualDescendants().OfType<PathIcon>()));
+                Assert.Equal(11, buttons.Length); Assert.All(buttons, b => Assert.Single(b.GetVisualDescendants().OfType<PathIcon>()));
                 var run = buttons.Single(b => AutomationProperties.GetName(b) == "Run"); Assert.True(run.IsEffectivelyEnabled);
                 window.MouseMove(Center(run, window)); Assert.True(run.IsPointerOver);
                 run.Focus(NavigationMethod.Tab); Assert.True(run.IsFocused);

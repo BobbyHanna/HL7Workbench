@@ -8,7 +8,53 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
-## Stage 17 — explicit inline schema validation (2026-10-29)
+## Stage 18 — integrated Script API reference (2026-10-30)
+
+The owner confirms Stage 17 is accepted, committed and green in Actions. Stage 18
+starts from clean main at 6a0afb18ee3cf583c3222794e055504bc51ccf98. This authorizes
+the Script API reference overhaul and supersedes historical no-Stage-18 notes below.
+No commit, push, package, publication or Stage 19 is authorized. Stop for native
+Windows acceptance after verification; the general documentation overhaul remains
+reserved for Stage 19. AGENTS.md needs no change.
+
+Workspace derives exact C# contracts from the same Scripting assembly referenced
+by ScriptHost and combines them with the embedded, reviewed behavior catalog:
+25 facade types / 186 supported contracts, plus 29 public host-infrastructure
+contracts explicitly unsupported for authoring, in 52 topics. Runtime inventories,
+signature snapshots and example outcomes have permanent tests. The existing
+reference Dock identity/model/menu/library integration is retained. ScriptHost,
+facade execution, protocol, source capture, publication and library storage remain
+unchanged; no package or lock-file changes are introduced.
+
+Full-suite verification exposed a pre-existing validation-disposal task-collection
+race. A small synchronization guard now makes completion drains and close snapshots
+consistent; one regression repeatedly reapplies/cancels/closes without changing
+validation rules or script semantics. This incidental lifecycle fix is recorded
+separately in the Stage 18 guide.
+
+Desktop shares the existing compiler-only symbol environment for F1 lookup,
+explicit Ctrl+Space facade completion and Ctrl+Shift+Space signature help. These
+bounded requests do not execute scripts, resolve directives, retain source caches
+or change code during lookup; explicit completion insertion uses existing editor
+undo and respects read-only scripts. Unknown/ambiguous symbols, related-topic/back
+navigation, full contract sections and catalog JSON copying are integrated into
+the existing reference. Query/selection survive normal close/reopen/float/restore;
+only placement is serialized. See [Stage 18 implementation and acceptance](stage18-script-api-reference.md).
+
+Final locked restores (normal/isolated) and Release build pass with zero warnings/
+errors. Focused Scripting/Workspace/Desktop suites pass 94/111/107, with additional
+post-fix validation/catalog and reference/native-input checks passing 34/37; all have
+zero failures/skips. The exact full regular solution suite passes 2,713, fails 0 and
+skips the same 14 opt-ins (2,727 total; 4m 47.968s). Added 46 permanent cases
+(5 Scripting / 10 Workspace / 31 Desktop). All 2,384 protected beta hashes match
+after the suite, with no missing/added files. The 27-file change (20 tracked updates /
+7 new) remains unstaged on unchanged main/HEAD with an empty index. Runtime/test/
+build-tool hashes match the tested snapshot. The complete machine-readable catalog,
+logs, manifests, reviewed diagnostics and isolated restore metadata remain under
+ignored artifacts/stage18; native Windows acceptance is pending. No commit, push,
+package, publication or Stage 19 work occurred.
+
+## Stage 17 — explicit inline schema validation (2026-10-29, historical)
 
 The owner confirms Stage 16/16A–D native acceptance, commit and passing Actions.
 Preflight found clean main at 9686f5259f9c1a8b99cc4631dfae40731b410284, with the

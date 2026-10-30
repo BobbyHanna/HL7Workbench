@@ -55,6 +55,8 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public UiCommand ReportsCommand { get; }
     public UiCommand ApiReferenceCommand { get; }
     public event Action? ApiReferenceRequested;
+    public event Action<IReadOnlyList<string>, string>? ApiLookupRequested;
+    internal void ShowApiLookup(IReadOnlyList<string> topics, string notice) => ApiLookupRequested?.Invoke(topics, notice);
     public event Action? OpenEditorRequested;
     public event Action? EditorShown;
     internal void NotifyEditorShown() => EditorShown?.Invoke();
@@ -248,6 +250,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
         ((INotifyCollectionChanged)documents.Documents).CollectionChanged -= DocumentsChanged;
         lifetime.Dispose(); PropertyChanged = null; ReviewRequested = null;
         PromptUnsavedAsync = () => Task.FromResult(UnsavedChangesDecision.Cancel);
-        OpenEditorRequested = EditorShown = ApiReferenceRequested = null; ConfirmDeleteAsync = _ => Task.FromResult(false); ShowReportsAsync = () => Task.CompletedTask;
+        OpenEditorRequested = EditorShown = ApiReferenceRequested = null; ApiLookupRequested = null;
+        ConfirmDeleteAsync = _ => Task.FromResult(false); ShowReportsAsync = () => Task.CompletedTask;
     }
 }

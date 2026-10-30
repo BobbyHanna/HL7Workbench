@@ -74,6 +74,20 @@ public sealed class SchemaValidationLifecycleTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task RapidReapplicationAndCloseSafelySnapshotConcurrentCompletionDrains()
+    {
+        // Canceled predecessors can complete on pool threads while Close captures
+        // the remaining work. Keep disposal and source-release assertions intact.
+        for (var iteration = 0; iteration < 32; iteration++)
+        {
+            var doc = Open(Message());
+            var pending = Enumerable.Range(0, 12).Select(_ => doc.ApplySchemaAsync("hl7.v251.ADT.A01")).ToArray();
+            documents.Close(doc.Id, true); await Task.WhenAll(pending); await doc.Disposal;
+            Assert.Null(doc.SchemaValidation); Assert.Empty(documents.Documents);
+        }
+    }
+
+    [Fact]
     public async Task SourceBackedHugeValuesRemainBoundedAndOnlyTheSelectedMessageIsValidated()
     {
         var first = SyntheticMessageGenerator.Generate(new() { MessageType = SyntheticMessageType.OruR01, DemographicStyle = SyntheticDemographicStyle.RealisticSynthetic }, Token).Messages[0];

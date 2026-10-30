@@ -11,6 +11,7 @@ public sealed partial class MessageDocument
     private sealed record AppliedSchema(string Id, string Signature);
     private readonly Dictionary<MessageId, AppliedSchema> appliedSchemas = [];
     private readonly HashSet<Task> validationOperations = [];
+    private readonly object validationOperationsSync = new();
     private CancellationTokenSource? validationRequest;
     private long validationGeneration;
     private (MessageId Id, long Content, long Revision)? validationKey;
@@ -98,11 +99,12 @@ public sealed partial class MessageDocument
         validationRequest = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
         SetValidationState(SchemaValidationState.Validating, "Validating this message under the explicitly applied profile…");
         var operation = ValidateActiveAsync(key, resolved.Profile, validationGeneration, validationRequest.Token);
-        ValidationRefresh = operation; validationOperations.Add(operation);
+        ValidationRefresh = operation;
+        lock (validationOperationsSync) validationOperations.Add(operation);
         _ = DrainOperationAsync(operation);
     }
     private async Task DrainOperationAsync(Task operation)
-    { try { await operation; } finally { validationOperations.Remove(operation); } }
+    { try { await operation; } finally { lock (validationOperationsSync) validationOperations.Remove(operation); } }
     private async Task ValidateActiveAsync((MessageId Id, long Content, long Revision) key, Hl7ValidationProfile profile, long serial, CancellationToken token)
     {
         bool Current() => !disposed && serial == validationGeneration && ActiveMessageId == key.Id && ContentVersion == key.Content && SearchRevision == key.Revision;
@@ -145,6 +147,10 @@ public sealed partial class MessageDocument
     private Task[] StopValidation()
     {
         validationLibrary.Changed -= ValidationLibraryChanged; validationPreferences = null; CancelValidation();
-        SchemaValidation = null; appliedSchemas.Clear(); return validationOperations.ToArray();
+        SchemaValidation = null; appliedSchemas.Clear();
+        // Completion can drain on a pool thread when there is no UI context.
+        // ICollection.ToArray reads Count before CopyTo; a concurrent removal
+        // could otherwise leave a null task in the disposal snapshot.
+        lock (validationOperationsSync) return validationOperations.ToArray();
     }
 }

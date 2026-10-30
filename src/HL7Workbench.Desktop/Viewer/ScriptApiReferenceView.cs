@@ -36,14 +36,20 @@ public sealed class ScriptApiReferenceView : Grid
     public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap };
     public TextBlock Version { get; } = new() { FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
     private readonly SelectableTextBlock description = Prose(), parameters = Prose(), returns = Prose(), limitations = Prose();
+    public SelectableTextBlock Errors { get; } = Prose();
+    public SelectableTextBlock Mutation { get; } = Prose();
+    public SelectableTextBlock NullBehavior { get; } = Prose();
+    public SelectableTextBlock Modes { get; } = Prose();
+    public AdaptiveActionBar Related { get; } = new();
+    public Button CopyCatalog { get; } = new() { Content = "Copy API catalog JSON" };
     public Task ClipboardTask { get; private set; } = Task.CompletedTask;
     public Task<bool> CreationTask { get; private set; } = Task.FromResult(false);
 
     public ScriptApiReferenceView(ScriptApiReferenceViewModel model)
     {
-        this.model = model; Margin = new(8); RowDefinitions = new("Auto,Auto,Auto,*,Auto"); MinWidth = 280; MinHeight = 180;
+        this.model = model; Margin = new(8); RowDefinitions = new("Auto,Auto,Auto,*,Auto"); MinWidth = 0; MinHeight = 180;
         var top = new AdaptiveActionBar();
-        top.Children.Add(Back); top.Children.Add(Version); Children.Add(top);
+        top.Children.Add(Back); top.Children.Add(CopyCatalog); top.Children.Add(Version); Children.Add(top);
         Search.Margin = new(0, 6); SetRow(Search, 1); Children.Add(Search);
         Category.ItemsSource = model.Categories; Category.Margin = new(0, 0, 0, 6); SetRow(Category, 2); Children.Add(Category);
         Topics.ItemTemplate = new FuncDataTemplate<ScriptApiEntry>((entry, _) => new TextBlock
@@ -56,8 +62,10 @@ public sealed class ScriptApiReferenceView : Grid
         detail.Children.Add(actions);
         void Section(string title, Control content)
         { detail.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.SemiBold }); detail.Children.Add(content); }
-        Section("Signature", Signature); Section("Parameters", parameters); Section("Returns", returns);
+        Section("Exact runtime signatures", Signature); Section("Parameters", parameters); Section("Returns", returns);
+        Section("Null and missing values", NullBehavior); Section("Mutation", Mutation); Section("Errors", Errors); Section("Execution modes", Modes);
         Section("Complete example", Example); Section("Limits and important behavior", limitations);
+        Section("Related APIs", Related);
         detailHost = new ScrollViewer { Content = detail, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
         body.Children.Add(Topics); body.Children.Add(splitter); body.Children.Add(detailHost); SetRow(body, 3); Children.Add(body);
         Status.Margin = new(0, 5, 0, 0); SetRow(Status, 4); Children.Add(Status);
@@ -68,6 +76,7 @@ public sealed class ScriptApiReferenceView : Grid
         Back.Click += (_, _) => model.Back();
         CopySignature.Click += (_, _) => ClipboardTask = CopyAsync(false);
         CopyExample.Click += (_, _) => ClipboardTask = CopyAsync(true);
+        CopyCatalog.Click += (_, _) => ClipboardTask = CopyCatalogAsync();
         CreateScript.Click += (_, _) => CreationTask = CreateAsync();
         Search.PropertyChanged += (_, e) => { if (!synchronizing && e.Property == TextBox.TextProperty) model.Query = Search.Text ?? ""; };
         Category.SelectionChanged += (_, _) => { if (!synchronizing && Category.SelectedItem is string value) model.Category = value; };
@@ -108,10 +117,16 @@ public sealed class ScriptApiReferenceView : Grid
     }
     public async Task CopyAsync(bool example)
     {
-        var text = example ? model.Selected?.Example : model.Selected?.Signature;
+        var text = example ? model.Selected?.Example : model.Selected?.ExactSignature;
         if (string.IsNullOrEmpty(text) || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
         try { await clipboard.SetTextAsync(text); Status.Text = example ? "Example copied. Paste into an editable script with Ctrl+V." : "Signature copied."; }
         catch (Exception) { Status.Text = "Clipboard unavailable. Select the example text to copy it manually."; }
+    }
+    private async Task CopyCatalogAsync()
+    {
+        if (TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard) return;
+        try { await clipboard.SetTextAsync(ScriptApiReference.Current.ExportJson()); Status.Text = "API catalog JSON copied. Includes runtime-derived signatures and behavior contracts."; }
+        catch (Exception) { Status.Text = "Clipboard unavailable. The offline catalog remains available in this reference."; }
     }
     private async Task<bool> CreateAsync()
     {
@@ -129,11 +144,18 @@ public sealed class ScriptApiReferenceView : Grid
             var entry = model.Selected;
             if (renderedEntryId != entry?.Id) { detailHost.Offset = default; renderedEntryId = entry?.Id; }
             Title.Text = entry?.Title ?? "No matching API topics"; description.Text = entry?.Description ?? "Try a shorter search or another category.";
-            Signature.Text = entry?.Signature ?? ""; Example.Text = entry?.Example ?? "";
+            Signature.Text = entry?.ExactSignature ?? ""; Example.Text = entry?.Example ?? "";
             parameters.Text = entry?.Parameters ?? ""; returns.Text = entry?.Returns ?? ""; limitations.Text = entry?.Limitations ?? "";
-            Back.IsEnabled = model.CanGoBack; CopySignature.IsEnabled = CopyExample.IsEnabled = entry is not null;
+            Errors.Text = entry?.Errors ?? ""; Mutation.Text = entry?.Mutation ?? ""; NullBehavior.Text = entry?.NullBehavior ?? ""; Modes.Text = entry?.Modes ?? "";
+            Related.Children.Clear();
+            foreach (var id in entry?.Related ?? [])
+            {
+                var related = ScriptApiReference.Current.Entries.Single(e => e.Id == id);
+                var button = new Button { Content = related.Title }; button.Click += (_, _) => model.OpenRelated(id); Related.Children.Add(button);
+            }
+            Back.IsEnabled = model.CanGoBack; CopySignature.IsEnabled = entry is not null; CopyExample.IsEnabled = entry is { IsInfrastructure: false };
             CreateScript.IsVisible = model.CanCreate; Version.Text = model.VersionText;
-            Status.Text = $"{model.Results.Count} topics · Examples use synthetic data. Run only trusted C#.";
+            Status.Text = model.LookupNotice.Length > 0 ? model.LookupNotice : $"{model.Results.Count} topics · Examples use synthetic data. Run only trusted C#.";
         }
         finally { synchronizing = false; }
     }

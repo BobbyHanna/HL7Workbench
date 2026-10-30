@@ -17,13 +17,8 @@ internal static class ScriptSymbolClassifier
     internal static ScriptSymbolSpan[] Classify(string source, CancellationToken token)
     {
         if (source.Length > ScriptLimits.ScriptCharacters) return [];
-        var tree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(kind: SourceCodeKind.Script), cancellationToken: token);
+        var (tree, model) = Analyze(source, token);
         var root = tree.GetRoot(token);
-        var compilation = CSharpCompilation.CreateScriptCompilation("EditorSymbols", tree, references.Value,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                usings: ["System", "System.Linq", "System.Threading", "System.Collections.Generic", "HL7Workbench.Scripting"],
-                sourceReferenceResolver: null, metadataReferenceResolver: null), globalsType: typeof(ScriptGlobals));
-        var model = compilation.GetSemanticModel(tree);
         var spans = new Dictionary<int, ScriptSymbolSpan>();
         void Put(SyntaxToken syntax, ScriptSymbolKind kind)
         { if (!syntax.IsMissing && syntax.Span.Length > 0) spans[syntax.SpanStart] = new(syntax.SpanStart, syntax.Span.Length, kind); }
@@ -73,6 +68,18 @@ internal static class ScriptSymbolClassifier
         }
         token.ThrowIfCancellationRequested();
         return spans.Values.OrderBy(s => s.Offset).ToArray();
+    }
+
+    // Help/completion use exactly the existing editor metadata environment. This
+    // creates no runner and disables both file and metadata directive resolution.
+    internal static (SyntaxTree Tree, SemanticModel Model) Analyze(string source, CancellationToken token)
+    {
+        var tree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(kind: SourceCodeKind.Script), cancellationToken: token);
+        var compilation = CSharpCompilation.CreateScriptCompilation("EditorSymbols", tree, references.Value,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+                usings: ["System", "System.Linq", "System.Threading", "System.Collections.Generic", "HL7Workbench.Scripting"],
+                sourceReferenceResolver: null, metadataReferenceResolver: null), globalsType: typeof(ScriptGlobals));
+        return (tree, compilation.GetSemanticModel(tree));
     }
 
     private static MetadataReference[] CreateReferences()

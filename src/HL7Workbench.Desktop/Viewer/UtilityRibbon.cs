@@ -156,6 +156,7 @@ public sealed class UtilityRibbon : Grid
             Add("Execution", Row(new StackPanel { Spacing = 5, VerticalAlignment = VerticalAlignment.Center, Children = { apply, scope } },
                 CommandButton("Run", scripts.RunCommand, "Run", large: true, accent: true), CommandButton("Cancel", scripts.CancelCommand, "Cancel", large: true)));
             Add("Results", TwoRows(CommandButton("Review Output", scripts.ReviewCommand, "Review"), CommandButton("Reports", scripts.ReportsCommand, "Reports")));
+            Add("Help", CommandButton("API Reference", scripts.ApiReferenceCommand, "Inspect", large: true));
         }
         else if (SelectedTab == 2)
         {

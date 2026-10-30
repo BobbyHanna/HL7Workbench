@@ -44,8 +44,8 @@ public sealed class ScriptApiReferenceTests
                 Pump(window); Assert.True(view.Signature.IsReadOnly); Assert.True(view.Example.IsReadOnly);
                 view.Search.Text = "SetText"; Assert.Contains(model.Results, e => e.Id == "set-text");
                 view.Category.SelectedItem = "Read and write"; view.Topics.SelectedItem = model.Results.Single(e => e.Id == "set-text");
-                var entry = model.Selected!; Assert.Equal(entry.Signature, view.Signature.Text);
-                Click(view.CopySignature); await view.ClipboardTask; Assert.Equal(entry.Signature, await window.Clipboard!.TryGetTextAsync());
+                var entry = model.Selected!; Assert.Equal(entry.ExactSignature, view.Signature.Text);
+                Click(view.CopySignature); await view.ClipboardTask; Assert.Equal(entry.ExactSignature, await window.Clipboard!.TryGetTextAsync());
                 Click(view.CopyExample); await view.ClipboardTask; Assert.Equal(entry.Example, await window.Clipboard!.TryGetTextAsync());
                 var previous = editor.Editor.Text; editor.Editor.SelectAll(); editor.Editor.TextArea.Focus();
                 window.KeyPress(Key.V, Avalonia.Input.RawInputModifiers.Control, PhysicalKey.V, null);
@@ -115,7 +115,7 @@ public sealed class ScriptApiReferenceTests
     public async Task HelpAndEditorOpenTheSameOfflineDockToolAcrossCloseAndLayoutRestore()
     {
         await using var ui = HeadlessUnitTestSession.StartNew(typeof(ViewerTestApplication));
-        await ui.Dispatch(() =>
+        await ui.Dispatch(async () =>
         {
             using var files = new Files(); var window = new MainWindow(files.Root); window.Show();
             try
@@ -138,6 +138,18 @@ public sealed class ScriptApiReferenceTests
                 script.ApiReferenceCommand.Execute(null); secondary.Content = new DockContentTemplate().Build(tool); Pump(window); Pump(secondary);
                 referenceContent = (Control)secondary.Content;
                 Assert.Same(reference, tool.Context); Assert.Equal("SetRaw", Assert.Single(referenceContent.GetVisualDescendants().OfType<ScriptApiReferenceView>()).Search.Text);
+                await script.Session.NewAsync(() => Task.FromResult(UnsavedChangesDecision.Cancel));
+                script.Session.Source = "void Main(){ Message.SetText(\"PID-5\", \"SYNTHETIC\"); }";
+                var code = new ScriptEditorView(script); var codeWindow = new Window { Content = code }; codeWindow.Show(); Pump(codeWindow);
+                try
+                {
+                    code.Editor.CaretOffset = code.Editor.Text.IndexOf("SetText", StringComparison.Ordinal) + 3;
+                    code.Editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.F1 }); await code.Assistance.Pending;
+                    Assert.Equal("set-text", reference.Selected!.Id); Assert.Same(tool, factory.GetDockable<ITool>(WorkspaceDockFactory.ScriptApiReferenceId));
+                    Assert.False(script.IsBusy); reference.Back(); Assert.Equal("SetRaw", reference.Query);
+                }
+                finally { codeWindow.Close(); script.Session.DiscardChanges(); }
+                factory.FloatDockable(tool); Pump(window); Assert.NotEmpty(factory.Root.Windows!);
                 var saved = factory.Capture(); Assert.DoesNotContain("SetRaw", LayoutCodec.Encode(saved));
                 secondary.Content = null; secondary.Close();
                 dock.Layout = factory.Restore(saved, []); factory.ShowTool(WorkspaceDockFactory.ScriptApiReferenceId); Pump(window);

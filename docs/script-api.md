@@ -1,13 +1,23 @@
 # Unified C# scripting API
 
-## Offline reference and starter examples (Stage 9C)
+## Offline reference and editor assistance (Stage 18)
 
-Open **Help → Script API Reference** or the visible **API Reference** button beside
+Open **Help → Script API Reference**, **Scripts ribbon → API Reference**, or the visible **API Reference** button beside
 the Script Library controls. The dockable/modeless tool works without a document or
 network. Search class/member/property names or keywords, select a category, inspect
-signatures/parameters/returns/limits and use Back to restore previous navigation.
+exact signatures, parameters, returns, errors, null behavior, mutation and scope
+restrictions. Related API buttons and Back preserve useful navigation state.
 Copy signature or Copy example uses the normal clipboard; paste examples into an
 editable script with Ctrl+V. Built-ins remain read-only until Duplicate Script.
+
+In code, **F1** looks up the actual API symbol at the cursor, including inferred
+segment/workflow receivers and aliases. Unknown or ambiguous symbols receive an
+explicit reference result. **Ctrl+Space** opens documented facade completion;
+**Ctrl+Shift+Space** shows signatures inside invocation arguments. These are
+explicit actions, not automatic popups or a general C# language service. Lookup
+never runs a script or edits source. Choosing a completion inserts its name using
+normal editor undo; read-only built-ins cannot be edited through completion.
+**Copy API catalog JSON** exports the entire offline machine-readable catalog.
 
 Search `starter` for six complete examples: guarded PID read/write, host-driven
 message iteration, an existing field repetition, independent output, a count-only
@@ -17,16 +27,22 @@ Script, reopen and Run in either Apply to scope. This adds no duplicate built-in
 presets; duplicate Patient Deidentifier to customize its complete supported policy.
 User copies keep independent IDs/source through application/built-in updates.
 
-The authoritative [versioned JSON](script-api-reference.json) is embedded verbatim
-in Workspace and drives in-app descriptions, search and starter source. The
+The reviewed [versioned JSON](script-api-reference.json) is embedded verbatim
+in Workspace and drives in-app descriptions, search and starter source. Exact
+signatures are derived from the runtime facade assembly and checked against the
+JSON snapshot; optional values, nullability, params/out and init accessors remain
+visible. The
 [readable reference](script-api-reference.md) is generated from it, including every
 supported declared public facade/helper member. Edit JSON, run
 `python build/WriteScriptApiReference.py`, and check with `--check`. The permanent
 tests classify every public scripting type, compare supported member inventories
 (including overload counts) and compile/execute every distinct complete example
 through the real worker. Generated record/inherited .NET members and parent transport
-types are explicitly outside host authoring operations. The sections below explain
+types are explicitly outside supported host authoring operations. Public host
+orchestration metadata is inventoried separately and labeled unsupported, rather
+than incorrectly described as inaccessible to trusted C#. The sections below explain
 the existing workflows and transaction contracts; member details live in the catalog.
+See [Stage 18 catalog maintenance, limitations and acceptance](stage18-script-api-reference.md).
 
 The existing public SyntheticIdentityLibrary and DeidentificationWorkflow already
 work in authored scripts. No additional facade, execution capability, dependency,

@@ -55,6 +55,7 @@ public sealed class ScriptReferenceTests
     {
         using var reference = Reference();
         return reference.RootElement.GetProperty("Entries").EnumerateArray()
+            .Where(e => !e.TryGetProperty("IsInfrastructure", out var infrastructure) || !infrastructure.GetBoolean())
             .DistinctBy(e => e.GetProperty("Example").GetString())
             .Select(e => new object[] { e.GetProperty("Id").GetString()!, e.GetProperty("Example").GetString()! }).ToArray();
     }

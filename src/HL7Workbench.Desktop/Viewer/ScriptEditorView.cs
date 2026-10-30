@@ -26,6 +26,7 @@ public sealed class ScriptEditorView : Grid
     private ScriptLibraryItem? libraryDraft;
     private IReadOnlyList<ScriptLibraryItem> displayedLibrary = [];
     internal ScriptSemanticHighlighting SymbolHighlighting { get; }
+    internal ScriptEditorAssistance Assistance { get; }
     public Func<Task<UnsavedChangesDecision>> PromptUnsavedAsync { get => model.PromptUnsavedAsync; set => model.PromptUnsavedAsync = value; }
     public TextEditor Editor { get; } = new() { ShowLineNumbers = true, FontFamily = new("Consolas, monospace") };
     public ComboBox Library { get; } = new() { Width = 200 };
@@ -71,7 +72,8 @@ public sealed class ScriptEditorView : Grid
         Actions.Flyout = actions; AutomationProperties.SetName(Actions, "Script actions");
         var nameHost = new Grid(); nameHost.Children.Add(NameDisplay); nameHost.Children.Add(ScriptName);
         ApiReference.Command = model.ApiReferenceCommand;
-        ToolTip.SetTip(ApiReference, "Open the offline Script API Reference, searchable examples and starter templates.");
+        Assistance = new(Editor, model.ShowApiLookup);
+        ToolTip.SetTip(ApiReference, "Open the offline Script API Reference. In code: F1 for the API at the cursor, Ctrl+Space for documented completion, Ctrl+Shift+Space for signature help.");
         LibraryToolbar = Toolbar(Library, nameHost, New, Save, Actions, ApiReference);
         Children.Add(LibraryToolbar);
         ExecutionToolbar = Toolbar(Run, Cancel, ScopeLabel, ExecutionScope, ExecutionStatus);
@@ -170,12 +172,12 @@ public sealed class ScriptEditorView : Grid
             try { model.EditorState.Restore(Editor, model.Session.Id, model.Session.Source); }
             finally { synchronizing = false; }
             if (!subscribed) { model.PropertyChanged += ModelChanged; model.EditorShown += FocusEditor; subscribed = true; }
-            Refresh(); SymbolHighlighting.Start();
+            Refresh(); SymbolHighlighting.Start(); Assistance.Start();
         };
         DetachedFromVisualTree += (_, _) =>
         {
             if (subscribed) { model.PropertyChanged -= ModelChanged; model.EditorShown -= FocusEditor; subscribed = false; }
-            SymbolHighlighting.Stop(); synchronizing = true;
+            Assistance.Stop(); SymbolHighlighting.Stop(); synchronizing = true;
             try { model.EditorState.Capture(Editor, model.Session.Id); }
             finally { synchronizing = false; }
         };

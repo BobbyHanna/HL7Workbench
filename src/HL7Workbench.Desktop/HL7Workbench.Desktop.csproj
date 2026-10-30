@@ -16,7 +16,7 @@
   </PropertyGroup>
   <ItemGroup><AvaloniaResource Include="Assets/**" /></ItemGroup>
   <ItemGroup>
-    <!-- Compiler-only symbol binding for editor colors; execution stays in ScriptHost. -->
+    <!-- Compiler-only editor colors and documentation assistance; execution stays in ScriptHost. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Avalonia.AvaloniaEdit" />
     <ProjectReference Include="../HL7Workbench.Core/HL7Workbench.Core.csproj" />
