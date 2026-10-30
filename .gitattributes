@@ -3,3 +3,5 @@
 /docs/examples/stage17-synthetic-message.hl7 binary
 # Stable hashes for reviewed license text; do not apply platform EOL conversion.
 /build/third-party/* text eol=lf
+# Generated catalog is compared byte-for-byte with the compiler's UTF-8/LF output.
+/src/HL7Workbench.Desktop/Documentation/catalog.json text eol=lf

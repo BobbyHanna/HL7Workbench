@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import sys
 
 sys.dont_write_bytecode = True
@@ -49,6 +50,32 @@ class DocumentationCompilerTests(unittest.TestCase):
         first = compiler.render(self.compile(text))
         self.source.write_bytes(text.replace("\n", "\r\n").encode())
         self.assertEqual(first, compiler.render(self.compile()))
+
+    def test_main_writes_bom_free_utf8_lf_bytes(self):
+        catalog = self.compile("# Synthetic help\n\nCaf\u00e9: review required.\n")
+        expected = compiler.render(catalog)
+        output = self.root / "generated/catalog.json"
+        with patch.object(compiler, "OUTPUT", output), patch.object(compiler, "compile_catalog", return_value=catalog), patch("builtins.print"):
+            with patch.object(sys, "argv", ["WriteDocumentationCatalog.py"]):
+                compiler.main()
+            actual = output.read_bytes()
+            self.assertEqual(expected, actual)
+            self.assertIn("Caf\u00e9".encode("utf-8"), actual)
+            self.assertNotIn(b"\r", actual)
+            self.assertFalse(actual.startswith(b"\xef\xbb\xbf"))
+            self.assertTrue(actual.endswith(b"\n"))
+            with patch.object(sys, "argv", ["WriteDocumentationCatalog.py", "--check"]):
+                compiler.main()
+
+    def test_check_rejects_crlf_catalog_without_rewriting_it(self):
+        catalog = self.compile()
+        output = self.root / "catalog.json"
+        crlf = compiler.render(catalog).replace(b"\n", b"\r\n")
+        output.write_bytes(crlf)
+        with patch.object(compiler, "OUTPUT", output), patch.object(compiler, "compile_catalog", return_value=catalog), patch.object(sys, "argv", ["WriteDocumentationCatalog.py", "--check"]):
+            with self.assertRaisesRegex(SystemExit, "catalog is stale"):
+                compiler.main()
+        self.assertEqual(crlf, output.read_bytes())
 
     def test_tables_code_escaping_warning_and_list_markers_are_preserved(self):
         result = self.compile("# Synthetic help\n\n> **Review required.**\n\n1. Use `A|B` and \\*literal\\*.\n\n   ```sql\n   SELECT '<literal>', 'A|B';\n   ```\n\n| Name | Value |\n| --- | --- |\n| `A|B` | escaped \\| and **warning** |\n")

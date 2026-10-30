@@ -209,6 +209,7 @@ def compile_catalog(root=ROOT, manifest=None):
 
 
 def render(catalog):
+    """Return BOM-free UTF-8/LF bytes; write_bytes avoids platform newline translation."""
     data = (json.dumps(catalog, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     if len(data) > 2 * 1024 * 1024: raise ValueError("Catalog byte budget")
     return data
