@@ -233,11 +233,15 @@ public sealed class MessageInspection
         SelectionChanged?.Invoke(this, new(true));
     }
 
-    public void SelectNode(InspectionNode node)
+    public void SelectNode(InspectionNode node) => SelectNode(node, false);
+
+    /// <summary>Optionally reveals an already selected current node after a programmatic text update.
+    /// Selection identity can survive reparsing while the raw editor's native selection does not.</summary>
+    public void SelectNode(InspectionNode node, bool revealCurrent)
     {
         if (!IsCurrent) return;
         if (!ReferenceEquals(node.Owner, SelectedSegment)) throw new ArgumentException("Value belongs to another segment.", nameof(node));
-        if (ReferenceEquals(SelectedNode, node)) return;
+        if (ReferenceEquals(SelectedNode, node) && !revealCurrent) return;
         SelectedNode = node;
         PreviewOffset = 0;
         SelectionChanged?.Invoke(this, new(true));

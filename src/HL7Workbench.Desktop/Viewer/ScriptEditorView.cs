@@ -110,6 +110,9 @@ public sealed class ScriptEditorView : Grid
         // scrolling and shortcuts in library/name controls keep their normal behavior.
         Editor.AddHandler(PointerWheelChangedEvent, (_, e) =>
         {
+            // Production tools use the shared pointer-targeted scope. Retain the
+            // legacy standalone control path without double zooming or stealing X scroll.
+            if (ContentFontScope.HasScope(Editor)) return;
             if (e.KeyModifiers == KeyModifiers.Control && e.Delta.Y != 0)
             { model.Zoom(Math.Sign(e.Delta.Y)); e.Handled = true; }
         }, RoutingStrategies.Tunnel);

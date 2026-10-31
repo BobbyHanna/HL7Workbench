@@ -46,7 +46,7 @@ visibility setting. HL7 explains declared version/interpretation and the explici
 | F1 | C# code editor | Context-sensitive Script API help; no execution. |
 | Ctrl+Space / Ctrl+Shift+Space | C# code editor | Explicit facade completion / invocation signatures. |
 | Ctrl+plus/minus, Ctrl+0 | Focused content tool, docked or floating | Save a local font override / remove it and inherit the global default. Includes raw HL7, inspection, search, SQL, extraction, Help, API reference and other registered content tools. |
-| Ctrl+mouse wheel | C# code editor | Existing code-only font zoom; ordinary wheel scrolling elsewhere is unchanged. |
+| Ctrl+mouse wheel up/down | Supported content under the pointer | Increase/decrease that tool's saved font override, regardless of keyboard focus. Includes raw HL7, inspector, SQL, Documentation and other shared content scopes. |
 | Enter / Escape | Script rename input | Confirm valid draft name / cancel rename; Save Script persists it. |
 | Left/Right/Home/End; Down; Escape | Ribbon tabs/commands | Select tab; enter commands; dismiss temporary ribbon. Tab follows normal focus order. |
 
@@ -65,6 +65,11 @@ The content tooltip reports the effective reference size and shortcuts. Raw HL7
 tabs share one raw-viewer override, rather than saving document-specific settings.
 Fonts use native text layout and Windows DPI scaling; no restart is needed.
 Modal configuration/export/About dialogs and application chrome keep normal sizing.
+Ctrl+Wheel is handled before nested editors/scroll viewers. Ordinary wheel scrolling,
+horizontal/diagonal scrolling and Ctrl+Shift+Wheel retain their existing behavior.
+Menus, buttons, selectors, sliders and modal dialogs do not become zoom targets.
+At the bounds, Ctrl+Wheel stays a zoom gesture; Ctrl+0 on the focused tool removes
+its override. A failed preference save retains the prior active size.
 Workspace layouts store geometry/visibility, not documents/results/network state.
 See [workspace recovery](workspace.md#recover-the-workspace) before resetting.
 

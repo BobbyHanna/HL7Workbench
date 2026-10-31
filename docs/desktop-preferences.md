@@ -68,7 +68,10 @@ bounded 12–32 DIP, with existing typography scaled proportionally. Apply chang
 content tools without recreating editors or transforming visuals. Ctrl+Plus/Minus
 saves a focused-feature override; Ctrl+0 removes it. Overrides use known feature keys
 in editor-preferences.json, outside Dock placement, and cover docked/floating tools.
-The existing C# wheel shortcut remains code-local. Legacy script sizes migrate once
+Stage 20B adds shared Ctrl+Wheel zoom under the pointer across registered content
+tools, before nested scroll/editor handling. Ordinary/horizontal/modified scrolling,
+menus, command controls and modal dialogs remain outside that gesture. The standalone
+C# control keeps its legacy fallback; shared scopes prevent double zoom. Legacy script sizes migrate once
 with bounds; modal configuration/export dialogs and normal chrome keep their sizing.
 See the [current shortcuts](user/preferences-and-shortcuts.md) and
 [implementation/native checklist](stage20a-field-inspector-and-fonts.md).

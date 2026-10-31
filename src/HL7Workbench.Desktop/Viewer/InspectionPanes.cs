@@ -34,6 +34,7 @@ public sealed class InspectionPanes : Grid
     public MenuItem CopyPath { get; } = new() { Header = "Copy Path", IsEnabled = false };
     public MenuItem CopyLocation { get; } = new() { Header = "Copy HL7 Path", IsEnabled = false };
     public MenuItem CopyValue { get; } = new() { Header = "Copy Value", IsEnabled = false };
+    public MenuItem EditValue { get; } = new() { Header = "Edit Value…", IsEnabled = false };
     public MenuItem FindOccurrences { get; } = new() { Header = "Find Occurrences…", IsEnabled = false };
     public MenuItem FilterValue { get; } = new() { Header = "Filter by This Value…", IsEnabled = false };
     public MenuItem ExtractField { get; } = new() { Header = "Extract Field to Table…", IsEnabled = false };
@@ -85,7 +86,7 @@ public sealed class InspectionPanes : Grid
             (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty, TextWrapping = TextWrapping.Wrap });
         Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
             (node, _) => CreateInspectorRow(node), node => node is null ? [] : InspectorProjection.Children(this.inspection, node, ShowBlankFields.IsChecked == true));
-        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { CopyValue, CopyLocation, CopyPath, FindOccurrences, FilterValue, ExtractField } };
+        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { EditValue, CopyValue, CopyLocation, CopyPath, FindOccurrences, FilterValue, ExtractField } };
         fieldStatus.ContextMenu = new ContextMenu { ItemsSource = new[] { CopySegmentPath } };
         Avalonia.Automation.AutomationProperties.SetName(CopyPath, "Copy structural path");
         Avalonia.Automation.AutomationProperties.SetName(CopySegmentPath, "Copy segment path");
@@ -108,6 +109,7 @@ public sealed class InspectionPanes : Grid
         FindOccurrences.Click += (_, _) => RequestAction(InspectorAction.FindOccurrences);
         FilterValue.Click += (_, _) => RequestAction(InspectorAction.FilterByValue);
         ExtractField.Click += (_, _) => RequestAction(InspectorAction.Extract);
+        EditValue.Click += (_, _) => { if (EditValue.IsEnabled) RequestAction(InspectorAction.EditValue); };
         ToolTip.SetTip(CopyPath, "Reusable search path: all segment occurrences and repetitions; use Copy HL7 Path for this exact location.");
         ToolTip.SetTip(CopyLocation, "Exact occurrence/repetition-specific location using Core path syntax.");
         ToolTip.SetTip(FindOccurrences, "Structural path presence in the entire active file, including unsaved edits; all occurrences and repetitions.");
@@ -261,9 +263,14 @@ public sealed class InspectionPanes : Grid
             node!.Range64!.Value.Length <= MessageSearchQuery.MaximumQueryCharacters &&
             (node.Path.Repetition is not null || node.VisibleChildren.All(c => c.Path.Repetition is null || c.Path.Component is not null));
         ExtractField.IsEnabled = actionContext?.IsCurrent == true;
+        var editReason = document is not null && node is not null && actionContext?.IsCurrent == true ?
+            StructuredValueEditSession.UnavailableReason(document, node) : "Select a current structural node in the active document.";
+        EditValue.IsEnabled = editReason is null;
+        ToolTip.SetTip(EditValue, editReason ?? "Edit this existing node's raw encoded value. Apply uses the document's single undo/history stream.");
         ActionStatus.Text = node is null ? "" : node.HasContent ?
             "Actions use the selected row. Search/filter: entire active file, all occurrences/repetitions; extraction: exact location." :
             "Absent schema field · no source range or value to copy. Extraction can report its missing state.";
+        if (editReason is not null && node is not null) ActionStatus.Text += " Edit Value: " + editReason;
         ToolTip.SetTip(CopyValue, CopyValue.IsEnabled ? "Copy complete raw encoded characters without decoding escapes." :
             "No current complete value within the 128 Ki-character copy bound. Use Full Source Viewer/export for oversized original values.");
         if (!FilterValue.IsEnabled) ToolTip.SetTip(FilterValue, "Requires a current value of at most 1,024 characters. For a repeated whole field, select one repetition; previews are never search terms.");
@@ -483,7 +490,7 @@ public sealed class InspectionPanes : Grid
     }
     private void DisableActions()
     {
-        foreach (var command in new[] { CopyValue, CopyLocation, CopyPath, CopySegmentPath, FindOccurrences, FilterValue, ExtractField }) command.IsEnabled = false;
+        foreach (var command in new[] { EditValue, CopyValue, CopyLocation, CopyPath, CopySegmentPath, FindOccurrences, FilterValue, ExtractField }) command.IsEnabled = false;
     }
     private void QueueExpansionRestore()
     {

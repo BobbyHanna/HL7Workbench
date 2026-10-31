@@ -67,6 +67,14 @@ is never implicit.
 
 ## Budgets and regression expectations
 
+Inspector structured edits add no parsing or serialization dialect. Workspace
+validates raw replacement through Core SetRaw in an isolated bounded model, verifies
+the result equals the captured span splice, then uses document-owned text history.
+Existing-node eligibility prevents Core's missing-position expansion from being
+invoked by this UI. Field/repetition/component/subcomponent delimiters follow Core's
+scope rules; control characters and unsupported editing bounds are rejected before
+publication. Original bytes/BOM, snapshot coordinates and save plans remain immutable.
+
 Materialization, structural scanning, literal decoding, editing and presentation
 have different budgets; [shared limits](../reference/limits.md) link each owner.
 Size/structural failures throw typed limit errors without partial editable models;

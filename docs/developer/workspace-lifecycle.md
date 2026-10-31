@@ -50,6 +50,16 @@ races remain a documented limitation; this is not universal compare-and-swap.
 
 ## Completion barriers
 
+Structured inspector editing uses one short-lived StructuredValueEditSession.
+It owns bounded staged value/identity data and subscriptions, with no snapshot
+lease or independent undo stack. Apply validates an isolated Core raw splice and
+publishes once through ReplaceWorkingText; Cancel and invalid input never publish.
+Switching documents/messages, changing selection/raw text, disabling Edit Mode or
+closing permanently invalidates the staged target. After a committed edit, the
+shell awaits the existing EditRefresh and restores the path only if the committed
+message and revisions still match. Disposal clears source-value/document references
+and subscriptions. Native modal closure does not replace the document's own drain.
+
 | Owner/operation | Required completion before destroying its resources |
 | --- | --- |
 | MessageDocument | Call Dispose to cancel/close; await its `Disposal`. That task drains capture readers, validation operations and exclusive work before source/spool/snapshot release. |

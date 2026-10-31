@@ -8,7 +8,23 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
-## Stage 20A — segment inspection and content fonts (native acceptance pending)
+## Stage 20B — structured value editing and pointer zoom (current work)
+
+The owner authorizes Stage 20B on clean commit aeee55c95362a031c4b3bdd3e813fb8a24721cde.
+Stage 20A Actions was observed in progress; the owner explicitly approved proceeding
+using its verified local results. Structured editing extends the same inspector with
+one existing-node raw-value dialog and guarded document history publication. Shared
+Ctrl+Wheel routes by pointer scope. No absent-node creation, bulk editing, new parser/
+serialization engine, dependency or Stage 20C work is authorized. See the
+[Stage 20B report and native checklist](stage20b-structured-field-editing.md).
+Both locked restores and the Release build pass (zero warnings/errors). Final focused
+Core/Workspace/Desktop checks pass 85/105/40; the final regular suite passes 2,825,
+fails zero and skips the same 14 opt-ins. Documentation compiler tests pass 12;
+catalogs, links/anchors, whitespace and all 2,384 protected hashes pass. Native
+Windows acceptance remains pending; automated UI tests do not replace it.
+No commit, push, package or publication; stop for review and native Windows acceptance.
+
+## Stage 20A — segment inspection and content fonts (historical checkpoint)
 
 The owner authorizes extending the existing read-only Field Inspector and shared
 content font preferences after committed Stage 19/CI cleanup fixes. No structured

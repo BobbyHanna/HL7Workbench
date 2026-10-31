@@ -2,6 +2,7 @@ using HL7Workbench.Desktop.Docking;
 using HL7Workbench.Desktop.Viewer;
 using HL7Workbench.Desktop.ViewModels;
 using HL7Workbench.Workspace;
+using Avalonia.Controls;
 
 namespace HL7Workbench.Desktop;
 
@@ -11,14 +12,22 @@ public partial class MainWindow
     private void HandleInspectionAction(object? sender, InspectionActionRequestEventArgs e)
     {
         e.Handled = true;
-        InspectorActionTask = RunInspectionActionAsync(e.Context, e.Action);
+        InspectorActionTask = RunInspectionActionAsync(e.Context, e.Action,
+            e.Source is Control source ? TopLevel.GetTopLevel(source) as Window : null);
     }
-    private async Task RunInspectionActionAsync(InspectionActionContext context, InspectorAction action)
+    private async Task RunInspectionActionAsync(InspectionActionContext context, InspectorAction action, Window? owner)
     {
         if (!context.IsCurrent || !ReferenceEquals(documents.ActiveDocument, context.Document)) return;
         try
         {
-            if (action == InspectorAction.Extract)
+            if (action == InspectorAction.EditValue)
+            {
+                using var edit = new StructuredValueEditSession(documents, context);
+                var dialog = new StructuredValueEditWindow(edit);
+                await dialog.ShowDialog<bool>(owner ?? DialogOwner());
+                if (edit.IsApplied) await edit.RestoreSelectionAsync();
+            }
+            else if (action == InspectorAction.Extract)
             {
                 var model = (FieldExtractionViewModel)registry.GetContent(WorkspaceDockFactory.FieldExtractionId);
                 if (!model.CanManage || !await model.Draft.NewAsync(model.PromptUnsavedAsync,

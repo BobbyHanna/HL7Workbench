@@ -75,8 +75,25 @@ messages, then rechecks identity. Search reuses MessageSearchSession over the en
 active file with unindexed ANY-occurrence/repetition semantics; advanced raw equality
 can match represented empty values. Extraction uses the existing retained draft and
 unsaved prompt, rechecking eligibility before replacing the draft. Docked/floating
-routed requests reach the same MainWindow coordinator. No source mutation or new
-analysis engine is involved; unique-value grouping is deferred.
+routed requests reach the same MainWindow coordinator. Discovery/extraction remains
+read-only; unique-value grouping is deferred. Edit Value uses the guarded staged
+session described below.
+
+StructuredValueEditSession captures document, MessageId, content/search revisions,
+inspection/node identity, canonical path and exact message-local range. Eligibility
+requires the existing complete-text Edit Mode, a materialized Core node and safe
+structure. A native dialog owned by the originating inspector window stages raw
+input. Core SetRaw validates an isolated bounded model and splices its span; one
+ReplaceWorkingText call publishes through the existing document history. The active
+Core model is never mutated behind Workspace. Absent nodes cannot expand structure;
+MSH-1/2 stay read-only. No clinical/schema gate is added.
+
+Document/message/selection/raw edits and closure permanently invalidate a staged
+target. The shell awaits the existing EditRefresh and restores the canonical path
+only while the committed document/message/revisions remain current. Sessions remove
+subscriptions and clear value/document references on disposal; they own no snapshot
+lease. See [Stage 20B](../stage20b-structured-field-editing.md) and its permanent
+Workspace/Desktop tests, including actual docked/floating dialog transactions.
 
 ContentFontPreferences lives in editor-preferences.json, outside placement DTOs.
 ApplicationPreferences applies validated global/feature sizes only after a successful
@@ -84,7 +101,12 @@ atomic save. DockContentTemplate installs ContentFontScope on ordinary tool cont
 feature keys exclude document identity. Native inherited fonts and scoped resources
 scale existing authored typography, including newly virtualized rows. Ctrl+Plus/Minus
 is handled at the focused content root before editor input; Ctrl+0 removes the keyed
-override. Separate floating roots need no application-wide zoom target.
+override. Ctrl+Wheel tunnels through the content root before nested scroll/editor
+handlers, chooses the nearest registered scope under the pointer and consumes only
+a valid handled zoom. Weak scope registration supports nested/floating controls
+without a keyboard-focus target. Ordinary/horizontal/modified scrolling and menu/
+command/modal controls remain outside this gesture. The C# standalone fallback is
+retained, while shared scopes prevent double handling.
 
 The default reference size is 14 DIP, bounded 12–32; headings/code retain proportional
 sizes, with script code's existing 9–24-point bounds. Existing script preference files
