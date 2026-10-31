@@ -58,6 +58,9 @@ Right-click the actual row for these actions:
 
 | Action | Result and scope |
 | --- | --- |
+| List Unique Values… | Read-only distinct raw values, occurrence/node/message counts, sorting, paging and navigation filtering. |
+| Search & Replace… | Exact raw equality at the selected structural level, followed by preview and confirmation into a new full dataset. |
+| Assign Value… | Assign existing nodes in the chosen scope; absent nodes stay absent and identical values are unchanged. |
 | Edit Value… | Stages raw encoded text for one existing field, repetition, component or subcomponent. Requires Edit Mode; Apply creates one document undo step. See the editing steps below. |
 | Copy Value | Complete raw encoded value within 128 Ki UTF-16 units, without decoding escapes. Oversized values are unavailable; use original-source viewing/export. A preview is never copied as a full value. |
 | Copy HL7 Path | Exact location, for example `PID[2]-5[1].2`, including occurrence and repetition where applicable. |
@@ -68,7 +71,7 @@ Right-click the actual row for these actions:
 
 Actions reject edited, replaced, closed or changed selections. Search/filter uses
 all occurrences and repetitions in one active file; extraction keeps exact indexes.
-No unique-value command or bulk mutation is added. See [search/filter](search-and-filter.md) and
+The bulk actions below use an explicitly reviewed scope and exact selected indexes. See [search/filter](search-and-filter.md) and
 [extraction](extract-fields.md) for capture, cancellation and output rules.
 
 ## Edit one existing value through the inspector
@@ -145,3 +148,87 @@ or save a supported output separately; do not repair source bytes from previews.
 See [parser/encoding guarantees](../parser-api.md), [Core path semantics](../hl7-paths.md),
 [editing decision](../decisions/0004-editable-document-foundation.md),
 [save safety](../save-and-export-safety.md) and [limits](troubleshooting.md#limits-and-coverage).
+
+## Analyze unique values and create a bulk result
+
+Use synthetic multi-message input while learning these workflows. Bulk actions work
+with Edit Mode off because they never edit the source document. They do not enable
+Edit Mode or execute scripts, SQL writes or network operations.
+
+1. Select `PV1-2` in Field Inspector and right-click **List Unique Values…**.
+2. Choose **Current message**, **Active file**, or **Current navigator filter
+   (all matches)**. Filter scope requires an applied, current navigator filter;
+   it includes every retained matching ID across all Find Messages pages.
+3. Review the exact selected path. By default only that segment occurrence is
+   analyzed in each message. **Every segment occurrence** explicitly expands
+   segment occurrences; it does not expand repetition indexes. Choose Analyze.
+4. Review scanned messages, messages containing the path, selected address slots,
+   present nodes, absent slots and skipped coverage. Each value shows occurrences,
+   actual present-node count and distinct-message count. An absent slot has zero
+   present nodes; a message with two matching segment occurrences counts twice
+   under occurrences but once under messages.
+5. Sort by value or frequency; click again to reverse direction. Pages contain
+   100 rows. Long cells are previews; expand **Inspect complete selected values**
+   for the complete bounded raw value. Grouping uses complete ordinal values,
+   never abbreviations. Empty, absent and raw explicit null (`""`) stay distinct.
+6. Select a value and choose **Go to first matching message** or **Filter Navigator
+   by selected value**. Filtering uses the complete captured identity set, not
+   the visible page or a literal substring search. Clear filtering through the
+   existing Find Messages/ribbon workflow.
+
+For **Search & Replace…**, edit **Find value** and **Replace with** above Analyze /
+Preview. Find value starts with the selected node's complete raw encoded value when
+available within its 65,536-character limit; it is editable and never an implicit
+search term. Replace with starts empty. For **Assign Value…**, edit **New value**.
+An intentionally empty replacement clears an existing value; it is not an omitted
+parameter. Choose Analyze / Preview after reviewing these visible inputs.
+The review shows the source, path/scope, captured revision, scanned/affected message
+counts, proposals, absent/skipped/unchanged/invalid counts, and paged details with
+message occurrence, stable identity, exact path and original/replacement values.
+Inspect complete values before confirming. These are encoded HL7 values: `\S\`
+is not decoded/re-encoded, and substring, regex, numeric and case-insensitive
+matching are not supported. An empty Find value matches represented empty nodes,
+not absent ones.
+
+A whole-field row means the complete raw field, including its repetition separators.
+A repetition row targets only its index; components and subcomponents retain their
+selected indexes. This differs intentionally from the older unindexed Find actions
+and from extraction's repetition expansion. Custom MSH separators drive validation.
+Allowed lower-level separators follow the single-value editing table above.
+
+Confirm **I reviewed the preview…**, then choose **Apply all to new document**.
+There is no per-row exclusion control: this stage applies all validated proposals
+or publishes nothing. Any invalid proposal blocks Apply. Missing nodes are listed
+and skipped, and identical values are unchanged. A no-op preview cannot publish an
+unnecessary output. MSH-1/MSH-2, unsafe delimiters, unclosed escapes, controls,
+unrepresentable encoding and ambiguous or oversized edit targets are rejected.
+
+Apply opens and activates an independent, unsaved **Bulk Result.hl7** tab. It selects
+the first changed message and reviewed path, so the raw viewer and Field Inspector
+show the same result. The result includes the complete captured dataset in its
+original order. Scope selects which messages may change; it never drops
+out-of-scope messages. Wrappers, BOM/encoding and untouched bytes remain preserved.
+The original document's text, dirty state and undo history are unchanged. Switch
+back to its tab to inspect the original values in both views. Inspect and explicitly
+Save As the result, then reopen it if desired. If the result cannot be opened, a clear
+error reports that no result was retained; the original remains active. Review and
+confirm again before retrying. Closing/canceling the
+review publishes no partial output. A result document remains independent after
+closing the review/source.
+
+Changing parameters discards the preceding preview and confirmation. Source edits,
+undo/redo, insertion or closure invalidate analysis; changing a captured navigator
+filter also invalidates filtered scope. A tab switch alone does not retarget the
+immutable capture. Analyze again after any invalidation. Cancellation and resource
+failures never produce a partial distinct list or partially published dataset.
+
+The complete dataset is privately captured even for read-only/current-message
+analysis, so allow temporary disk space and capture time. Limits are 1 GiB each for
+captured source/output, 100,000 scoped messages, 250,000 selected address slots and
+preview rows, 4,096 distinct values, 65,536 characters per complete analyzed value,
+and 2 Mi retained value characters. Mutation additionally uses the existing 1 Mi
+complete-message/16 Ki line limits and 16,777,216 reserved overlay characters
+(32 MiB character storage, with metadata/encoded buffers additional). A large file
+can stream through with small selected messages; an oversized selected message
+cannot become an in-memory edit. A ceiling fails explicitly or marks invalid
+proposals; it never groups truncated values or silently broadens editing limits.

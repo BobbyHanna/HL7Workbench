@@ -115,3 +115,20 @@ Owners: [MllpFraming](../../src/HL7Workbench.Transport/MllpFraming.cs),
 Load safety thresholds can be tightened within validation, not disabled/loosened.
 No TLS, automatic retry/reconnect/scheduling or receiver-safety guarantee follows
 from any resource cap. [Storage-format bounds](storage-and-formats.md) are additional.
+
+## Bulk field operations
+
+[BulkFieldOptions](../../src/HL7Workbench.Workspace/BulkFieldModels.cs) owns separate
+hard ceilings (tests may lower them): 1 GiB captured complete source and 1 GiB output;
+100,000 scoped messages; 250,000 selected address slots and preview rows; 4,096 distinct
+values; 65,536 characters per complete analyzed value; 2,097,152 retained value
+characters including authored Find/Replacement. Preview pages contain 100 rows and
+abbreviate at 256 characters; complete bounded values remain authoritative.
+
+Mutation additionally uses existing 1,048,576-character complete-message and
+16,384-character line/replacement limits, Core structural budgets and 16,777,216
+reserved overlay characters (32 MiB of character storage). Metadata, encoded buffers,
+scanner models and snapshots are additional bounded overhead. A hard analysis limit
+fails without partial results; an invalid proposed message blocks the complete
+Apply. Out-of-scope large messages stream unchanged. No UI loosening, truncation or
+new large-message editing mode is implied.

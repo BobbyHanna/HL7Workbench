@@ -51,7 +51,12 @@ public sealed record StructureDiagnostic(string Code, Hl7DiagnosticSeverity Seve
     long? CharacterOffset = null, string? Path = null);
 
 public sealed record Hl7Structure(long TextLength, Hl7Delimiters Delimiters,
-    IReadOnlyList<StructureSegment> Segments, IReadOnlyList<StructureDiagnostic> Diagnostics, bool CanEdit);
+    IReadOnlyList<StructureSegment> Segments, IReadOnlyList<StructureDiagnostic> Diagnostics, bool CanEdit)
+{
+    /// <summary>Message-level header/delimiter consistency, independent of edit encoding support.
+    /// Individual segment CanEdit flags still govern their structural ambiguity. Never infer this from capped diagnostics.</summary>
+    public bool HasUnambiguousMessageStructure { get; init; } = CanEdit;
+}
 
 /// <summary>Inspection budgets bound structure, not attachment lengths. Legacy parsing supplies its existing limits.</summary>
 public sealed record StructureScanOptions
@@ -222,7 +227,7 @@ public static class Hl7StructureScanner
                 Add("UnsupportedEditEncoding", Hl7DiagnosticSeverity.Information,
                     "Selected encoding supports inspection and original-byte serialization, but not editing.");
             return new(source.Length, delimiters, segments.AsReadOnly(), diagnostics.AsReadOnly(),
-                safe && (encoding.IsSingleByte || encoding.CodePage is 65001 or 1200 or 1201));
+                safe && (encoding.IsSingleByte || encoding.CodePage is 65001 or 1200 or 1201)) { HasUnambiguousMessageStructure = safe };
         }
         private void Fields(CharacterRange range, List<StructureNode> fields, int first)
         {

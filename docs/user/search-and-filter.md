@@ -62,3 +62,14 @@ Advanced queries allow 16 conditions, 16 groups and depth four. Results have 200
 pages; the navigator filter uses the complete retained matching identity set.
 For exact indexed extraction or full CSV, [choose another analysis workflow](index.md#choose-an-analysis-workflow).
 See the [search semantics/library reference](../message-search.md).
+
+## Use a filter as bulk-operation scope
+
+After Search completes, enable Filter Navigator, then open the Field Inspector's
+List Unique Values, Search & Replace or Assign Value action. Choose Current navigator
+filter to capture every matching stable message ID, including pages not on screen.
+The filter selects which messages may be analyzed/modified; mutation output still
+contains the entire source dataset. Changing or clearing that filter invalidates
+its preview. Unique-value results can also filter the existing navigator directly
+with exact selected occurrence/repetition semantics and complete matching IDs.
+See [bulk review steps](inspect-and-edit.md#analyze-unique-values-and-create-a-bulk-result).

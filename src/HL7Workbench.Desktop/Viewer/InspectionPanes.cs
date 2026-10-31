@@ -35,6 +35,9 @@ public sealed class InspectionPanes : Grid
     public MenuItem CopyLocation { get; } = new() { Header = "Copy HL7 Path", IsEnabled = false };
     public MenuItem CopyValue { get; } = new() { Header = "Copy Value", IsEnabled = false };
     public MenuItem EditValue { get; } = new() { Header = "Edit Value…", IsEnabled = false };
+    public MenuItem UniqueValues { get; } = new() { Header = "List Unique Values…", IsEnabled = false };
+    public MenuItem SearchReplace { get; } = new() { Header = "Search & Replace…", IsEnabled = false };
+    public MenuItem AssignValue { get; } = new() { Header = "Assign Value…", IsEnabled = false };
     public MenuItem FindOccurrences { get; } = new() { Header = "Find Occurrences…", IsEnabled = false };
     public MenuItem FilterValue { get; } = new() { Header = "Filter by This Value…", IsEnabled = false };
     public MenuItem ExtractField { get; } = new() { Header = "Extract Field to Table…", IsEnabled = false };
@@ -86,7 +89,7 @@ public sealed class InspectionPanes : Grid
             (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty, TextWrapping = TextWrapping.Wrap });
         Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
             (node, _) => CreateInspectorRow(node), node => node is null ? [] : InspectorProjection.Children(this.inspection, node, ShowBlankFields.IsChecked == true));
-        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { EditValue, CopyValue, CopyLocation, CopyPath, FindOccurrences, FilterValue, ExtractField } };
+        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { EditValue, UniqueValues, SearchReplace, AssignValue, CopyValue, CopyLocation, CopyPath, FindOccurrences, FilterValue, ExtractField } };
         fieldStatus.ContextMenu = new ContextMenu { ItemsSource = new[] { CopySegmentPath } };
         Avalonia.Automation.AutomationProperties.SetName(CopyPath, "Copy structural path");
         Avalonia.Automation.AutomationProperties.SetName(CopySegmentPath, "Copy segment path");
@@ -110,6 +113,9 @@ public sealed class InspectionPanes : Grid
         FilterValue.Click += (_, _) => RequestAction(InspectorAction.FilterByValue);
         ExtractField.Click += (_, _) => RequestAction(InspectorAction.Extract);
         EditValue.Click += (_, _) => { if (EditValue.IsEnabled) RequestAction(InspectorAction.EditValue); };
+        UniqueValues.Click += (_, _) => { if (UniqueValues.IsEnabled) RequestAction(InspectorAction.UniqueValues); };
+        SearchReplace.Click += (_, _) => { if (SearchReplace.IsEnabled) RequestAction(InspectorAction.SearchReplace); };
+        AssignValue.Click += (_, _) => { if (AssignValue.IsEnabled) RequestAction(InspectorAction.AssignValue); };
         ToolTip.SetTip(CopyPath, "Reusable search path: all segment occurrences and repetitions; use Copy HL7 Path for this exact location.");
         ToolTip.SetTip(CopyLocation, "Exact occurrence/repetition-specific location using Core path syntax.");
         ToolTip.SetTip(FindOccurrences, "Structural path presence in the entire active file, including unsaved edits; all occurrences and repetitions.");
@@ -263,6 +269,11 @@ public sealed class InspectionPanes : Grid
             node!.Range64!.Value.Length <= MessageSearchQuery.MaximumQueryCharacters &&
             (node.Path.Repetition is not null || node.VisibleChildren.All(c => c.Path.Repetition is null || c.Path.Component is not null));
         ExtractField.IsEnabled = actionContext?.IsCurrent == true;
+        UniqueValues.IsEnabled = actionContext?.IsCurrent == true;
+        SearchReplace.IsEnabled = AssignValue.IsEnabled = UniqueValues.IsEnabled && !(node!.Path.Segment == "MSH" && node.Path.Field <= 2);
+        ToolTip.SetTip(UniqueValues, "Analyze this exact structural level in an explicitly reviewed scope. No source changes.");
+        ToolTip.SetTip(SearchReplace, "Exact raw equality at this location; preview and confirm a separate complete result dataset. MSH-1/2 remain read-only.");
+        ToolTip.SetTip(AssignValue, "Assign existing nodes only after preview; absent nodes stay absent. The original remains unchanged.");
         var editReason = document is not null && node is not null && actionContext?.IsCurrent == true ?
             StructuredValueEditSession.UnavailableReason(document, node) : "Select a current structural node in the active document.";
         EditValue.IsEnabled = editReason is null;
@@ -490,7 +501,7 @@ public sealed class InspectionPanes : Grid
     }
     private void DisableActions()
     {
-        foreach (var command in new[] { EditValue, CopyValue, CopyLocation, CopyPath, CopySegmentPath, FindOccurrences, FilterValue, ExtractField }) command.IsEnabled = false;
+        foreach (var command in new[] { EditValue, UniqueValues, SearchReplace, AssignValue, CopyValue, CopyLocation, CopyPath, CopySegmentPath, FindOccurrences, FilterValue, ExtractField }) command.IsEnabled = false;
     }
     private void QueueExpansionRestore()
     {

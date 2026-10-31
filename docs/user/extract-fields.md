@@ -61,3 +61,14 @@ releases results and literals while retaining the configuration draft in-session
 
 See [detailed extraction states, alignment and bounds](../field-extraction.md),
 [save/export safety](../save-and-export-safety.md) and [privacy/storage](privacy-and-storage.md).
+
+## Unique-value and mutation workflows
+
+Use Field Inspector's List Unique Values for bounded raw distinct grouping and
+occurrence/message counts. Continue using this extraction tool for a configurable
+CSV projection and its existing safe export workflow; the unique-value dialog has
+no separate CSV writer. Whole-field bulk actions compare the complete field,
+whereas extraction can expand its repetitions. Search & Replace / Assign Value
+produce an independent complete HL7 dataset, not extraction rows. Select that
+result document as a source here if a subsequent CSV is needed.
+See [bulk scopes and preservation](inspect-and-edit.md#analyze-unique-values-and-create-a-bulk-result).

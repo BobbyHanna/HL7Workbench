@@ -48,14 +48,15 @@ internal sealed class MessageSavePlan(SourceSnapshot? snapshot, System.Text.Enco
         if (length == 0) return;
         Add(new(new(0, length), bytes)); gaps.Add((new(0, length), "File encoding BOM"));
     }
-    public void Original(LogicalMessage logical, IndexedMessage original, EditableMessageBuffer? buffer)
+    public void Original(LogicalMessage logical, IndexedMessage original, EditableMessageBuffer? buffer, byte[]? validatedPayload = null)
     {
         var start = Length;
         var prefix = original.PayloadRange.Offset - original.SourceRange.Offset;
         var suffix = original.SourceRange.End - original.PayloadRange.End;
         Copy(new(original.SourceRange.Offset, prefix));
         var payloadStart = Length;
-        if (buffer?.DiffersFromOriginal == true) Replacement(buffer);
+        if (validatedPayload is not null) Bytes(validatedPayload);
+        else if (buffer?.DiffersFromOriginal == true) Replacement(buffer);
         else Copy(original.PayloadRange);
         var payloadEnd = Length;
         Copy(new(original.PayloadRange.End, suffix));
@@ -108,7 +109,15 @@ internal sealed class MessageSavePlan(SourceSnapshot? snapshot, System.Text.Enco
         Metrics = Metrics with { Indexing = watch.Elapsed };
         ValidateIndex(indexed, token);
         progress.Report(new("Verifying staged bytes", 0, Length)); watch.Restart();
-        var result = VerifyBytes(staged, progress, token);
+        var result = VerifyBytes(staged.Length, (range, destination) =>
+        {
+            var used = 0;
+            while (used < destination.Length)
+            {
+                var read = RandomAccess.Read(staged.SafeFileHandle, destination[used..], range.Offset + used);
+                if (read == 0) throw new EndOfStreamException(); used += read;
+            }
+        }, progress, token);
         Metrics = Metrics with { ByteVerification = watch.Elapsed };
         return result;
     }
@@ -131,8 +140,15 @@ internal sealed class MessageSavePlan(SourceSnapshot? snapshot, System.Text.Enco
                 throw BoundaryFailure();
         }
     }
-    private string VerifyBytes(FileStream staged, IProgress<DocumentSaveProgress> progress, CancellationToken token)
+    private delegate void ReadRange(ByteRange range, Span<byte> destination);
+    internal string ValidateSnapshot(SourceSnapshot staged, MessageFileIndex index, IProgress<DocumentSaveProgress> progress, CancellationToken token)
     {
+        ValidateIndex(index, token, requireMembership: true);
+        return VerifyBytes(staged.Length, staged.Read, progress, token);
+    }
+    private string VerifyBytes(long length, ReadRange read, IProgress<DocumentSaveProgress> progress, CancellationToken token)
+    {
+        if (length != Length) throw BoundaryFailure();
         // Verify the complete mapping, including opaque bytes and encoded replacements,
         // and compute the publication hash without another full candidate read.
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
@@ -145,12 +161,7 @@ internal sealed class MessageSavePlan(SourceSnapshot? snapshot, System.Text.Enco
             {
                 token.ThrowIfCancellationRequested(); var count = (int)Math.Min(expectedBytes.Length, piece.Range.Length - offset);
                 Read(piece, offset, expectedBytes.AsSpan(0, count), serialized);
-                var used = 0;
-                while (used < count)
-                {
-                    var read = RandomAccess.Read(staged.SafeFileHandle, actualBytes.AsSpan(used, count - used), position + used);
-                    if (read == 0) throw new EndOfStreamException(); used += read;
-                }
+                read(new(position, count), actualBytes.AsSpan(0, count));
                 if (!expectedBytes.AsSpan(0, count).SequenceEqual(actualBytes.AsSpan(0, count))) throw BoundaryFailure();
                 hash.AppendData(actualBytes, 0, count); offset += count; position += count;
                 if (throttle.ElapsedMilliseconds >= 100) { progress.Report(new("Verifying staged bytes", position, Length)); throttle.Restart(); }

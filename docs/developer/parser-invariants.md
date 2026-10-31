@@ -93,3 +93,18 @@ empty/null, diagnostic saturation and exact untouched/edited bytes. Evidence:
 [source-backed tests](../../tests/HL7Workbench.Workspace.Tests/Stage3SourceTests.cs).
 ADRs [0002](../decisions/0002-lossless-parser.md) and
 [0011](../decisions/0011-structural-editing-foundation.md) govern preservation/identity.
+
+## Bulk selectors and safety metadata
+
+Bulk selectors traverse Core scanner nodes, preserving selected field versus indexed
+repetition/component/subcomponent semantics. Optional expansion changes only segment
+occurrences. Exact raw strings plus value state group complete values; preview text
+never participates. Present nodes and absent address slots are counted separately.
+
+Hl7Structure.HasUnambiguousMessageStructure exposes the scanner's existing message
+header/delimiter safety flag independently of encoding edit support; segment CanEdit
+is still required. CanEdit and scanner grammar remain unchanged. Do not infer safety
+from capped diagnostics. This permits read-only UTF-32 analysis without enabling
+UTF-32 edits. Each changed bounded message is validated by existing Core SetRaw;
+nonoverlapping captured ranges must produce exactly the intended span splices.
+No absent-node expansion or new parser/serializer is introduced.

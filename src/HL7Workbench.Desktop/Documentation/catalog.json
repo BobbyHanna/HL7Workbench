@@ -1793,9 +1793,9 @@
     {
       "id": "inspect-and-edit",
       "source": "docs/user/inspect-and-edit.md",
-      "sourceHash": "39837edacbe1030e6faad236c7091950853e8be644611114b9c58611297f9dcd",
+      "sourceHash": "a7b0fab54d8d9816a6c521a2a15e2fe2ad65267c0280bdc6d7239b9016f87e54",
       "title": "Inspect, edit and preserve HL7",
-      "keywords": "HL7 original draft encoding inspector navigator undo source",
+      "keywords": "HL7 original draft encoding inspector navigator undo source bulk unique assign replace preview",
       "blocks": [
         {
           "kind": "heading",
@@ -2152,7 +2152,7 @@
         },
         {
           "kind": "table",
-          "text": "Action | Result and scope\nEdit Value… | Stages raw encoded text for one existing field, repetition, component or subcomponent. Requires Edit Mode; Apply creates one document undo step. See the editing steps below.\nCopy Value | Complete raw encoded value within 128 Ki UTF-16 units, without decoding escapes. Oversized values are unavailable; use original-source viewing/export. A preview is never copied as a full value.\nCopy HL7 Path | Exact location, for example `PID[2]-5[1].2`, including occurrence and repetition where applicable.\nCopy Path | Reusable search path, for example `PID-5.2`; searches examine all occurrences/repetitions.\nFind Occurrences… | Runs structural path presence in the entire active file, including unsaved edits. This is not literal-value search.\nFilter by This Value… | Runs case-sensitive raw equality at the selected structural path and filters navigation using all matching messages. Select one repetition of a repeated whole field first. Values must fit the 1,024-character search bound; represented empty values are supported.\nExtract Field to Table… | Prepares the existing extraction tool with an occurrence-specific path and raw decoding off. Review scope, then run explicitly. Whole fields expand their repetitions into rows; explicit repetition/component indexes stay fixed.",
+          "text": "Action | Result and scope\nList Unique Values… | Read-only distinct raw values, occurrence/node/message counts, sorting, paging and navigation filtering.\nSearch & Replace… | Exact raw equality at the selected structural level, followed by preview and confirmation into a new full dataset.\nAssign Value… | Assign existing nodes in the chosen scope; absent nodes stay absent and identical values are unchanged.\nEdit Value… | Stages raw encoded text for one existing field, repetition, component or subcomponent. Requires Edit Mode; Apply creates one document undo step. See the editing steps below.\nCopy Value | Complete raw encoded value within 128 Ki UTF-16 units, without decoding escapes. Oversized values are unavailable; use original-source viewing/export. A preview is never copied as a full value.\nCopy HL7 Path | Exact location, for example `PID[2]-5[1].2`, including occurrence and repetition where applicable.\nCopy Path | Reusable search path, for example `PID-5.2`; searches examine all occurrences/repetitions.\nFind Occurrences… | Runs structural path presence in the entire active file, including unsaved edits. This is not literal-value search.\nFilter by This Value… | Runs case-sensitive raw equality at the selected structural path and filters navigation using all matching messages. Select one repetition of a repeated whole field first. Values must fit the 1,024-character search bound; represented empty values are supported.\nExtract Field to Table… | Prepares the existing extraction tool with an occurrence-specific path and raw decoding off. Review scope, then run explicitly. Whole fields expand their repetitions into rows; explicit repetition/component indexes stay fixed.",
           "spans": [],
           "rows": [
             [
@@ -2166,6 +2166,48 @@
                 {
                   "kind": "text",
                   "text": "Result and scope"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "List Unique Values…"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Read-only distinct raw values, occurrence/node/message counts, sorting, paging and navigation filtering."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Search & Replace…"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Exact raw equality at the selected structural level, followed by preview and confirmation into a new full dataset."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Assign Value…"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Assign existing nodes in the chosen scope; absent nodes stay absent and identical values are unchanged."
                 }
               ]
             ],
@@ -2287,11 +2329,11 @@
         },
         {
           "kind": "paragraph",
-          "text": "Actions reject edited, replaced, closed or changed selections. Search/filter uses all occurrences and repetitions in one active file; extraction keeps exact indexes. No unique-value command or bulk mutation is added. See search/filter and extraction for capture, cancellation and output rules.",
+          "text": "Actions reject edited, replaced, closed or changed selections. Search/filter uses all occurrences and repetitions in one active file; extraction keeps exact indexes. The bulk actions below use an explicitly reviewed scope and exact selected indexes. See search/filter and extraction for capture, cancellation and output rules.",
           "spans": [
             {
               "kind": "text",
-              "text": "Actions reject edited, replaced, closed or changed selections. Search/filter uses all occurrences and repetitions in one active file; extraction keeps exact indexes. No unique-value command or bulk mutation is added. See "
+              "text": "Actions reject edited, replaced, closed or changed selections. Search/filter uses all occurrences and repetitions in one active file; extraction keeps exact indexes. The bulk actions below use an explicitly reviewed scope and exact selected indexes. See "
             },
             {
               "kind": "link",
@@ -2791,13 +2833,313 @@
               "text": "."
             }
           ]
+        },
+        {
+          "kind": "heading",
+          "text": "Analyze unique values and create a bulk result",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Analyze unique values and create a bulk result"
+            }
+          ],
+          "level": 2,
+          "anchor": "analyze-unique-values-and-create-a-bulk-result"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Use synthetic multi-message input while learning these workflows. Bulk actions work with Edit Mode off because they never edit the source document. They do not enable Edit Mode or execute scripts, SQL writes or network operations.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Use synthetic multi-message input while learning these workflows. Bulk actions work with Edit Mode off because they never edit the source document. They do not enable Edit Mode or execute scripts, SQL writes or network operations."
+            }
+          ]
+        },
+        {
+          "kind": "list",
+          "text": "Select PV1-2 in Field Inspector and right-click List Unique Values….",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Select "
+            },
+            {
+              "kind": "code",
+              "text": "PV1-2"
+            },
+            {
+              "kind": "text",
+              "text": " in Field Inspector and right-click "
+            },
+            {
+              "kind": "strong",
+              "text": "List Unique Values…"
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ],
+          "marker": "1."
+        },
+        {
+          "kind": "list",
+          "text": "Choose Current message, Active file, or Current navigator filter (all matches). Filter scope requires an applied, current navigator filter; it includes every retained matching ID across all Find Messages pages.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Choose "
+            },
+            {
+              "kind": "strong",
+              "text": "Current message"
+            },
+            {
+              "kind": "text",
+              "text": ", "
+            },
+            {
+              "kind": "strong",
+              "text": "Active file"
+            },
+            {
+              "kind": "text",
+              "text": ", or "
+            },
+            {
+              "kind": "strong",
+              "text": "Current navigator filter (all matches)"
+            },
+            {
+              "kind": "text",
+              "text": ". Filter scope requires an applied, current navigator filter; it includes every retained matching ID across all Find Messages pages."
+            }
+          ],
+          "marker": "2."
+        },
+        {
+          "kind": "list",
+          "text": "Review the exact selected path. By default only that segment occurrence is analyzed in each message. Every segment occurrence explicitly expands segment occurrences; it does not expand repetition indexes. Choose Analyze.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Review the exact selected path. By default only that segment occurrence is analyzed in each message. "
+            },
+            {
+              "kind": "strong",
+              "text": "Every segment occurrence"
+            },
+            {
+              "kind": "text",
+              "text": " explicitly expands segment occurrences; it does not expand repetition indexes. Choose Analyze."
+            }
+          ],
+          "marker": "3."
+        },
+        {
+          "kind": "list",
+          "text": "Review scanned messages, messages containing the path, selected address slots, present nodes, absent slots and skipped coverage. Each value shows occurrences, actual present-node count and distinct-message count. An absent slot has zero present nodes; a message with two matching segment occurrences counts twice under occurrences but once under messages.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Review scanned messages, messages containing the path, selected address slots, present nodes, absent slots and skipped coverage. Each value shows occurrences, actual present-node count and distinct-message count. An absent slot has zero present nodes; a message with two matching segment occurrences counts twice under occurrences but once under messages."
+            }
+          ],
+          "marker": "4."
+        },
+        {
+          "kind": "list",
+          "text": "Sort by value or frequency; click again to reverse direction. Pages contain 100 rows. Long cells are previews; expand Inspect complete selected values for the complete bounded raw value. Grouping uses complete ordinal values, never abbreviations. Empty, absent and raw explicit null (\"\") stay distinct.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Sort by value or frequency; click again to reverse direction. Pages contain 100 rows. Long cells are previews; expand "
+            },
+            {
+              "kind": "strong",
+              "text": "Inspect complete selected values"
+            },
+            {
+              "kind": "text",
+              "text": " for the complete bounded raw value. Grouping uses complete ordinal values, never abbreviations. Empty, absent and raw explicit null ("
+            },
+            {
+              "kind": "code",
+              "text": "\"\""
+            },
+            {
+              "kind": "text",
+              "text": ") stay distinct."
+            }
+          ],
+          "marker": "5."
+        },
+        {
+          "kind": "list",
+          "text": "Select a value and choose Go to first matching message or Filter Navigator by selected value. Filtering uses the complete captured identity set, not the visible page or a literal substring search. Clear filtering through the existing Find Messages/ribbon workflow.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Select a value and choose "
+            },
+            {
+              "kind": "strong",
+              "text": "Go to first matching message"
+            },
+            {
+              "kind": "text",
+              "text": " or "
+            },
+            {
+              "kind": "strong",
+              "text": "Filter Navigator by selected value"
+            },
+            {
+              "kind": "text",
+              "text": ". Filtering uses the complete captured identity set, not the visible page or a literal substring search. Clear filtering through the existing Find Messages/ribbon workflow."
+            }
+          ],
+          "marker": "6."
+        },
+        {
+          "kind": "paragraph",
+          "text": "For Search & Replace…, edit Find value and Replace with above Analyze / Preview. Find value starts with the selected node's complete raw encoded value when available within its 65,536-character limit; it is editable and never an implicit search term. Replace with starts empty. For Assign Value…, edit New value. An intentionally empty replacement clears an existing value; it is not an omitted parameter. Choose Analyze / Preview after reviewing these visible inputs. The review shows the source, path/scope, captured revision, scanned/affected message counts, proposals, absent/skipped/unchanged/invalid counts, and paged details with message occurrence, stable identity, exact path and original/replacement values. Inspect complete values before confirming. These are encoded HL7 values: \\S\\ is not decoded/re-encoded, and substring, regex, numeric and case-insensitive matching are not supported. An empty Find value matches represented empty nodes, not absent ones.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "For "
+            },
+            {
+              "kind": "strong",
+              "text": "Search & Replace…"
+            },
+            {
+              "kind": "text",
+              "text": ", edit "
+            },
+            {
+              "kind": "strong",
+              "text": "Find value"
+            },
+            {
+              "kind": "text",
+              "text": " and "
+            },
+            {
+              "kind": "strong",
+              "text": "Replace with"
+            },
+            {
+              "kind": "text",
+              "text": " above Analyze / Preview. Find value starts with the selected node's complete raw encoded value when available within its 65,536-character limit; it is editable and never an implicit search term. Replace with starts empty. For "
+            },
+            {
+              "kind": "strong",
+              "text": "Assign Value…"
+            },
+            {
+              "kind": "text",
+              "text": ", edit "
+            },
+            {
+              "kind": "strong",
+              "text": "New value"
+            },
+            {
+              "kind": "text",
+              "text": ". An intentionally empty replacement clears an existing value; it is not an omitted parameter. Choose Analyze / Preview after reviewing these visible inputs. The review shows the source, path/scope, captured revision, scanned/affected message counts, proposals, absent/skipped/unchanged/invalid counts, and paged details with message occurrence, stable identity, exact path and original/replacement values. Inspect complete values before confirming. These are encoded HL7 values: "
+            },
+            {
+              "kind": "code",
+              "text": "\\S\\"
+            },
+            {
+              "kind": "text",
+              "text": " is not decoded/re-encoded, and substring, regex, numeric and case-insensitive matching are not supported. An empty Find value matches represented empty nodes, not absent ones."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "A whole-field row means the complete raw field, including its repetition separators. A repetition row targets only its index; components and subcomponents retain their selected indexes. This differs intentionally from the older unindexed Find actions and from extraction's repetition expansion. Custom MSH separators drive validation. Allowed lower-level separators follow the single-value editing table above.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "A whole-field row means the complete raw field, including its repetition separators. A repetition row targets only its index; components and subcomponents retain their selected indexes. This differs intentionally from the older unindexed Find actions and from extraction's repetition expansion. Custom MSH separators drive validation. Allowed lower-level separators follow the single-value editing table above."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Confirm I reviewed the preview…, then choose Apply all to new document. There is no per-row exclusion control: this stage applies all validated proposals or publishes nothing. Any invalid proposal blocks Apply. Missing nodes are listed and skipped, and identical values are unchanged. A no-op preview cannot publish an unnecessary output. MSH-1/MSH-2, unsafe delimiters, unclosed escapes, controls, unrepresentable encoding and ambiguous or oversized edit targets are rejected.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Confirm "
+            },
+            {
+              "kind": "strong",
+              "text": "I reviewed the preview…"
+            },
+            {
+              "kind": "text",
+              "text": ", then choose "
+            },
+            {
+              "kind": "strong",
+              "text": "Apply all to new document"
+            },
+            {
+              "kind": "text",
+              "text": ". There is no per-row exclusion control: this stage applies all validated proposals or publishes nothing. Any invalid proposal blocks Apply. Missing nodes are listed and skipped, and identical values are unchanged. A no-op preview cannot publish an unnecessary output. MSH-1/MSH-2, unsafe delimiters, unclosed escapes, controls, unrepresentable encoding and ambiguous or oversized edit targets are rejected."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Apply opens and activates an independent, unsaved Bulk Result.hl7 tab. It selects the first changed message and reviewed path, so the raw viewer and Field Inspector show the same result. The result includes the complete captured dataset in its original order. Scope selects which messages may change; it never drops out-of-scope messages. Wrappers, BOM/encoding and untouched bytes remain preserved. The original document's text, dirty state and undo history are unchanged. Switch back to its tab to inspect the original values in both views. Inspect and explicitly Save As the result, then reopen it if desired. If the result cannot be opened, a clear error reports that no result was retained; the original remains active. Review and confirm again before retrying. Closing/canceling the review publishes no partial output. A result document remains independent after closing the review/source.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Apply opens and activates an independent, unsaved "
+            },
+            {
+              "kind": "strong",
+              "text": "Bulk Result.hl7"
+            },
+            {
+              "kind": "text",
+              "text": " tab. It selects the first changed message and reviewed path, so the raw viewer and Field Inspector show the same result. The result includes the complete captured dataset in its original order. Scope selects which messages may change; it never drops out-of-scope messages. Wrappers, BOM/encoding and untouched bytes remain preserved. The original document's text, dirty state and undo history are unchanged. Switch back to its tab to inspect the original values in both views. Inspect and explicitly Save As the result, then reopen it if desired. If the result cannot be opened, a clear error reports that no result was retained; the original remains active. Review and confirm again before retrying. Closing/canceling the review publishes no partial output. A result document remains independent after closing the review/source."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Changing parameters discards the preceding preview and confirmation. Source edits, undo/redo, insertion or closure invalidate analysis; changing a captured navigator filter also invalidates filtered scope. A tab switch alone does not retarget the immutable capture. Analyze again after any invalidation. Cancellation and resource failures never produce a partial distinct list or partially published dataset.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Changing parameters discards the preceding preview and confirmation. Source edits, undo/redo, insertion or closure invalidate analysis; changing a captured navigator filter also invalidates filtered scope. A tab switch alone does not retarget the immutable capture. Analyze again after any invalidation. Cancellation and resource failures never produce a partial distinct list or partially published dataset."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "The complete dataset is privately captured even for read-only/current-message analysis, so allow temporary disk space and capture time. Limits are 1 GiB each for captured source/output, 100,000 scoped messages, 250,000 selected address slots and preview rows, 4,096 distinct values, 65,536 characters per complete analyzed value, and 2 Mi retained value characters. Mutation additionally uses the existing 1 Mi complete-message/16 Ki line limits and 16,777,216 reserved overlay characters (32 MiB character storage, with metadata/encoded buffers additional). A large file can stream through with small selected messages; an oversized selected message cannot become an in-memory edit. A ceiling fails explicitly or marks invalid proposals; it never groups truncated values or silently broadens editing limits.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "The complete dataset is privately captured even for read-only/current-message analysis, so allow temporary disk space and capture time. Limits are 1 GiB each for captured source/output, 100,000 scoped messages, 250,000 selected address slots and preview rows, 4,096 distinct values, 65,536 characters per complete analyzed value, and 2 Mi retained value characters. Mutation additionally uses the existing 1 Mi complete-message/16 Ki line limits and 16,777,216 reserved overlay characters (32 MiB character storage, with metadata/encoded buffers additional). A large file can stream through with small selected messages; an oversized selected message cannot become an in-memory edit. A ceiling fails explicitly or marks invalid proposals; it never groups truncated values or silently broadens editing limits."
+            }
+          ]
         }
       ]
     },
     {
       "id": "search-and-filter",
       "source": "docs/user/search-and-filter.md",
-      "sourceHash": "c87597639493c485b3442ecd67e87427642443e2dcd3d85c4a754ad50127ea43",
+      "sourceHash": "caf9b3b9a2e632c7222ae350960ea0fccdc6057ccb5e68ec7f227a279f8d0d98",
       "title": "Find messages and filter navigation",
       "keywords": "find messages filter search library ALL ANY",
       "blocks": [
@@ -3219,6 +3561,41 @@
               "text": "."
             }
           ]
+        },
+        {
+          "kind": "heading",
+          "text": "Use a filter as bulk-operation scope",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Use a filter as bulk-operation scope"
+            }
+          ],
+          "level": 2,
+          "anchor": "use-a-filter-as-bulk-operation-scope"
+        },
+        {
+          "kind": "paragraph",
+          "text": "After Search completes, enable Filter Navigator, then open the Field Inspector's List Unique Values, Search & Replace or Assign Value action. Choose Current navigator filter to capture every matching stable message ID, including pages not on screen. The filter selects which messages may be analyzed/modified; mutation output still contains the entire source dataset. Changing or clearing that filter invalidates its preview. Unique-value results can also filter the existing navigator directly with exact selected occurrence/repetition semantics and complete matching IDs. See bulk review steps.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "After Search completes, enable Filter Navigator, then open the Field Inspector's List Unique Values, Search & Replace or Assign Value action. Choose Current navigator filter to capture every matching stable message ID, including pages not on screen. The filter selects which messages may be analyzed/modified; mutation output still contains the entire source dataset. Changing or clearing that filter invalidates its preview. Unique-value results can also filter the existing navigator directly with exact selected occurrence/repetition semantics and complete matching IDs. See "
+            },
+            {
+              "kind": "link",
+              "text": "bulk review steps",
+              "link": {
+                "kind": "topic",
+                "target": "inspect-and-edit",
+                "anchor": "analyze-unique-values-and-create-a-bulk-result"
+              }
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ]
         }
       ]
     },
@@ -3599,7 +3976,7 @@
     {
       "id": "extract-fields",
       "source": "docs/user/extract-fields.md",
-      "sourceHash": "3180d39102ed87542fa86e6e62d7ea88831ac93acc44eb366b1971202522148c",
+      "sourceHash": "af304a4f6bd95c3bac145ed5f9e2581e109b4302cc53ac1c3cc5f24481dd5420",
       "title": "Extract fields into a table and CSV",
       "keywords": "extraction table CSV columns repeats",
       "blocks": [
@@ -4056,13 +4433,48 @@
               "text": "."
             }
           ]
+        },
+        {
+          "kind": "heading",
+          "text": "Unique-value and mutation workflows",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Unique-value and mutation workflows"
+            }
+          ],
+          "level": 2,
+          "anchor": "unique-value-and-mutation-workflows"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Use Field Inspector's List Unique Values for bounded raw distinct grouping and occurrence/message counts. Continue using this extraction tool for a configurable CSV projection and its existing safe export workflow; the unique-value dialog has no separate CSV writer. Whole-field bulk actions compare the complete field, whereas extraction can expand its repetitions. Search & Replace / Assign Value produce an independent complete HL7 dataset, not extraction rows. Select that result document as a source here if a subsequent CSV is needed. See bulk scopes and preservation.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Use Field Inspector's List Unique Values for bounded raw distinct grouping and occurrence/message counts. Continue using this extraction tool for a configurable CSV projection and its existing safe export workflow; the unique-value dialog has no separate CSV writer. Whole-field bulk actions compare the complete field, whereas extraction can expand its repetitions. Search & Replace / Assign Value produce an independent complete HL7 dataset, not extraction rows. Select that result document as a source here if a subsequent CSV is needed. See "
+            },
+            {
+              "kind": "link",
+              "text": "bulk scopes and preservation",
+              "link": {
+                "kind": "topic",
+                "target": "inspect-and-edit",
+                "anchor": "analyze-unique-values-and-create-a-bulk-result"
+              }
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ]
         }
       ]
     },
     {
       "id": "query-with-sql",
       "source": "docs/user/query-with-sql.md",
-      "sourceHash": "be597f4e8ca01779ce9945dae6f7dfedfa5eda35604f4517f0cfb3a8f675914e",
+      "sourceHash": "df10df1cbecd4dbb60cebe2c7e098c5ab698ab5bc8af37e20166eeae7128a145",
       "title": "Query loaded HL7 with SQL",
       "keywords": "SQLite query database CSV pagination matching",
       "blocks": [
@@ -4465,6 +4877,51 @@
                 "kind": "topic",
                 "target": "troubleshooting",
                 "anchor": ""
+              }
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "kind": "heading",
+          "text": "Combine SQL with structural bulk operations",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Combine SQL with structural bulk operations"
+            }
+          ],
+          "level": 2,
+          "anchor": "combine-sql-with-structural-bulk-operations"
+        },
+        {
+          "kind": "paragraph",
+          "text": "SQL remains read-only. Use Field Inspector's List Unique Values for a direct, bounded raw-value analysis without authoring SQL. Search & Replace / Assign Value use Core structural edits and a confirmed independent result, never UPDATE in the worker. Run SQL against the resulting open document as usual.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "SQL remains read-only. Use Field Inspector's List Unique Values for a direct, bounded raw-value analysis without authoring SQL. Search & Replace / Assign Value use Core structural edits and a confirmed independent result, never UPDATE in the worker. Run SQL against the resulting open document as usual."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "For an SQL-defined source subset, explicitly Open Matching Messages in New Document using the existing all-result extraction action, then activate that independent dataset and open a bulk action. Its complete contents become the source dataset; this does not update the SQL query's original documents or reconstruct their full files. Direct SQL-row scope is not offered. To retain a full original file while changing selected messages, use its current navigator filter as the bulk scope. See bulk review.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "For an SQL-defined source subset, explicitly Open Matching Messages in New Document using the existing all-result extraction action, then activate that independent dataset and open a bulk action. Its complete contents become the source dataset; this does not update the SQL query's original documents or reconstruct their full files. Direct SQL-row scope is not offered. To retain a full original file while changing selected messages, use its current navigator filter as the bulk scope. See "
+            },
+            {
+              "kind": "link",
+              "text": "bulk review",
+              "link": {
+                "kind": "topic",
+                "target": "inspect-and-edit",
+                "anchor": "analyze-unique-values-and-create-a-bulk-result"
               }
             },
             {
@@ -7228,7 +7685,7 @@
     {
       "id": "preferences-and-shortcuts",
       "source": "docs/user/preferences-and-shortcuts.md",
-      "sourceHash": "75d7b32724334a7d4104d8f7f23974ceb59c753f586fd470d9f347c448e77f10",
+      "sourceHash": "1beddb6cf13fece73d2287bfe9f84c2ca1fc3f61c6f9110c8483b3876e8fbaa2",
       "title": "Preferences and keyboard shortcuts",
       "keywords": "settings keyboard focus theme light dark DPI",
       "blocks": [
@@ -7902,11 +8359,11 @@
         },
         {
           "kind": "paragraph",
-          "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Content font defaults and keyed per-tool overrides are saved separately from Dock geometry. An existing Script Editor font preference migrates once into the shared settings, clamped to supported bounds; its default 12-point code appearance is retained. Ctrl+0 deliberately removes that override. The content tooltip reports the effective reference size and shortcuts. Raw HL7 tabs share one raw-viewer override, rather than saving document-specific settings. Fonts use native text layout and Windows DPI scaling; no restart is needed. Modal configuration/export/About dialogs and application chrome keep normal sizing. Ctrl+Wheel is handled before nested editors/scroll viewers. Ordinary wheel scrolling, horizontal/diagonal scrolling and Ctrl+Shift+Wheel retain their existing behavior. Menus, buttons, selectors, sliders and modal dialogs do not become zoom targets. At the bounds, Ctrl+Wheel stays a zoom gesture; Ctrl+0 on the focused tool removes its override. A failed preference save retains the prior active size. Workspace layouts store geometry/visibility, not documents/results/network state. See workspace recovery before resetting.",
+          "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Content font defaults and keyed per-tool overrides are saved separately from Dock geometry. An existing Script Editor font preference migrates once into the shared settings, clamped to supported bounds; its default 12-point code appearance is retained. Ctrl+0 deliberately removes that override. The content tooltip reports the effective reference size and shortcuts. Raw HL7 tabs share one raw-viewer override, rather than saving document-specific settings. Fonts use native text layout and Windows DPI scaling; no restart is needed. Modal configuration/export/About dialogs and application chrome keep normal sizing. Ctrl+Wheel is handled before nested editors/scroll viewers. Ordinary wheel scrolling, horizontal/diagonal scrolling and Ctrl+Shift+Wheel retain their existing behavior. Menus, buttons, selectors, sliders and ordinary modal dialogs do not become zoom targets. Bulk field review content explicitly shares the Field Inspector font preference and supports keyboard/pointer zoom; its command controls remain excluded. At the bounds, Ctrl+Wheel stays a zoom gesture; Ctrl+0 on the focused tool removes its override. A failed preference save retains the prior active size. Workspace layouts store geometry/visibility, not documents/results/network state. See workspace recovery before resetting.",
           "spans": [
             {
               "kind": "text",
-              "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Content font defaults and keyed per-tool overrides are saved separately from Dock geometry. An existing Script Editor font preference migrates once into the shared settings, clamped to supported bounds; its default 12-point code appearance is retained. Ctrl+0 deliberately removes that override. The content tooltip reports the effective reference size and shortcuts. Raw HL7 tabs share one raw-viewer override, rather than saving document-specific settings. Fonts use native text layout and Windows DPI scaling; no restart is needed. Modal configuration/export/About dialogs and application chrome keep normal sizing. Ctrl+Wheel is handled before nested editors/scroll viewers. Ordinary wheel scrolling, horizontal/diagonal scrolling and Ctrl+Shift+Wheel retain their existing behavior. Menus, buttons, selectors, sliders and modal dialogs do not become zoom targets. At the bounds, Ctrl+Wheel stays a zoom gesture; Ctrl+0 on the focused tool removes its override. A failed preference save retains the prior active size. Workspace layouts store geometry/visibility, not documents/results/network state. See "
+              "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Content font defaults and keyed per-tool overrides are saved separately from Dock geometry. An existing Script Editor font preference migrates once into the shared settings, clamped to supported bounds; its default 12-point code appearance is retained. Ctrl+0 deliberately removes that override. The content tooltip reports the effective reference size and shortcuts. Raw HL7 tabs share one raw-viewer override, rather than saving document-specific settings. Fonts use native text layout and Windows DPI scaling; no restart is needed. Modal configuration/export/About dialogs and application chrome keep normal sizing. Ctrl+Wheel is handled before nested editors/scroll viewers. Ordinary wheel scrolling, horizontal/diagonal scrolling and Ctrl+Shift+Wheel retain their existing behavior. Menus, buttons, selectors, sliders and ordinary modal dialogs do not become zoom targets. Bulk field review content explicitly shares the Field Inspector font preference and supports keyboard/pointer zoom; its command controls remain excluded. At the bounds, Ctrl+Wheel stays a zoom gesture; Ctrl+0 on the focused tool removes its override. A failed preference save retains the prior active size. Workspace layouts store geometry/visibility, not documents/results/network state. See "
             },
             {
               "kind": "link",
@@ -7977,7 +8434,7 @@
     {
       "id": "privacy-and-storage",
       "source": "docs/user/privacy-and-storage.md",
-      "sourceHash": "a67ab0e9db01b9a0a1f6fba8367603b7bb1127c0a6fd41f96b8b1187e25c6d2e",
+      "sourceHash": "1d4dc8e0b7fb5016f709d4f93f9f9c4a92c517a617869fc6f58074142a2b9c1c",
       "title": "Privacy, storage and retention",
       "keywords": "privacy security PHI retention temporary permissions",
       "blocks": [
@@ -8545,13 +9002,45 @@
               "text": "."
             }
           ]
+        },
+        {
+          "kind": "heading",
+          "text": "Bulk analysis and result ownership",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Bulk analysis and result ownership"
+            }
+          ],
+          "level": 2,
+          "anchor": "bulk-analysis-and-result-ownership"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Unique-value analysis and bulk preview privately capture the complete current dataset in plaintext temporary storage, including drafts and out-of-scope messages. Distinct values and staged Find/Replacement literals are bounded session memory; they are not saved into preferences, layouts or a library. Review closure cancels and drains work before capture cleanup. Abnormal termination/best-effort cleanup can leave temporary data; this is not encryption or secure erasure.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Unique-value analysis and bulk preview privately capture the complete current dataset in plaintext temporary storage, including drafts and out-of-scope messages. Distinct values and staged Find/Replacement literals are bounded session memory; they are not saved into preferences, layouts or a library. Review closure cancels and drains work before capture cleanup. Abnormal termination/best-effort cleanup can leave temporary data; this is not encryption or secure erasure."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Confirmed mutation opens an independent unsaved complete result. Its owner retains its snapshot until document cleanup; closing the source/review does not remove an explicitly opened result. Save As persists it only through the existing explicit workflow. Analysis is read-only with respect to the source, not a no-storage promise.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Confirmed mutation opens an independent unsaved complete result. Its owner retains its snapshot until document cleanup; closing the source/review does not remove an explicitly opened result. Save As persists it only through the existing explicit workflow. Analysis is read-only with respect to the source, not a no-storage promise."
+            }
+          ]
         }
       ]
     },
     {
       "id": "troubleshooting",
       "source": "docs/user/troubleshooting.md",
-      "sourceHash": "76d3444c0a464c9f933e24c693ea703089a908fab16789ac254a0993fdaf34e7",
+      "sourceHash": "5edfaf34565331d14ef6dda36635a85024e5760813895c5a71a2b2e9727f08fe",
       "title": "Troubleshooting and supported limits",
       "keywords": "errors limits recovery failure unavailable",
       "blocks": [
@@ -9451,13 +9940,94 @@
               "text": " before sharing or transmitting. Unresolved native clipboard/IME, screen-reader, monitor and mixed-DPI behavior should be reported for Windows review; these docs do not establish a fresh native acceptance pass."
             }
           ]
+        },
+        {
+          "kind": "heading",
+          "text": "Bulk analysis or Apply is unavailable",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Bulk analysis or Apply is unavailable"
+            }
+          ],
+          "level": 2,
+          "anchor": "bulk-analysis-or-apply-is-unavailable"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Choose an explicit scope and run Analyze / Preview. Current navigator filter needs an applied current filter, not merely search text or one selected result page. Source changes/closure or filter replacement make captured results stale. Parameter changes discard the old preview; analyze again and reconfirm.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Choose an explicit scope and run Analyze / Preview. Current navigator filter needs an applied current filter, not merely search text or one selected result page. Source changes/closure or filter replacement make captured results stale. Parameter changes discard the old preview; analyze again and reconfirm."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Apply requires at least one real proposal, no invalid proposals, and confirmation. Absent nodes are not created, identical assignments are unchanged, and MSH-1/2 cannot be modified. Raw exact matching is case sensitive and does not search substrings or other fields. Check segment occurrence/repetition and custom separators. Unsupported encoding, ambiguous structure, message/line/overlay or capture/output budgets reject changes rather than normalize data. Cancel/failure publishes no partial result; the original source and its history remain unchanged.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Apply requires at least one real proposal, no invalid proposals, and confirmation. Absent nodes are not created, identical assignments are unchanged, and MSH-1/2 cannot be modified. Raw exact matching is case sensitive and does not search substrings or other fields. Check segment occurrence/repetition and custom separators. Unsupported encoding, ambiguous structure, message/line/overlay or capture/output budgets reject changes rather than normalize data. Cancel/failure publishes no partial result; the original source and its history remain unchanged."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Successful Apply opens and activates a separate Bulk Result.hl7 tab at the first changed message/path. Both its raw viewer and Inspector must show the result; the original tab must still show the original values in both views without becoming dirty. A result-opening failure withdraws the attempted document/tab, restores the original context and reports No result was retained. Review and confirm again to retry. Report any mismatch between the active tab and Inspector; changing a preview must never silently edit the original.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Successful Apply opens and activates a separate "
+            },
+            {
+              "kind": "strong",
+              "text": "Bulk Result.hl7"
+            },
+            {
+              "kind": "text",
+              "text": " tab at the first changed message/path. Both its raw viewer and Inspector must show the result; the original tab must still show the original values in both views without becoming dirty. A result-opening failure withdraws the attempted document/tab, restores the original context and reports "
+            },
+            {
+              "kind": "strong",
+              "text": "No result was retained"
+            },
+            {
+              "kind": "text",
+              "text": ". Review and confirm again to retry. Report any mismatch between the active tab and Inspector; changing a preview must never silently edit the original."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Find value / Replace with (or Assign Value's New value) appear before Analyze. The entire review can scroll when its natural form/content exceeds the window, while results retain a finite viewport; inputs are not hidden in a short separate parameter scroller. Results are paged and complete-value details expand on demand. Use the existing extraction CSV or SQL workflows for their separately documented reporting needs. See bulk limits and workflow.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Find value / Replace with (or Assign Value's New value) appear before Analyze. The entire review can scroll when its natural form/content exceeds the window, while results retain a finite viewport; inputs are not hidden in a short separate parameter scroller. Results are paged and complete-value details expand on demand. Use the existing extraction CSV or SQL workflows for their separately documented reporting needs. See "
+            },
+            {
+              "kind": "link",
+              "text": "bulk limits and workflow",
+              "link": {
+                "kind": "topic",
+                "target": "inspect-and-edit",
+                "anchor": "analyze-unique-values-and-create-a-bulk-result"
+              }
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ]
         }
       ]
     },
     {
       "id": "limits",
       "source": "docs/reference/limits.md",
-      "sourceHash": "d961e93fa4f0d46340691f8a5c31b42f0f4f22149ad406216e77755e865419c5",
+      "sourceHash": "e57e273906aadf194bf7dfa1203336169759f3461057e4e59602f005e46ecbd1",
       "title": "Limits, units and coverage",
       "keywords": "budgets bytes characters maximum coverage",
       "blocks": [
@@ -10967,13 +11537,54 @@
               "text": " are additional."
             }
           ]
+        },
+        {
+          "kind": "heading",
+          "text": "Bulk field operations",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Bulk field operations"
+            }
+          ],
+          "level": 2,
+          "anchor": "bulk-field-operations"
+        },
+        {
+          "kind": "paragraph",
+          "text": "BulkFieldOptions owns separate hard ceilings (tests may lower them): 1 GiB captured complete source and 1 GiB output; 100,000 scoped messages; 250,000 selected address slots and preview rows; 4,096 distinct values; 65,536 characters per complete analyzed value; 2,097,152 retained value characters including authored Find/Replacement. Preview pages contain 100 rows and abbreviate at 256 characters; complete bounded values remain authoritative.",
+          "spans": [
+            {
+              "kind": "link",
+              "text": "BulkFieldOptions",
+              "link": {
+                "kind": "repository",
+                "target": "src/HL7Workbench.Workspace/BulkFieldModels.cs",
+                "anchor": ""
+              }
+            },
+            {
+              "kind": "text",
+              "text": " owns separate hard ceilings (tests may lower them): 1 GiB captured complete source and 1 GiB output; 100,000 scoped messages; 250,000 selected address slots and preview rows; 4,096 distinct values; 65,536 characters per complete analyzed value; 2,097,152 retained value characters including authored Find/Replacement. Preview pages contain 100 rows and abbreviate at 256 characters; complete bounded values remain authoritative."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Mutation additionally uses existing 1,048,576-character complete-message and 16,384-character line/replacement limits, Core structural budgets and 16,777,216 reserved overlay characters (32 MiB of character storage). Metadata, encoded buffers, scanner models and snapshots are additional bounded overhead. A hard analysis limit fails without partial results; an invalid proposed message blocks the complete Apply. Out-of-scope large messages stream unchanged. No UI loosening, truncation or new large-message editing mode is implied.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Mutation additionally uses existing 1,048,576-character complete-message and 16,384-character line/replacement limits, Core structural budgets and 16,777,216 reserved overlay characters (32 MiB of character storage). Metadata, encoded buffers, scanner models and snapshots are additional bounded overhead. A hard analysis limit fails without partial results; an invalid proposed message blocks the complete Apply. Out-of-scope large messages stream unchanged. No UI loosening, truncation or new large-message editing mode is implied."
+            }
+          ]
         }
       ]
     },
     {
       "id": "storage-and-formats",
       "source": "docs/reference/storage-and-formats.md",
-      "sourceHash": "e096a0fd44b5b481e9476d5b820ef72469972084b9d545ce6fde8a884458c656",
+      "sourceHash": "7e8e22396fda1ff294b435e69484fa8ef4450003f7da294c2223707c77671056",
       "title": "Storage, formats and compatibility",
       "keywords": "storage formats versions compatibility persistence",
       "blocks": [
@@ -11821,6 +12432,28 @@
             {
               "kind": "text",
               "text": ". User-selected exports persist independently of temporary cleanup; no secure erasure, encryption or automatic recovery of clinical contents is implied."
+            }
+          ]
+        },
+        {
+          "kind": "heading",
+          "text": "Bulk field review",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Bulk field review"
+            }
+          ],
+          "level": 2,
+          "anchor": "bulk-field-review"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Bulk Find/Replacement, selected scope, distinct values and previews are session-only; no new library, layout, preference or sidecar format is added. The complete input capture and pending/result bytes use existing SourceSnapshot storage. The generated Bulk Result.hl7 is an independent unsaved document until explicit Save As. It retains the source encoding/BOM, wrappers and out-of-scope bytes; it is not a filtered export. The review has no new CSV dialect or Script API catalog.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Bulk Find/Replacement, selected scope, distinct values and previews are session-only; no new library, layout, preference or sidecar format is added. The complete input capture and pending/result bytes use existing SourceSnapshot storage. The generated Bulk Result.hl7 is an independent unsaved document until explicit Save As. It retains the source encoding/BOM, wrappers and out-of-scope bytes; it is not a filtered export. The review has no new CSV dialect or Script API catalog."
             }
           ]
         }

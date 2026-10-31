@@ -75,3 +75,13 @@ Evidence: [ActivityLogTests](../../tests/HL7Workbench.Workspace.Tests/ActivityLo
 [profile import security](../../tests/HL7Workbench.Core.Tests/Hl7ProfileImportTests.cs),
 [de-identification review tests](../../tests/HL7Workbench.Scripting.Tests/DeidentificationReviewTests.cs)
 and [release recovery tests](../../tests/HL7Workbench.Desktop.Tests/ReleaseReadinessTests.cs).
+
+## Bulk field operations
+
+Bulk analysis/preview creates a validated private complete-source snapshot, even for
+current-message analysis. Raw literals and unique values remain bounded session data,
+not layout/preferences/library records or Activity Log entries. Errors use fixed
+categories instead of raw exceptions/values. No script, SQL write or transmission
+is invoked. Confirmed output is independent and includes out-of-scope messages;
+review this complete-dataset retention before explicit Save As. Captures and output
+are plaintext and use existing cancellation/drain/best-effort cleanup ownership.

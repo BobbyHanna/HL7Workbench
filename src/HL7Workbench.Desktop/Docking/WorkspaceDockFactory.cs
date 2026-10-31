@@ -208,22 +208,40 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     public void OpenDocument(string id)
     {
         if (!documents.Documents.Any(d => d.Id == id)) return;
-        if (!items.ContainsKey(id))
+        var dock = FindDockable(Root, d => d is IDocumentDock) as IDocumentDock
+            ?? throw new InvalidOperationException("Missing document workspace.");
+        var previous = dock.ActiveDockable;
+        Document? added = null;
+        try
         {
-            // Insert into the live document group so opening a file retains tool geometry
-            // and native floating hosts, rather than reconstructing the accepted layout.
-            var document = documents.Documents.Single(d => d.Id == id);
-            Observe(document);
-            var item = new Document { Id = id, Title = document.DisplayTitle, Context = document,
-                CanFloat = false, CanClose = true, CanPin = false };
-            var dock = FindDockable(Root, d => d is IDocumentDock) as IDocumentDock
-                ?? throw new InvalidOperationException("Missing document workspace.");
-            items.Add(id, item);
-            DockableLocator![id] = () => item;
-            AddDockable(dock, item);
+            if (!items.ContainsKey(id))
+            {
+                // Preserve the live document group and existing floating/tool geometry.
+                var document = documents.Documents.Single(d => d.Id == id);
+                added = new Document { Id = id, Title = document.DisplayTitle, Context = document,
+                    CanFloat = false, CanClose = true, CanPin = false };
+                Observe(document); items.Add(id, added);
+                var item = added; DockableLocator![id] = () => item;
+                AddDockable(dock, item);
+            }
+            SetActiveDockable(items[id]); documents.Activate(id);
+            if (!ReferenceEquals(dock.ActiveDockable, items[id]) || dock.VisibleDockables?.Contains(items[id]) != true)
+                throw new InvalidOperationException("Document workspace activation failed.");
         }
-        SetActiveDockable(items[id]);
-        documents.Activate(id);
+        catch
+        {
+            // A failed presentation must not leave a tab/locator/subscription for a
+            // document that its publication owner is about to withdraw and dispose.
+            if (added is not null)
+            {
+                if (added.Owner is IDock owner && owner.VisibleDockables?.Contains(added) == true) RemoveDockable(added, false);
+                items.Remove(id); DockableLocator?.Remove(id);
+                if (added.Context is MessageDocument document) { document.PropertyChanged -= DocumentTitleChanged; observedDocuments.Remove(document); }
+                added.Context = null;
+            }
+            if (previous is not null && dock.VisibleDockables?.Contains(previous) == true) SetActiveDockable(previous);
+            throw;
+        }
     }
     public void CloseFloatingWindows()
     {

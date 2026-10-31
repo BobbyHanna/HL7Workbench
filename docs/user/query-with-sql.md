@@ -75,3 +75,18 @@ CSV includes type companions and spreadsheet protection; it can contain clinical
 values and is not raw typed interchange. See [schema](../sql-query.md),
 [complete UI/reference and practical limits](../sql-query-ui.md),
 [capture/output rules](../sql-hl7-workflows.md) and [troubleshooting](troubleshooting.md).
+
+## Combine SQL with structural bulk operations
+
+SQL remains read-only. Use Field Inspector's List Unique Values for a direct,
+bounded raw-value analysis without authoring SQL. Search & Replace / Assign Value
+use Core structural edits and a confirmed independent result, never UPDATE in the
+worker. Run SQL against the resulting open document as usual.
+
+For an SQL-defined source subset, explicitly Open Matching Messages in New Document
+using the existing all-result extraction action, then activate that independent
+dataset and open a bulk action. Its complete contents become the source dataset;
+this does not update the SQL query's original documents or reconstruct their full
+files. Direct SQL-row scope is not offered. To retain a full original file while
+changing selected messages, use its current navigator filter as the bulk scope.
+See [bulk review](inspect-and-edit.md#analyze-unique-values-and-create-a-bulk-result).

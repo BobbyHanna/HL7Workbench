@@ -69,3 +69,33 @@ HL7/FHIR conformance. Preserve and review explicit reports, coverage gaps and
 [storage/trust boundaries](privacy-and-storage.md) before sharing or transmitting.
 Unresolved native clipboard/IME, screen-reader, monitor and mixed-DPI behavior
 should be reported for Windows review; these docs do not establish a fresh native acceptance pass.
+
+## Bulk analysis or Apply is unavailable
+
+Choose an explicit scope and run Analyze / Preview. Current navigator filter needs
+an applied current filter, not merely search text or one selected result page.
+Source changes/closure or filter replacement make captured results stale. Parameter
+changes discard the old preview; analyze again and reconfirm.
+
+Apply requires at least one real proposal, no invalid proposals, and confirmation.
+Absent nodes are not created, identical assignments are unchanged, and MSH-1/2
+cannot be modified. Raw exact matching is case sensitive and does not search
+substrings or other fields. Check segment occurrence/repetition and custom separators.
+Unsupported encoding, ambiguous structure, message/line/overlay or capture/output
+budgets reject changes rather than normalize data. Cancel/failure publishes no
+partial result; the original source and its history remain unchanged.
+
+Successful Apply opens and activates a separate **Bulk Result.hl7** tab at the first
+changed message/path. Both its raw viewer and Inspector must show the result; the
+original tab must still show the original values in both views without becoming
+dirty. A result-opening failure withdraws the attempted document/tab, restores the
+original context and reports **No result was retained**. Review and confirm again
+to retry. Report any mismatch between the active tab and Inspector; changing a
+preview must never silently edit the original.
+
+Find value / Replace with (or Assign Value's New value) appear before Analyze.
+The entire review can scroll when its natural form/content exceeds the window,
+while results retain a finite viewport; inputs are not hidden in a short separate
+parameter scroller. Results are paged and complete-value details expand on demand. Use the
+existing extraction CSV or SQL workflows for their separately documented reporting
+needs. See [bulk limits and workflow](inspect-and-edit.md#analyze-unique-values-and-create-a-bulk-result).

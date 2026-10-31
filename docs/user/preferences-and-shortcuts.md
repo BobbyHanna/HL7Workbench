@@ -67,7 +67,9 @@ Fonts use native text layout and Windows DPI scaling; no restart is needed.
 Modal configuration/export/About dialogs and application chrome keep normal sizing.
 Ctrl+Wheel is handled before nested editors/scroll viewers. Ordinary wheel scrolling,
 horizontal/diagonal scrolling and Ctrl+Shift+Wheel retain their existing behavior.
-Menus, buttons, selectors, sliders and modal dialogs do not become zoom targets.
+Menus, buttons, selectors, sliders and ordinary modal dialogs do not become zoom
+targets. Bulk field review content explicitly shares the Field Inspector font
+preference and supports keyboard/pointer zoom; its command controls remain excluded.
 At the bounds, Ctrl+Wheel stays a zoom gesture; Ctrl+0 on the focused tool removes
 its override. A failed preference save retains the prior active size.
 Workspace layouts store geometry/visibility, not documents/results/network state.

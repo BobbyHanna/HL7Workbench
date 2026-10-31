@@ -56,3 +56,17 @@ snapshots or the entire settings folder to solve a resource problem.
 See [data-handling facts](../data-handling.md), [save/export safety](../save-and-export-safety.md),
 [scripting trust](run-and-manage-scripts.md), [network uncertainty](test-with-mllp.md)
 and [safe troubleshooting](troubleshooting.md).
+
+## Bulk analysis and result ownership
+
+Unique-value analysis and bulk preview privately capture the complete current
+dataset in plaintext temporary storage, including drafts and out-of-scope messages.
+Distinct values and staged Find/Replacement literals are bounded session memory;
+they are not saved into preferences, layouts or a library. Review closure cancels
+and drains work before capture cleanup. Abnormal termination/best-effort cleanup
+can leave temporary data; this is not encryption or secure erasure.
+
+Confirmed mutation opens an independent unsaved complete result. Its owner retains
+its snapshot until document cleanup; closing the source/review does not remove an
+explicitly opened result. Save As persists it only through the existing explicit
+workflow. Analysis is read-only with respect to the source, not a no-storage promise.

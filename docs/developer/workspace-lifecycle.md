@@ -106,3 +106,38 @@ Also inspect [document source](../../src/HL7Workbench.Workspace/MessageDocument.
 [SQL model drain](../../src/HL7Workbench.Desktop/ViewModels/SqlQueryViewModel.cs),
 [validation disposal regression](../../tests/HL7Workbench.Workspace.Tests/SchemaValidationLifecycleTests.cs)
 and [extraction read-lease tests](../../tests/HL7Workbench.Workspace.Tests/FieldExtractionTests.cs).
+
+## Bulk field capture and publication
+
+BulkFieldOperations freezes scope IDs/filter reference under CaptureSearch's lease,
+then reuses CaptureScriptAsync solely for its validated complete-byte input and
+ScriptInputMapping. No script/worker executes. The borrow always releases, including
+pre-canceled work. Analysis scans one message at a time through Core; small payloads
+use strict bounded text and large payloads use the existing decoded spool.
+
+BulkFieldResults owns the independent snapshot, complete bounded raw values,
+stable IDs, paged preview and bounded Core-serialized payload overlays with existing edit-cost accounting. Source revision
+and filtered-scope reference guard actions; tab focus never supplies identity.
+HasUnambiguousMessageStructure plus segment safety prevents diagnostic suppression
+or unsupported edit encoding from becoming an invented absent/valid target.
+
+Apply acquires a result read lease, links caller/close/source-change/lifetime tokens,
+streams MessageSavePlan's original partitions/overlays, and uses the shared index
+and exact byte verification before opening one generated unsaved document on the
+owning context. There are no source document edits/history entries. No-op/invalid
+previews cannot publish. Result Dispose cancels; await Disposal and any operation
+you started before deleting its storage. Cleanup waits for active publication.
+BulkFieldWindow closure cancels, and MainWindow awaits its completion/disposal.
+A published result owns its separate snapshot independently of the review/source.
+
+Bulk publication prepares the first changed output message and canonical selected
+path before registration. Its optional UI-independent presenter callback runs on
+the owning context after DocumentManager.Open and before publication commits.
+Desktop supplies its existing Dock opener; registration alone does not create a
+tab. The presenter must roll back its own partial presentation on failure. Workspace
+then unregisters the exact pending document, restores the previous active manager
+document, and disposes/awaits the pending document before returning a
+BulkFieldPublicationException. This includes observers throwing after collection
+insertion or activation. A failed attempt leaves CanApply retryable; a successful
+attempt cannot publish again. No proposed values are assigned to source inspection.
+Synchronous Close is not the asynchronous cleanup barrier, including on rollback.

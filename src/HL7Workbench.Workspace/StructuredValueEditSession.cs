@@ -78,10 +78,8 @@ public sealed class StructuredValueEditSession : INotifyPropertyChanged, IDispos
         if (!CanApply) { Invalidate(); return false; }
         ArgumentNullException.ThrowIfNull(replacement);
         if (replacement == OriginalValue) { Feedback("The value is unchanged; no edit or undo entry was created."); return false; }
-        if (replacement.Length > MessageDocument.MaximumEditableLineCharacters)
-        { Feedback("Replacement exceeds the existing 16 Ki-character line limit."); return false; }
-        if (replacement.Any(c => char.IsControl(c) || c is '\u2028' or '\u2029'))
-        { Feedback("Raw values cannot contain segment terminators, tabs or other control/line-separator characters."); return false; }
+        if (StructuredRawValue.UnavailableReason(replacement) is { } reason)
+        { Feedback(reason); return false; }
         var owner = document!;
         string candidateText;
         try

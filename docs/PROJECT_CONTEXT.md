@@ -8,7 +8,48 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
-## Stage 20B — structured value editing and pointer zoom (current work)
+## Stage 20C — bulk fields and unique analysis (current work)
+
+The owner authorizes Stage 20C after committed Stage 20B at
+`a0f486d428327a9b864575c98dff8e451efb1784`, verified green in Actions run 41207819267.
+The existing inspector gains bounded unique-value analysis, exact structural search/
+replace and assignment with explicit scope, preview and confirmation. Complete-source
+capture, Core scanner/SetRaw, bounded overlays and shared streaming index/byte proof
+publish one independent complete dataset; no source history/mode changes, SQL writes,
+scripts, new parser or runtime dependency. See the [Stage 20C design and acceptance
+record](stage20c-bulk-field-operations.md). Both locked restores and Release build
+pass with zero warnings/errors. Focused Core/Workspace/Desktop checks pass 93/156/82
+(331 total, including final Help tests). The completed-build full regular suite
+passes 2,898, fails zero and skips the unchanged 14 opt-ins. Documentation compiler
+tests pass 12; catalog/API/link/anchor/whitespace checks and all 2,384 protected
+SHA-256 hashes pass. Native Windows acceptance remains pending.
+Native acceptance subsequently found bulk mutation inputs clipped by a 120-DIP
+parameter scroller. The acceptance fix exposes Find value / Replace with or New
+value before Analyze, prefills bounded complete raw Find values, preserves explicit
+empty replacements and uses the existing whole-review responsive overflow. The
+initial verification totals above are historical. Acceptance-fix focused checks
+pass 54 Core / 110 Workspace / 87 Desktop (251 total); the final regular suite
+passes 2,915, fails zero and skips the unchanged 14 opt-ins. Both restores, the
+zero-warning Release build, documentation checks and all 2,384 protected hashes
+pass. The Stage 20C report records the fix and native reacceptance checklist.
+Native Windows reacceptance remains pending.
+The next native blocker exposed a missing Dock publication step: the result was
+registered/active in DocumentManager, so Inspector followed it, while the original
+raw tab remained visible. Bulk Apply now completes the existing Dock opener before
+success, with explicit pending-document/tab rollback on publication failure. The
+first changed result message/path is selected; source text/history remain unchanged.
+New real-shell regressions cover the complete Avery-to-Morgan 30-message dataset,
+both views and tab switching, docked/floating inspectors, duplicate Apply and
+publication failure/retry. See the Stage 20C report for final verification and the
+pending native reacceptance checklist; earlier totals above remain historical.
+Publication-fix verification passes 57 Core / 113 Workspace / 125 Desktop focused
+checks (295 total). The final regular suite passes 2,926, fails zero and skips the
+unchanged 14 opt-ins. Both locked restores, zero-warning/error Release build,
+documentation/compiler/API/link/anchor/whitespace checks and all 2,384 protected
+hashes pass. All 537 captured runtime/build/test inputs remain unchanged after tests.
+No commit, push, package, publication or later-stage implementation is authorized.
+
+## Stage 20B — structured value editing and pointer zoom (historical checkpoint)
 
 The owner authorizes Stage 20B on clean commit aeee55c95362a031c4b3bdd3e813fb8a24721cde.
 Stage 20A Actions was observed in progress; the owner explicitly approved proceeding

@@ -20,7 +20,21 @@ public partial class MainWindow
         if (!context.IsCurrent || !ReferenceEquals(documents.ActiveDocument, context.Document)) return;
         try
         {
-            if (action == InspectorAction.EditValue)
+            if (action is InspectorAction.UniqueValues or InspectorAction.SearchReplace or InspectorAction.AssignValue)
+            {
+                var operation = action == InspectorAction.UniqueValues ? BulkFieldOperation.UniqueValues :
+                    action == InspectorAction.SearchReplace ? BulkFieldOperation.SearchReplace : BulkFieldOperation.Assign;
+                string? initialFind = null;
+                if (operation == BulkFieldOperation.SearchReplace && context.CanCopyValue && context.Node.Range64 is { Length: <= 65536 })
+                    initialFind = context.Node.Element is not null ? context.Node.Raw : await context.ReadValueAsync(lifetime.Token);
+                if (!context.IsCurrent || !ReferenceEquals(documents.ActiveDocument, context.Document)) return;
+                await using var dialog = new BulkFieldWindow(documents, context.Document, context.Node.Path, operation, preferences,
+                    initialFindValue: initialFind, presentResult: result => factory.OpenDocument(result.Id));
+                await dialog.ShowDialog(owner ?? DialogOwner());
+                if (dialog.PublishedSummary is { } summary)
+                    Status.Text = $"Bulk result opened: {summary.ChangedMessages:N0} changed messages, {summary.Replacements:N0} replacements; {summary.Unchanged:N0} unchanged, {summary.Skipped:N0} skipped, {summary.Absent:N0} absent. Source unchanged.";
+            }
+            else if (action == InspectorAction.EditValue)
             {
                 using var edit = new StructuredValueEditSession(documents, context);
                 var dialog = new StructuredValueEditWindow(edit);

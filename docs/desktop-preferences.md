@@ -73,6 +73,11 @@ tools, before nested scroll/editor handling. Ordinary/horizontal/modified scroll
 menus, command controls and modal dialogs remain outside that gesture. The standalone
 C# control keeps its legacy fallback; shared scopes prevent double zoom. Legacy script sizes migrate once
 with bounds; modal configuration/export dialogs and normal chrome keep their sizing.
+
+Stage 20C's bulk field review explicitly registers its results content with the
+Field Inspector font preference, including keyboard/pointer zoom. This review
+surface is an exception to ordinary modal configuration dialogs; command controls
+remain outside the wheel gesture.
 See the [current shortcuts](user/preferences-and-shortcuts.md) and
 [implementation/native checklist](stage20a-field-inspector-and-fonts.md).
 

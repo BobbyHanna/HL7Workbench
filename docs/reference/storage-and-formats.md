@@ -96,3 +96,12 @@ See [save/export safety](../save-and-export-safety.md),
 [privacy boundary](../developer/security-and-data-handling.md) and
 [limits](limits.md). User-selected exports persist independently of temporary cleanup;
 no secure erasure, encryption or automatic recovery of clinical contents is implied.
+
+## Bulk field review
+
+Bulk Find/Replacement, selected scope, distinct values and previews are session-only;
+no new library, layout, preference or sidecar format is added. The complete input
+capture and pending/result bytes use existing SourceSnapshot storage. The generated
+Bulk Result.hl7 is an independent unsaved document until explicit Save As. It retains
+the source encoding/BOM, wrappers and out-of-scope bytes; it is not a filtered export.
+The review has no new CSV dialect or Script API catalog.

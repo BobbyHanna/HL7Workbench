@@ -2,7 +2,7 @@ using HL7Workbench.Core;
 
 namespace HL7Workbench.Workspace;
 
-public enum InspectorAction { FindOccurrences, FilterByValue, Extract, EditValue }
+public enum InspectorAction { FindOccurrences, FilterByValue, Extract, EditValue, UniqueValues, SearchReplace, AssignValue }
 
 /// <summary>Read-only segment presentation over existing Core projections; absent rows have no source span.</summary>
 public static class InspectorProjection

@@ -76,8 +76,8 @@ active file with unindexed ANY-occurrence/repetition semantics; advanced raw equ
 can match represented empty values. Extraction uses the existing retained draft and
 unsaved prompt, rechecking eligibility before replacing the draft. Docked/floating
 routed requests reach the same MainWindow coordinator. Discovery/extraction remains
-read-only; unique-value grouping is deferred. Edit Value uses the guarded staged
-session described below.
+read-only. The bulk review below adds bounded unique analysis and confirmed independent
+output. Edit Value uses the guarded staged session described below.
 
 StructuredValueEditSession captures document, MessageId, content/search revisions,
 inspection/node identity, canonical path and exact message-local range. Eligibility
@@ -128,3 +128,38 @@ as examples. Headless/fake-host tests do not establish native monitor/IME/clipbo
 screen-reader or mixed-DPI acceptance. General documentation Help follows these
 same optional-tool conventions; its implementation, approved wording fixes and
 pending native checks are recorded in [Stage 19D](../stage19d-offline-documentation-help.md).
+
+## Bulk inspector review
+
+The three bulk actions reuse the existing routed inspector intent and originating
+Window owner, including floating inspectors. BulkFieldWindow is a transient native
+review, not a second inspector or registered permanent tool. It captures an explicit
+scope, exposes 100-row pages and complete bounded detail, and enables Apply only
+after a current valid preview plus confirmation. It shares the field-inspector font
+preference and ContentFontScope, including pointer zoom. Essential operation inputs
+are native editable label/TextBox pairs before Analyze, with a bounded complete raw
+Find prefill from the captured selection. MainWindow rechecks context after any
+source-backed read; execution reads the visible inputs. ResponsiveToolSurface
+provides whole-review overflow and a finite results minimum instead of a capped
+parameter scroller that could hide Find/Replace/New value. Complete detail remains
+collapsible. Input text changes discard the preview and confirmation.
+
+Unique navigation/filtering uses MessageId and ApplySearchFilter with the complete
+captured bucket membership. Existing SQL matching-message publication can provide
+an explicitly extracted independent dataset; there is no SQL update/direct-row
+bulk authority. Extraction remains the CSV path. Close/Cancel and async action
+completion are owned by the shell; tests await work/result/document drains.
+
+Manager registration alone does not create a Dock document tab. Bulk publication
+passes an owning-context presenter to BulkFieldResults.ApplyAsync, calling the
+existing WorkspaceDockFactory.OpenDocument before success closes the review.
+The prepared document already selects its first changed message/path. Inspector
+ownership follows DocumentManager, while FileDocumentView belongs to its Dock
+wrapper: omitting presentation can therefore show values from different documents.
+OpenDocument removes a newly added wrapper, locator and title subscription if
+presentation throws, restoring the prior tab. Workspace then withdraws/disposes the
+attempted document and restores the prior manager identity. This is a publication
+failure, not a refresh request. Busy/closed click guards retain the original action
+completion task and prevent duplicate Apply publication. Permanent real-shell tests
+exercise both views, 30-message byte equality, original-tab return, post-insertion
+presentation failure/retry and docked/floating inspectors.
