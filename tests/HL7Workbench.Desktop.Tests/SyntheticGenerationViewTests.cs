@@ -121,7 +121,9 @@ public sealed class SyntheticGenerationViewTests
         await doc.EditRefresh; Pump(window); Assert.Single(doc.Messages); Assert.False(doc.CanUndo);
         window.KeyPress(Key.Y, RawInputModifiers.Control, PhysicalKey.Y, null); window.KeyRelease(Key.Y, RawInputModifiers.Control, PhysicalKey.Y, null);
         await doc.EditRefresh; Pump(window); Assert.Equal(4, doc.MessageCount); Assert.Equal(model.Result.MessageIds[0], doc.ActiveMessageId); Assert.False(doc.CanRedo);
-        var inspector = window.GetVisualDescendants().OfType<InspectionPanes>().Single(p => p.Inspector.IsAttachedToVisualTree()).Inspector;
+        var panes = window.GetVisualDescendants().OfType<InspectionPanes>().Single(p => p.Inspector.IsAttachedToVisualTree());
+        panes.ShowBlankFields.IsChecked = true;
+        var inspector = panes.Inspector;
         Assert.Equal(doc.Inspection.Fields, inspector.ItemsSource);
         // Existing EOF and empty trailing draft reuse remain in the same command path.
         await doc.NavigateAsync(doc.MessageCount, Token); await view.NextAsync(); await doc.EditRefresh; Assert.Equal(5, doc.MessageCount);

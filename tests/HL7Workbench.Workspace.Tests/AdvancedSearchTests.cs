@@ -211,7 +211,9 @@ public sealed class AdvancedSearchTests
         {
             0 => MessageSearchQuery.Advanced([]),
             1 => MessageSearchQuery.Advanced(Enumerable.Repeat(valid, 17)),
-            2 => MessageSearchQuery.Advanced([valid with { Value = " " }]),
+            // Blank containment remains invalid; Stage 20A exact field equality
+            // deliberately supports represented empty/whitespace values.
+            2 => MessageSearchQuery.Advanced([valid with { Operator = SearchOperator.Contains, Value = " " }]),
             3 => MessageSearchQuery.Advanced([valid with { Path = "PID-0" }]),
             4 => MessageSearchQuery.Advanced([valid with { Path = "PID-3[1]" }]),
             5 => MessageSearchQuery.Advanced([valid with { Path = "PID-3.1.1.1" }]),

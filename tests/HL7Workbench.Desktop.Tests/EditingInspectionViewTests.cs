@@ -171,6 +171,7 @@ public sealed class EditingInspectionViewTests
                 else view.Editor.TextArea.PerformTextInput("X");
                 Layout(window);
                 Assert.Equal(failedParse ? DocumentInspectionState.Stale : DocumentInspectionState.Pending, document.InspectionState);
+                Assert.Contains(panes, selectedRow.GetVisualAncestors());
                 Assert.False(panes.HasCurrentInspection);
                 Assert.Contains("previous parse", panes.SnapshotStatus.Text!, StringComparison.OrdinalIgnoreCase);
                 Assert.Equal(statusHeight, panes.SnapshotStatus.Bounds.Height);
@@ -188,15 +189,17 @@ public sealed class EditingInspectionViewTests
                 var otherRow = panes.Navigator.GetVisualDescendants().OfType<ListBoxItem>().First(i => !i.IsSelected);
                 var point = otherRow.TranslatePoint(new(10, otherRow.Bounds.Height / 2), window)!.Value;
                 window.MouseDown(point, MouseButton.Left); window.MouseUp(point, MouseButton.Left);
+                Assert.Contains(panes, selectedRow.GetVisualAncestors());
                 var otherField = panes.Inspector.GetVisualDescendants().OfType<TreeViewItem>().First(i => !i.IsSelected);
                 var fieldPoint = otherField.TranslatePoint(new(50, 10), window)!.Value;
                 for (var click = 0; click < 2; click++)
                 { window.MouseDown(fieldPoint, MouseButton.Left); window.MouseUp(fieldPoint, MouseButton.Left); }
+                Assert.Contains(panes, selectedRow.GetVisualAncestors());
                 foreach (var control in new Control[] { panes.Navigator, selectedRow })
                     foreach (var key in new[] { Key.Down, Key.Home, Key.Right, Key.Space, Key.Enter })
                     {
                         var input = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key };
-                        control.RaiseEvent(input); Assert.True(input.Handled);
+                        control.RaiseEvent(input); Assert.True(input.Handled, $"Stale input {control.GetType().Name}/{key}; attached={control.GetVisualAncestors().OfType<InspectionPanes>().Any()}; current={panes.HasCurrentInspection}");
                     }
                 panes.Navigator.SelectedItem = inspection.Segments[0];
                 panes.Inspector.SelectedItem = inspection.Fields[0];

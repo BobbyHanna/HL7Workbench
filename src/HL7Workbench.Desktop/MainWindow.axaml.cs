@@ -38,7 +38,7 @@ public partial class MainWindow : Window
         browser = new MessageBrowserViewModel(documents);
         navigator = new(documents, true); fields = new(documents, false);
         scripts = new(documents, new ScriptLibrary(Path.Combine(configurationDirectory, "Scripts")),
-            preferencesPath: Path.Combine(configurationDirectory, "script-editor-preferences.json"));
+            preferencesPath: Path.Combine(configurationDirectory, "script-editor-preferences.json"), contentPreferences: preferences);
         scripts.PromptUnsavedAsync = PromptUnsavedScriptAsync;
         extractionDraft = new(new ExtractionLibrary(Path.Combine(configurationDirectory, "Extractions")));
         search = new(documents, new SearchLibrary(Path.Combine(configurationDirectory, "Searches")), preferences);
@@ -62,7 +62,7 @@ public partial class MainWindow : Window
         registry.Register(new(WorkspaceDockFactory.LoadTestingId, "Load Testing", CreateLoadTesting, Optional: true, ReleaseOnClose: true));
         registry.Register(new(WorkspaceDockFactory.SearchResultsId, "Find Messages", () => search, Optional: true, RestoreVisibility: true));
         registry.Register(new(WorkspaceDockFactory.ComparisonId, "Message Comparison", () => new ComparisonViewModel(documents), Optional: true, ReleaseOnClose: true));
-        factory = new(documents, registry);
+        factory = new(documents, registry) { ContentPreferences = preferences };
         factory.ConfirmDocumentCloseAsync = ConfirmDocumentCloseAsync;
         factory.ConfirmScriptCloseAsync = () => scripts.ConfirmCloseAsync(PromptUnsavedScriptAsync);
         factory.ConfirmSqlCloseAsync = ConfirmSqlCloseAsync;
@@ -104,6 +104,7 @@ public partial class MainWindow : Window
         });
         SetDefaultLayout();
         InitializeShell();
+        AddHandler(Viewer.ViewerRequests.InspectionActionEvent, HandleInspectionAction);
         ActivityIndicatorHost.Content = new Viewer.ActivityStatusIndicator(documents.Activity, () => factory.ShowTool(WorkspaceDockFactory.ActivityLogId));
         documents.Activity.Record(ActivityKind.ApplicationReady);
         Opened += (_, _) => { if (File.Exists(layoutPath)) RestoreLayout(this, new()); };

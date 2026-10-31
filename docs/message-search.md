@@ -87,7 +87,9 @@ Use the same field/component/subcomponent paths as Simple. Segment paths are exa
 ASCII letters/digits, as validated by Core (for example PID, PV1, OBX); path inputs may
 have surrounding whitespace, but literal values are never trimmed. Explicit occurrence/
 repetition brackets remain unsupported; every applicable occurrence
-and repetition is examined. Values are required/nonblank only for string comparisons.
+and repetition is examined. Contains/Does Not Contain require nonblank values.
+Advanced field Equals/Does Not Equal also accepts empty and whitespace-only raw
+literals; missing structural positions do not become empty values.
 Exists/Does Not Exist hide value/case controls and ignore their inactive values.
 
 Choose **Match ALL (AND)** or **Match ANY (OR)** independently in each group. There is
@@ -198,7 +200,8 @@ limits; delete's final version-check/name-removal interval is not a filesystem t
   malformed-but-readable text are preserved. HL7 escapes are not decoded into new values.
 - Count non-overlapping occurrences. For example, `zz` in `zzzz` counts twice and `zzz`
   counts once. A matching message appears once, with its total occurrence count.
-- Reject empty/whitespace-only values explicitly; do not interpret them as "all messages".
+- Simple searches and containment reject blank values. Advanced field equality
+  compares empty/whitespace literals exactly, without treating missing positions as empty.
   Nonblank literals can include whitespace/terminators through the API/pasted value.
   Search terms are limited to 1,024 UTF-16 characters. Non-ASCII/supplementary characters
   and matches crossing internal read-window boundaries use the same ordinal semantics.
@@ -236,7 +239,10 @@ Missing/nonstructural/stale nodes disable the action. Occurrence/repetition brac
 are intentionally omitted because Find Messages searches all applicable occurrences;
 the copied path is a discovery target, not an exact repeated-value address. A copied
 segment path belongs in Advanced → HL7 Segment; other paths work in Simple Field or
-Advanced HL7 Field. No Search This Field command is added.
+Advanced HL7 Field. Stage 20A also provides Copy HL7 Path for an exact indexed
+location, Copy Value within bounds, Find Occurrences and Filter by This Value.
+The search actions still use unindexed entire-active-file semantics; extraction
+can retain explicit indexes. See the [current inspector workflow](user/inspect-and-edit.md#navigate-the-hierarchical-field-inspector).
 
 Settings → Preferences → Appearance offers **Follow System** (default), **Light** and
 **Dark**. Apply/OK persists and updates Avalonia's application theme immediately, across

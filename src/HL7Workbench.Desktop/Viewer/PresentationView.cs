@@ -49,7 +49,7 @@ public sealed class PresentationView : ContentControl
                     text.Height = 48; text.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                     text.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
                     Setup(text, block.Display);
-                    return new StackPanel { Children = { new TextBlock { Text = $"Display block {block.Number + 1:N0} · continuation boundaries are presentation only", FontSize = 10, Opacity = .65, IsHitTestVisible = false }, text } };
+                    return new StackPanel { Children = { new TextBlock { Text = $"Display block {block.Number + 1:N0} · continuation boundaries are presentation only", [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.10"), Opacity = .65, IsHitTestVisible = false }, text } };
                 }) };
             Content = blocks;
             // The primary editor is not mounted in virtual mode; resolve against

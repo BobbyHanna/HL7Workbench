@@ -17,6 +17,7 @@ public sealed record EditorPreferences(bool StartInEditMode = false, bool Ribbon
     [System.Text.Json.Serialization.JsonExtensionData]
     public Dictionary<string, JsonElement>? AdditionalSettings { get; init; }
     public SearchPaneLayout? SearchLayout { get; init; }
+    public ContentFontPreferences? ContentFonts { get; init; }
     public static EditorPreferences Load(string path)
     {
         if (!File.Exists(path)) return new();
@@ -24,7 +25,7 @@ public sealed record EditorPreferences(bool StartInEditMode = false, bool Ribbon
         var loaded = JsonSerializer.Deserialize<EditorPreferences>(File.ReadAllText(path)) ?? new();
         return loaded with { SchemaMode = Enum.IsDefined(loaded.SchemaMode) ? loaded.SchemaMode : SchemaInterpretationMode.MessageDeclared,
             Theme = Enum.IsDefined(loaded.Theme) ? loaded.Theme : ApplicationThemePreference.FollowSystem,
-            SearchLayout = loaded.SearchLayout?.Validated() };
+            SearchLayout = loaded.SearchLayout?.Validated(), ContentFonts = loaded.ContentFonts?.Validated() };
     }
     public void Save(string path)
     {

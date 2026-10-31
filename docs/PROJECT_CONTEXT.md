@@ -8,7 +8,21 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
-## Stage 18 — integrated Script API reference (2026-10-30)
+## Stage 20A — segment inspection and content fonts (native acceptance pending)
+
+The owner authorizes extending the existing read-only Field Inspector and shared
+content font preferences after committed Stage 19/CI cleanup fixes. No structured
+editing, bulk mutation, new SQL engine or scripting API is included. Core parsing,
+source-byte preservation, workspace publication and protected beta artifacts remain
+unchanged. See [Stage 20A implementation/verification/native checklist](stage20a-field-inspector-and-fonts.md).
+No commit, push, package or publication is authorized; stop for review/native acceptance.
+Both locked restores and the Release build pass (zero warnings/errors). Focused
+Core/Workspace/Desktop checks pass 5/109/84; the final regular suite passes 2,768,
+fails zero and skips the unchanged 14 opt-ins. Documentation compiler tests pass
+12; catalogs, links/anchors, whitespace and all 2,384 protected hashes pass. Native
+clipboard/focus/accessibility, DPI and Dock behavior remain manual acceptance items.
+
+## Stage 18 — integrated Script API reference (2026-10-30, historical)
 
 The owner confirms Stage 17 is accepted, committed and green in Actions. Stage 18
 starts from clean main at 6a0afb18ee3cf583c3222794e055504bc51ccf98. This authorizes

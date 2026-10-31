@@ -45,6 +45,7 @@ public sealed class SearchResultsView : Grid
     public CheckBox Filter { get; } = new() { Content = "Filter Navigator" };
     public ListBox Results { get; } = new() { ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel()) };
     public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap };
+    public TextBlock ScopeDescription { get; } = new() { TextWrapping = TextWrapping.Wrap };
     public TextBlock Count { get; } = new();
     public Button Previous { get; } = new() { Content = "Previous page" };
     public Button Next { get; } = new() { Content = "Next page" };
@@ -75,7 +76,8 @@ public sealed class SearchResultsView : Grid
             libraryControls, LibraryStatus
         } };
         Children.Add(controls);
-        QueryEditor.Content = new StackPanel { Spacing = 4, Children = { simpleControls, fieldControls, advancedControls, LibraryPanel } };
+        QueryEditor.Content = new StackPanel { Spacing = 4, Children = { ScopeDescription, simpleControls, fieldControls, advancedControls, LibraryPanel } };
+        ScopeDescription.Bind(TextBlock.TextProperty, new Avalonia.Data.Binding(nameof(SearchViewModel.ContextDescription)) { Source = model });
         SetRow(QueryEditor, 1); Children.Add(QueryEditor); SetRow(Splitter, 2); Children.Add(Splitter); SetRow(ResultRegion, 3); Children.Add(ResultRegion);
         Splitter.Classes.Add("workbench-splitter"); Results.Classes.Add("workbench-surface");
         AutomationProperties.SetName(Splitter, "Resize query builder and results"); ToolTip.SetTip(Splitter, "Drag to resize query builder/results; use arrow keys when focused");
@@ -99,7 +101,7 @@ public sealed class SearchResultsView : Grid
             for (var i = 0; i < values.Length; i++)
             {
                 var text = new TextBlock { Text = values[i], TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(4) };
-                Control cell = i == 3 && row?.ConditionSummary.Length > 0 ? new StackPanel { Children = { text, new TextBlock { Text = row.ConditionSummary, FontSize = 11, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(4, 0) } } } : text;
+                Control cell = i == 3 && row?.ConditionSummary.Length > 0 ? new StackPanel { Children = { text, new TextBlock { Text = row.ConditionSummary, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11"), TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(4, 0) } } } : text;
                 SetColumn(cell, i); grid.Children.Add(cell);
             }
             return grid;

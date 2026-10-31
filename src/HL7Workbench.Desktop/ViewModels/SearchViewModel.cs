@@ -48,6 +48,22 @@ public sealed partial class SearchViewModel : INotifyPropertyChanged, IDisposabl
         }
     }
     public string? ValidationError => BuildQuery().ValidationError();
+    public string ContextDescription { get; private set; } = "Active file, including unsaved edits.";
+    internal async Task StartFromInspectorAsync(InspectionActionContext context, bool filter, CancellationToken token = default)
+    {
+        if (!context.IsCurrent || !ReferenceEquals(Session.Document, context.Document)) return;
+        var value = filter ? await context.ReadValueAsync(token) : null;
+        if (!context.IsCurrent || !ReferenceEquals(Session.Document, context.Document) || filter && value is null) return;
+        var query = filter ? context.FilterQuery(value!) : context.FindQuery();
+        if (query is null) return;
+        ApplyQuery(query);
+        ContextDescription = filter ? "Structural raw equality (case-sensitive); any matching occurrence/repetition in the entire active file, including unsaved edits." :
+            "Structural path presence; all occurrences/repetitions in the entire active file, including unsaved edits. This is not literal text search.";
+        SearchingTask = Session.StartAsync(query, token);
+        Notify();
+        await SearchingTask;
+        if (filter && context.IsCurrent && ReferenceEquals(Session.Document, context.Document)) Session.FilterNavigator = true;
+    }
     public Task SearchingTask { get; private set; } = Task.CompletedTask;
     public UiCommand SearchCommand { get; }
     public UiCommand CancelCommand { get; }
@@ -114,7 +130,7 @@ public sealed partial class SearchViewModel : INotifyPropertyChanged, IDisposabl
     { if (EqualityComparer<T>.Default.Equals(field, newValue)) return; field = newValue; QueryChanged(); }
     private void ConditionChanged(object? sender, PropertyChangedEventArgs e) { advancedTouched = true; QueryChanged(); }
     private void QueryChanged()
-    { if (applyingQuery) return; Session.Clear(); Notify(); }
+    { if (applyingQuery) return; ContextDescription = "Active file, including unsaved edits."; Session.Clear(); Notify(); }
     private void ApplyQuery(MessageSearchQuery query)
     {
         applyingQuery = true;

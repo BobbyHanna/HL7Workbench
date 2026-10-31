@@ -106,7 +106,7 @@ public sealed partial class SyntheticPatientsView : Grid
     private static Grid Page(ListBox list, Button previous, TextBlock status, Button next)
     { var grid = new ToolContentGrid { RowDefinitions = new("*,Auto") }; grid.RowDefinitions[0].MinHeight = ToolLayoutMetrics.ListHeight; grid.Children.Add(list); var pager = ScrollStrip(previous,status,next); SetRow(pager,1); grid.Children.Add(pager); return grid; }
     private static Control Label(string first, string second) => new StackPanel { Margin = new(4), Children =
-    { new TextBlock { Text = Short(first), TextWrapping = TextWrapping.Wrap }, new TextBlock { Text = Short(second), FontSize = 11, TextWrapping = TextWrapping.Wrap } } };
+    { new TextBlock { Text = Short(first), TextWrapping = TextWrapping.Wrap }, new TextBlock { Text = Short(second), [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11"), TextWrapping = TextWrapping.Wrap } } };
     private static string Short(string text) => text.Length <= 512 ? text : text[..(char.IsHighSurrogate(text[511]) ? 511 : 512)] + "… [preview]";
     private static string PatientLabel(FhirResource resource) => Short((resource.Person!.DisplayName.Length == 0 ? "Unnamed patient" : resource.Person.DisplayName) + " · " + (resource.Person.Identifier.Length > 0 ? resource.Person.Identifier : resource.Id));
     private static string Date(FhirClinicalTime time) => time.Precision == FhirTimePrecision.Missing ? "[date missing]" : time.Precision == FhirTimePrecision.Invalid ? "[date invalid/unsupported precision]" : time.Text + (time.IsInstant ? "" : " [" + time.Precision + " precision]");

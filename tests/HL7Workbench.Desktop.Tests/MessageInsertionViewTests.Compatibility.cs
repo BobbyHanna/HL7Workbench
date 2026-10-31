@@ -67,6 +67,7 @@ public sealed partial class MessageInsertionViewTests
         Assert.Null(search.Session.Results); Assert.Null(s.Document.NavigationMatches); Assert.Equal("SYN-C", search.Value);
         await s.View.ActiveView!.PasteExactAsync(() => Task.FromResult<string?>(C)); await s.Document.EditRefresh;
         Assert.NotSame(old, s.Document.ActiveInspection); Assert.Equal("C", s.Document.Message.Get("PID-1").Raw);
+        Assert.IsType<HL7Workbench.Desktop.Viewer.InspectionPanes>(s.View.ActiveView.LowerPane).ShowBlankFields.IsChecked = true;
         Assert.Equal(s.Document.Inspection.Fields, s.View.ActiveView.Inspector.ItemsSource);
         var results = await new MessageSearch().SearchAsync(s.Document, new(MessageSearchMode.Field, "C", FieldPath: "PID-1"), token: Token);
         Assert.Equal(id, Assert.Single(results.Matches).MessageId);

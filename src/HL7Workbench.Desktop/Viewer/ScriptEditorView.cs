@@ -34,7 +34,7 @@ public sealed class ScriptEditorView : Grid
     public Button NameDisplay { get; } = new() { Width = 180, HorizontalContentAlignment = HorizontalAlignment.Left };
     public Button Actions { get; } = new() { Content = "⋯" };
     public ComboBox ExecutionScope { get; } = new() { ItemsSource = new[] { "Current message", "Whole document" }, Width = 140 };
-    public TextBlock ScopeLabel { get; } = new() { Text = "Apply to:", VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
+    public TextBlock ScopeLabel { get; } = new() { Text = "Apply to:", VerticalAlignment = VerticalAlignment.Center, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12") };
     public Button New { get; } = new() { Content = "New" };
     public Button Save { get; } = new() { Content = "Save Script" };
     public Button ApiReference { get; } = new() { Content = "API Reference" };
@@ -45,10 +45,10 @@ public sealed class ScriptEditorView : Grid
     public Button Run { get; } = new() { Content = "Run" };
     public Button Cancel { get; } = new() { Content = "Cancel" };
     public MenuItem Review { get; } = new() { Header = "Review Output" };
-    public TextBlock ExecutionStatus { get; } = new() { MaxWidth = 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
-    public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
-    public TextBlock OutputAttribution { get; } = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12 };
-    public TextBlock Target { get; } = new() { MaxWidth = 300, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
+    public TextBlock ExecutionStatus { get; } = new() { MaxWidth = 170, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12") };
+    public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12") };
+    public TextBlock OutputAttribution { get; } = new() { TextWrapping = TextWrapping.Wrap, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12") };
+    public TextBlock Target { get; } = new() { MaxWidth = 300, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12") };
     public ListBox Diagnostics { get; } = new() { MaxHeight = 96 };
     public Expander DiagnosticPanel { get; } = new() { IsExpanded = false, IsVisible = false, HorizontalAlignment = HorizontalAlignment.Stretch };
     public Button ZoomOut { get; } = new() { Content = "−" };
@@ -105,7 +105,7 @@ public sealed class ScriptEditorView : Grid
         AutomationProperties.SetName(ZoomOut, "Decrease script font size"); AutomationProperties.SetName(ZoomIn, "Increase script font size");
         AutomationProperties.SetName(ZoomReset, "Reset script font size");
         ZoomOut.Click += (_, _) => model.Zoom(-1); ZoomIn.Click += (_, _) => model.Zoom(1);
-        ZoomReset.Click += (_, _) => model.SetFontSizePoints(ScriptEditorPreferences.DefaultPoints);
+        ZoomReset.Click += (_, _) => model.ResetFontSize();
         // Handle at the editor before its ScrollViewer consumes the wheel. Ordinary
         // scrolling and shortcuts in library/name controls keep their normal behavior.
         Editor.AddHandler(PointerWheelChangedEvent, (_, e) =>
@@ -119,7 +119,7 @@ public sealed class ScriptEditorView : Grid
             if (e.Key is Key.OemPlus or Key.Add) { model.Zoom(1); e.Handled = true; }
             else if (e.Key is Key.OemMinus or Key.Subtract) { model.Zoom(-1); e.Handled = true; }
             else if (e.KeyModifiers == KeyModifiers.Control && e.Key is Key.D0 or Key.NumPad0)
-            { model.SetFontSizePoints(ScriptEditorPreferences.DefaultPoints); e.Handled = true; }
+            { model.ResetFontSize(); e.Handled = true; }
         }, RoutingStrategies.Tunnel);
         Editor.TextChanged += (_, _) =>
         {
@@ -250,7 +250,7 @@ public sealed class ScriptEditorView : Grid
             DiagnosticPanel.Header = $"Diagnostics ({model.Diagnostics.Count})";
             Editor.FontSize = model.FontSize;
             ZoomReset.Content = $"{model.FontSizePoints} pt";
-            ToolTip.SetTip(ZoomReset, "Reset to 12 pt (Ctrl+0 in code editor). Font size is saved across restarts.");
+            ToolTip.SetTip(ZoomReset, "Reset to the global content default (Ctrl+0). Font size is saved across restarts.");
             ZoomOut.IsEnabled = model.FontSizePoints > ScriptEditorPreferences.MinimumPoints;
             ZoomIn.IsEnabled = model.FontSizePoints < ScriptEditorPreferences.MaximumPoints;
         }

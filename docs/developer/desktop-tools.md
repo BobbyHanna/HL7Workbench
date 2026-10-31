@@ -59,6 +59,40 @@ queries, imported patients, results or network authority. Existing version-1/2 l
 compatibility and stable IDs (including Diagnostics→Activity Log and old Synthetic
 Patients/Search Results IDs) must survive visible-name changes.
 
+## Inspector projection and content fonts
+
+The same InspectionPanes/MessageInspection controls own segment-occurrence selection
+and lazy Core children. InspectorProjection filters represented empty rows and adds
+only bounded fields from the explicitly applied profile. Absent rows have no range;
+the scanner's authoritative Fields collection is unchanged. Available datatype
+metadata enriches structural labels without inventing clinical names. Expansion and
+blank visibility are session-only path state, restored without retaining offsets.
+Stale snapshots also reject the blank toggle and pointer-release actions.
+
+InspectionActionContext captures document/message/revision/selected-node identity.
+Copy uses the shared bounded ReadTextAsync path for both materialized and source-backed
+messages, then rechecks identity. Search reuses MessageSearchSession over the entire
+active file with unindexed ANY-occurrence/repetition semantics; advanced raw equality
+can match represented empty values. Extraction uses the existing retained draft and
+unsaved prompt, rechecking eligibility before replacing the draft. Docked/floating
+routed requests reach the same MainWindow coordinator. No source mutation or new
+analysis engine is involved; unique-value grouping is deferred.
+
+ContentFontPreferences lives in editor-preferences.json, outside placement DTOs.
+ApplicationPreferences applies validated global/feature sizes only after a successful
+atomic save. DockContentTemplate installs ContentFontScope on ordinary tool content;
+feature keys exclude document identity. Native inherited fonts and scoped resources
+scale existing authored typography, including newly virtualized rows. Ctrl+Plus/Minus
+is handled at the focused content root before editor input; Ctrl+0 removes the keyed
+override. Separate floating roots need no application-wide zoom target.
+
+The default reference size is 14 DIP, bounded 12–32; headings/code retain proportional
+sizes, with script code's existing 9–24-point bounds. Existing script preference files
+migrate once into a clamped shared override and remain on disk. The standalone legacy
+view-model API remains compatible. Modal configuration/export/About dialogs and
+ribbon/menu chrome keep existing sizing. Native DPI, clipboard, focus and screen-reader
+acceptance is tracked in the [Stage 20A checklist](../stage20a-field-inspector-and-fonts.md).
+
 ## Tests and manual review
 
 Cover command enablement/target changes, stale modal returns, tool close/reopen,

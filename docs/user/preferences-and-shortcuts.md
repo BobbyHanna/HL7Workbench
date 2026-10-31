@@ -12,9 +12,13 @@ on which tool or input has focus.
 3. In Appearance, select **Follow System**, **Light** or **Dark**. The applied
    application theme updates immediately; no restart is required. The C# code
    editor retains its dedicated dark palette rather than becoming a full light editor.
-4. In Validation, choose auto-detection or a default profile for the explicit picker.
+4. In Appearance, set **Default Content Font Size**, labelled in DIP. The default
+   is 14 DIP; 12–32 DIP is approximately 9–24 points. Apply updates open content
+   tools immediately, with existing code/heading typography scaled proportionally.
+   **Reset Content Size** restores 14; Apply saves it. Ribbon/menu sizing is unchanged.
+5. In Validation, choose auto-detection or a default profile for the explicit picker.
    This never enables validation on open or rewrites MSH-12.
-5. Choose **Apply** to save without closing, or **OK** to save/close on success.
+6. Choose **Apply** to save without closing, or **OK** to save/close on success.
    **Cancel**/closing discards only changes since the last successful Apply.
 
 Expected result: successfully persisted settings become active. A failed save keeps
@@ -41,7 +45,8 @@ visibility setting. HL7 explains declared version/interpretation and the explici
 | F8 / Shift+F8 | Raw editor with retained validation findings | Next / Previous issue. Ribbon issue commands are another entry point. |
 | F1 | C# code editor | Context-sensitive Script API help; no execution. |
 | Ctrl+Space / Ctrl+Shift+Space | C# code editor | Explicit facade completion / invocation signatures. |
-| Ctrl+mouse wheel, Ctrl+plus/minus, Ctrl+0 | C# code editor | Change font zoom / reset. These preferences are separate from application theme. |
+| Ctrl+plus/minus, Ctrl+0 | Focused content tool, docked or floating | Save a local font override / remove it and inherit the global default. Includes raw HL7, inspection, search, SQL, extraction, Help, API reference and other registered content tools. |
+| Ctrl+mouse wheel | C# code editor | Existing code-only font zoom; ordinary wheel scrolling elsewhere is unchanged. |
 | Enter / Escape | Script rename input | Confirm valid draft name / cancel rename; Save Script persists it. |
 | Left/Right/Home/End; Down; Escape | Ribbon tabs/commands | Select tab; enter commands; dismiss temporary ribbon. Tab follows normal focus order. |
 
@@ -52,7 +57,14 @@ contents of an unrelated tool. Clipboard history/sync is outside Workbench contr
 ## Other saved UI state and recovery
 
 The Find Messages Advanced builder/results split is separate from Dock placement;
-Simple keeps its compact layout. Script code font preferences are separate as well.
+Simple keeps its compact layout. Content font defaults and keyed per-tool overrides
+are saved separately from Dock geometry. An existing Script Editor font preference
+migrates once into the shared settings, clamped to supported bounds; its default
+12-point code appearance is retained. Ctrl+0 deliberately removes that override.
+The content tooltip reports the effective reference size and shortcuts. Raw HL7
+tabs share one raw-viewer override, rather than saving document-specific settings.
+Fonts use native text layout and Windows DPI scaling; no restart is needed.
+Modal configuration/export/About dialogs and application chrome keep normal sizing.
 Workspace layouts store geometry/visibility, not documents/results/network state.
 See [workspace recovery](workspace.md#recover-the-workspace) before resetting.
 

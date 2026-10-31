@@ -164,8 +164,8 @@ public sealed class FieldExtractionView : Grid
             if (display.Length == 0) display = "[" + (value.Status == "Complete" ? value.State : value.Status) + "]";
             var cell = new StackPanel { Children =
             {
-                new TextBlock { Text = display, TextTrimming = TextTrimming.CharacterEllipsis, MaxHeight = 22 },
-                new TextBlock { Text = value.Path + " · " + value.State + (value.Status == "Complete" ? "" : " · " + value.Status), FontSize = 10, TextTrimming = TextTrimming.CharacterEllipsis }
+                new TextBlock { Text = display, TextTrimming = TextTrimming.CharacterEllipsis },
+                new TextBlock { Text = value.Path + " · " + value.State + (value.Status == "Complete" ? "" : " · " + value.Status), [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.10"), TextTrimming = TextTrimming.CharacterEllipsis }
             } };
             ToolTip.SetTip(cell, value.Path + " · " + value.State + " · " + value.Status + (value.Abbreviated ? ". Display is abbreviated; CSV uses the complete stored value." : ""));
             Cell(i + 3, cell);

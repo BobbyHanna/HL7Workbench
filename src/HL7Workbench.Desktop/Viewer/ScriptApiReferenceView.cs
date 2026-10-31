@@ -30,11 +30,11 @@ public sealed class ScriptApiReferenceView : Grid
     public Button CopySignature { get; } = new() { Content = "Copy signature" };
     public Button CopyExample { get; } = new() { Content = "Copy example" };
     public Button CreateScript { get; } = new() { Content = "Create editable script" };
-    public TextBlock Title { get; } = new() { FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
+    public TextBlock Title { get; } = new() { [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.18"), FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
     public TextBox Signature { get; } = Code();
     public TextBox Example { get; } = Code();
     public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap };
-    public TextBlock Version { get; } = new() { FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+    public TextBlock Version { get; } = new() { [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12"), VerticalAlignment = VerticalAlignment.Center };
     private readonly SelectableTextBlock description = Prose(), parameters = Prose(), returns = Prose(), limitations = Prose();
     public SelectableTextBlock Errors { get; } = Prose();
     public SelectableTextBlock Mutation { get; } = Prose();

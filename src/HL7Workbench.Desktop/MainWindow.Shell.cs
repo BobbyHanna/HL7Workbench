@@ -55,6 +55,7 @@ public partial class MainWindow
             documentWindows.Add(host);
             host.Closed += (_, _) => documentWindows.Remove(host);
             AttachSearchShortcut(host); AttachDocumentHistoryShortcut(host);
+            host.AddHandler(ViewerRequests.InspectionActionEvent, HandleInspectionAction);
             return host;
         };
         UiCommand Action(Action<object?, RoutedEventArgs> action, Func<bool>? enabled = null) => new(() => { action(this, new()); return Task.CompletedTask; }, enabled);

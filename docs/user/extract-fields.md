@@ -39,6 +39,14 @@ attachments are never decoded/rendered by that option.
 
 ## Cancellation, freshness and limits
 
+Field Inspector's **Extract Field to Table…** prepares a new draft in this same
+tool after the existing unsaved-configuration prompt. It prepopulates the selected
+occurrence-specific path, turns escape decoding off and selects Expand Matches.
+Explicit repetition/component indexes remain fixed; a whole field expands its
+repetitions. Review Current Message/Whole Document and choose Extract explicitly.
+Changing selection or source while the prompt is open cancels preparation. It does
+not run a second extraction engine or modify HL7.
+
 **Cancel** also covers filtering, sorting, paging and exporting. Failed/canceled
 replacement retains the previous completed result; source edits cancel scanning
 and make completed results stale. Changing tabs does not redirect an existing

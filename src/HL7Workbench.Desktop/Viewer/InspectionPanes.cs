@@ -32,6 +32,15 @@ public sealed class InspectionPanes : Grid
     public ListBox Navigator { get; } = new();
     public TreeView Inspector { get; } = new();
     public MenuItem CopyPath { get; } = new() { Header = "Copy Path", IsEnabled = false };
+    public MenuItem CopyLocation { get; } = new() { Header = "Copy HL7 Path", IsEnabled = false };
+    public MenuItem CopyValue { get; } = new() { Header = "Copy Value", IsEnabled = false };
+    public MenuItem FindOccurrences { get; } = new() { Header = "Find Occurrences…", IsEnabled = false };
+    public MenuItem FilterValue { get; } = new() { Header = "Filter by This Value…", IsEnabled = false };
+    public MenuItem ExtractField { get; } = new() { Header = "Extract Field to Table…", IsEnabled = false };
+    public CheckBox ShowBlankFields { get; } = new() { Content = "Show Blank Fields" };
+    public TextBlock ActionStatus { get; } = new() { TextWrapping = TextWrapping.Wrap };
+    private InspectionActionContext? actionContext;
+    private Hl7ValidationProfile? profile;
     public MenuItem CopySegmentPath { get; } = new() { Header = "Copy Path", IsEnabled = false };
     public Control SegmentPathHeader => fieldStatus;
     private object? copyTarget, copySegmentTarget;
@@ -47,7 +56,7 @@ public sealed class InspectionPanes : Grid
     public NumericUpDown FieldNumber { get; } = new() { Minimum = 1, Maximum = int.MaxValue, Value = 1, Width = 100, FormatString = "0" };
     public Button InspectFieldButton { get; } = new() { Content = "Inspect field" };
     public MessageInspection Inspection => inspection;
-    public TextBlock SnapshotStatus { get; } = new() { Height = 38, Margin = new(8,2), TextWrapping = TextWrapping.Wrap, FontSize = 11 };
+    public TextBlock SnapshotStatus { get; } = new() { MinHeight = 38, Margin = new(8,2), TextWrapping = TextWrapping.Wrap, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11") };
     public bool HasCurrentInspection => inspection.IsCurrent && (document is null ||
         document.InspectionState == DocumentInspectionState.Current && ReferenceEquals(document.ActiveInspection, inspection));
     private long bindingVersion;
@@ -62,12 +71,21 @@ public sealed class InspectionPanes : Grid
         // RevealNode handles structural navigation explicitly. Framework auto-scroll
         // would also run when new parse nodes are rebound and shift the user's viewport.
         Inspector.AutoScrollToSelectedItem = false;
+        ShowBlankFields.IsChecked = inspection.ShowBlankFields;
+        Inspector.AddHandler(TreeViewItem.ExpandedEvent, (_, e) =>
+        {
+            if (!synchronizing && HasCurrentInspection && e.Source is TreeViewItem { DataContext: InspectionNode node }) this.inspection.ExpandedInspectorPaths.Add(node.Path);
+        });
+        Inspector.AddHandler(TreeViewItem.CollapsedEvent, (_, e) =>
+        {
+            if (!synchronizing && HasCurrentInspection && e.Source is TreeViewItem { DataContext: InspectionNode node }) this.inspection.ExpandedInspectorPaths.Remove(node.Path);
+        });
         ScrollViewer.SetHorizontalScrollBarVisibility(Inspector, ScrollBarVisibility.Disabled);
         Navigator.ItemTemplate = new FuncDataTemplate(data => data is SegmentEntry,
             (data, _) => new TextBlock { Text = (data as SegmentEntry)?.Label ?? string.Empty, TextWrapping = TextWrapping.Wrap });
         Inspector.ItemTemplate = new FuncTreeDataTemplate<InspectionNode>(
-            (node, _) => CreateInspectorRow(node), node => node?.VisibleChildren ?? []);
-        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { CopyPath } };
+            (node, _) => CreateInspectorRow(node), node => node is null ? [] : InspectorProjection.Children(this.inspection, node, ShowBlankFields.IsChecked == true));
+        Inspector.ContextMenu = new ContextMenu { ItemsSource = new[] { CopyValue, CopyLocation, CopyPath, FindOccurrences, FilterValue, ExtractField } };
         fieldStatus.ContextMenu = new ContextMenu { ItemsSource = new[] { CopySegmentPath } };
         Avalonia.Automation.AutomationProperties.SetName(CopyPath, "Copy structural path");
         Avalonia.Automation.AutomationProperties.SetName(CopySegmentPath, "Copy segment path");
@@ -80,17 +98,45 @@ public sealed class InspectionPanes : Grid
             var row = (e.Source as Visual)?.GetSelfAndVisualAncestors().OfType<TreeViewItem>().FirstOrDefault();
             copyTarget = row?.DataContext ?? (!e.TryGetPosition(Inspector, out var position) ? Inspector.SelectedItem : null);
             CopyPath.IsEnabled = HasCurrentInspection && InspectionSearchPath.For(copyTarget) is not null;
+            PrepareActions(copyTarget as InspectionNode);
         }, RoutingStrategies.Tunnel);
         fieldStatus.AddHandler(ContextRequestedEvent, (_, _) =>
         { copySegmentTarget = this.inspection.SelectedSegment; CopySegmentPath.IsEnabled = HasCurrentInspection && InspectionSearchPath.For(copySegmentTarget) is not null; }, RoutingStrategies.Tunnel);
         CopyPath.Click += (_, _) => CopyPathTask = CopyStructuralPathAsync(copyTarget);
+        CopyLocation.Click += (_, _) => CopyPathTask = CopyLocationAsync();
+        CopyValue.Click += (_, _) => CopyPathTask = CopyValueAsync();
+        FindOccurrences.Click += (_, _) => RequestAction(InspectorAction.FindOccurrences);
+        FilterValue.Click += (_, _) => RequestAction(InspectorAction.FilterByValue);
+        ExtractField.Click += (_, _) => RequestAction(InspectorAction.Extract);
+        ToolTip.SetTip(CopyPath, "Reusable search path: all segment occurrences and repetitions; use Copy HL7 Path for this exact location.");
+        ToolTip.SetTip(CopyLocation, "Exact occurrence/repetition-specific location using Core path syntax.");
+        ToolTip.SetTip(FindOccurrences, "Structural path presence in the entire active file, including unsaved edits; all occurrences and repetitions.");
+        ToolTip.SetTip(FilterValue, "Case-sensitive raw equality at this structural path in the entire active file; any matching occurrence/repetition.");
+        ToolTip.SetTip(ExtractField, "Prepare the existing read-only extraction tool with this exact location; review scope and run explicitly.");
         CopySegmentPath.Click += (_, _) => CopyPathTask = CopyStructuralPathAsync(copySegmentTarget);
         var navigatorPane = Pane("Segment Navigator", Navigator);
-        var inspectorPane = new ToolContentGrid { RowDefinitions = new("Auto,Auto,*,Auto,Auto,80"), Margin = new(8) };
+        var inspectorPane = new ToolContentGrid { RowDefinitions = new("Auto,Auto,*,Auto,Auto,80,Auto"), Margin = new(8) };
         inspectorPane.RowDefinitions[2].MinHeight = ToolLayoutMetrics.InspectorHeight;
         fieldStatus.FontWeight = FontWeight.SemiBold;
         inspectorPane.Children.Add(fieldStatus);
-        var lookup = new AdaptiveActionBar(new ResponsiveFormField("Field number", FieldNumber) { Width = 155 }, InspectFieldButton);
+        var lookup = new AdaptiveActionBar(ShowBlankFields, new ResponsiveFormField("Field number", FieldNumber) { Width = 155 }, InspectFieldButton);
+        ToolTip.SetTip(ShowBlankFields, "Include represented empty fields and absent fields defined by the explicitly applied schema. Absent rows have no source span.");
+        ShowBlankFields.IsCheckedChanged += (_, _) =>
+        {
+            if (synchronizing) return;
+            if (!HasCurrentInspection)
+            {
+                synchronizing = true;
+                try { ShowBlankFields.IsChecked = this.inspection.ShowBlankFields; }
+                finally { synchronizing = false; }
+                return;
+            }
+            this.inspection.ShowBlankFields = ShowBlankFields.IsChecked == true;
+            synchronizing = true;
+            try { Inspector.ItemsSource = null; displayedFields = null; }
+            finally { synchronizing = false; }
+            revealedNode = null; ApplySelection(false);
+        };
         ToolTip.SetTip(FieldNumber, "Field number within the selected segment");
         ToolTip.SetTip(InspectFieldButton, "Inspect the numbered field in the selected segment");
         SetRow(lookup, 1);
@@ -135,6 +181,7 @@ public sealed class InspectionPanes : Grid
         SetRow(valueControls, 4);
         inspectorPane.Children.Add(valueControls);
         inspectorPane.Children.Add(rawValue);
+        SetRow(ActionStatus, 6); inspectorPane.Children.Add(ActionStatus);
         SetColumn(inspectorPane, 2);
         Children.Add(navigatorPane);
         Children.Add(new GridSplitter { ResizeDirection = GridResizeDirection.Columns, ResizeBehavior = GridResizeBehavior.PreviousAndNext,
@@ -195,19 +242,65 @@ public sealed class InspectionPanes : Grid
 
     private async Task CopyStructuralPathAsync(object? item)
     {
-        if (HasCurrentInspection && InspectionSearchPath.For(item) is { } path && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        if (HasCurrentInspection && (item is InspectionNode node && ReferenceEquals(node, inspection.SelectedNode) || item is SegmentEntry segment && ReferenceEquals(segment, inspection.SelectedSegment)) &&
+            InspectionSearchPath.For(item) is { } path && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
             await clipboard.SetTextAsync(path);
+    }
+    internal void PrepareActions(InspectionNode? node)
+    {
+        actionContext = null;
+        if (HasCurrentInspection && node is not null && ReferenceEquals(node.Owner, inspection.SelectedSegment))
+        {
+            inspection.SelectNode(node);
+            if (document is not null) actionContext = new(document, inspection, node);
+        }
+        CopyLocation.IsEnabled = actionContext?.IsCurrent == true;
+        CopyValue.IsEnabled = actionContext?.CanCopyValue == true;
+        FindOccurrences.IsEnabled = actionContext?.IsCurrent == true && actionContext.SearchPath is not null;
+        FilterValue.IsEnabled = CopyValue.IsEnabled && actionContext!.SearchPath is not null &&
+            node!.Range64!.Value.Length <= MessageSearchQuery.MaximumQueryCharacters &&
+            (node.Path.Repetition is not null || node.VisibleChildren.All(c => c.Path.Repetition is null || c.Path.Component is not null));
+        ExtractField.IsEnabled = actionContext?.IsCurrent == true;
+        ActionStatus.Text = node is null ? "" : node.HasContent ?
+            "Actions use the selected row. Search/filter: entire active file, all occurrences/repetitions; extraction: exact location." :
+            "Absent schema field · no source range or value to copy. Extraction can report its missing state.";
+        ToolTip.SetTip(CopyValue, CopyValue.IsEnabled ? "Copy complete raw encoded characters without decoding escapes." :
+            "No current complete value within the 128 Ki-character copy bound. Use Full Source Viewer/export for oversized original values.");
+        if (!FilterValue.IsEnabled) ToolTip.SetTip(FilterValue, "Requires a current value of at most 1,024 characters. For a repeated whole field, select one repetition; previews are never search terms.");
+    }
+    private async Task CopyLocationAsync()
+    {
+        var context = actionContext;
+        if (subscribed && context?.IsCurrent == true && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+            await clipboard.SetTextAsync(context.Path);
+    }
+    private async Task CopyValueAsync()
+    {
+        var context = actionContext;
+        try
+        {
+            if (context?.CanCopyValue == true && await context.ReadValueAsync() is { } text && subscribed && HasCurrentInspection && context.IsCurrent && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+                await clipboard.SetTextAsync(text);
+        }
+        catch (Exception error) when (error is OperationCanceledException or ObjectDisposedException or IOException)
+        { ActionStatus.Text = "Value read canceled or unavailable; nothing copied."; }
+    }
+    private void RequestAction(InspectorAction action)
+    {
+        if (actionContext?.IsCurrent == true) RaiseEvent(new InspectionActionRequestEventArgs(actionContext, action));
     }
 
     private void GuardStructuralInput(Control control)
     {
-        control.AddHandler(PointerPressedEvent, (_, e) =>
+        void GuardPointer(object? sender, PointerEventArgs e)
         {
             // Leave scrollbars and wheel input available while previous rows are shown.
             if (!HasCurrentInspection && e.Source is Visual source &&
                 source.GetSelfAndVisualAncestors().TakeWhile(v => !ReferenceEquals(v, control))
                     .Any(v => v is ListBoxItem or TreeViewItem)) e.Handled = true;
-        }, RoutingStrategies.Tunnel);
+        }
+        control.AddHandler(PointerPressedEvent, GuardPointer, RoutingStrategies.Tunnel);
+        control.AddHandler(PointerReleasedEvent, GuardPointer, RoutingStrategies.Tunnel);
         control.AddHandler(DoubleTappedEvent, (_, e) => { if (!HasCurrentInspection) e.Handled = true; }, RoutingStrategies.Tunnel);
         control.AddHandler(KeyDownEvent, (_, e) =>
         {
@@ -265,9 +358,11 @@ public sealed class InspectionPanes : Grid
             }, DispatcherPriority.Loaded);
         }
         UpdateSnapshotState();
+        if (HasCurrentInspection) ApplySelection(false);
     }
     private void UpdateSnapshotState()
     {
+        if (!HasCurrentInspection) DisableActions();
         var state = document?.InspectionState ?? DocumentInspectionState.Current;
         SnapshotStatus.Text = state switch
         {
@@ -297,15 +392,19 @@ public sealed class InspectionPanes : Grid
             ApplySelection(false);
         }
     }
-    private static Control CreateInspectorRow(InspectionNode? node)
+    private Control CreateInspectorRow(InspectionNode? node)
     {
         if (node is null) return new TextBlock();
         var path = new TextBlock { Text = node.DisplayPath, TextWrapping = TextWrapping.Wrap };
         // Keep row labels presentation-only so the normal header receives selection input.
-        return new StackPanel { IsHitTestVisible = false, Spacing = 2, Children =
-        {
-            path, new TextBlock { Text = $"{node.PathInfo.StateLabel}   {node.Preview + (node.Range64?.Length > 100 ? "…" : "")}", TextWrapping = TextWrapping.Wrap }
-        }};
+        var row = new Grid { IsHitTestVisible = false, ColumnDefinitions = new("Auto,*,2*"), ColumnSpacing = 8 };
+        path.MaxWidth = 180;
+        row.Children.Add(path);
+        var description = new TextBlock { Text = InspectorProjection.Describe(node, profile), TextWrapping = TextWrapping.Wrap };
+        SetColumn(description, 1); row.Children.Add(description);
+        var value = new TextBlock { Text = $"{(node.HasContent ? node.PathInfo.StateLabel : "Absent · no source span")}   {node.Preview + (node.Range64?.Length > 100 ? "…" : "")}", TextWrapping = TextWrapping.Wrap };
+        SetColumn(value, 2); row.Children.Add(value);
+        return row;
     }
 
     private static Grid Pane(string title, Control content)
@@ -318,7 +417,7 @@ public sealed class InspectionPanes : Grid
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    { base.OnAttachedToVisualTree(e); subscribed = true; revealedNode = null; inspection.SelectionChanged += SelectionChanged; ApplySelection(false); UpdateSnapshotState(); }
+    { base.OnAttachedToVisualTree(e); subscribed = true; revealedNode = null; inspection.SelectionChanged += SelectionChanged; ApplySelection(false); UpdateSnapshotState(); QueueExpansionRestore(); }
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         subscribed = false; previewRequest++; previewCancellation?.Cancel(); previewCancellation?.Dispose(); previewCancellation = null;
@@ -328,26 +427,36 @@ public sealed class InspectionPanes : Grid
     { if (e.NavigateRaw) revealedNode = null; ApplySelection(e.NavigateRaw); }
     private void ApplySelection(bool navigateRaw)
     {
+        if (actionContext is not null && !actionContext.IsCurrent) DisableActions();
         synchronizing = true;
         try
         {
             Navigator.SelectedItem = inspection.SelectedSegment;
             if (kind == InspectionPaneKind.Navigator) return;
-            if (!ReferenceEquals(displayedFields, inspection.Fields))
+            var oldProfileId = profile?.Id;
+            try { profile = document?.AppliedSchemaId is { } id && document.ValidationState != SchemaValidationState.Unavailable ? document.ValidationLibrary.Resolve(id).Profile : null; }
+            catch (ArgumentException) { profile = null; }
+            if (profile?.Id != oldProfileId) { Inspector.ItemsSource = null; displayedFields = null; }
+            var fields = InspectorProjection.Fields(inspection, ShowBlankFields.IsChecked == true, profile);
+            if (displayedFields is null || !displayedFields.SequenceEqual(fields))
             {
-                displayedFields = inspection.Fields;
+                displayedFields = fields;
                 Inspector.ItemsSource = displayedFields;
+                QueueExpansionRestore();
             }
             // A requested missing field has no tree row or raw coordinate; its state is shown below.
             var visibleNode = inspection.SelectedVisibleNode;
             Inspector.SelectedItem = visibleNode;
+            foreach (var container in Inspector.GetVisualDescendants().OfType<TreeViewItem>())
+                if (container.DataContext is InspectionNode expandedNode && inspection.ExpandedInspectorPaths.Contains(expandedNode.Path)) container.IsExpanded = true;
             InspectFieldButton.IsEnabled = inspection.SelectedSegment?.HasFieldPaths == true;
             fieldStatus.Text = inspection.SelectedSegment switch
             {
                 null => inspection.Segments.Count == 0 ? "Field Inspector · no segments" : "Field Inspector · select a segment",
                 { HasFieldPaths: false } => "Field Inspector · opaque segment; no parsed fields",
                 { CanEdit: false } => "Field Inspector · provisional structure; see Activity Log",
-                _ => $"Field Inspector · {inspection.SelectedSegment.Identifier} · expand fields (right-click here to Copy Path)"
+                _ => $"{inspection.SelectedSegment.Identifier}[{inspection.SelectedSegment.Occurrence}] · segment {inspection.SelectedSegment.Sequence}" +
+                    (profile is null ? " · structural labels" : $" · {profile.Name}")
             };
             var node = inspection.SelectedNode;
             ValueNavigation.IsVisible = document?.Source is not null && node?.Range64 is { Length: > 4096 };
@@ -358,7 +467,7 @@ public sealed class InspectionPanes : Grid
                 rawValue.Text = node?.Preview ?? string.Empty;
                 if (subscribed) _ = LoadPreviewAsync(inspection.PreviewOffset);
             }
-            else rawValue.Text = node?.Raw ?? string.Empty;
+            else rawValue.Text = node is null ? string.Empty : inspection.ReadPreview(node);
             if (subscribed && visibleNode is not null && !ReferenceEquals(revealedNode, visibleNode))
             {
                 revealedNode = visibleNode;
@@ -372,6 +481,27 @@ public sealed class InspectionPanes : Grid
         }
         finally { synchronizing = false; }
     }
+    private void DisableActions()
+    {
+        foreach (var command in new[] { CopyValue, CopyLocation, CopyPath, CopySegmentPath, FindOccurrences, FilterValue, ExtractField }) command.IsEnabled = false;
+    }
+    private void QueueExpansionRestore()
+    {
+        if (!subscribed) return;
+        var boundInspection = inspection; var segment = inspection.SelectedSegment;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!subscribed || !HasCurrentInspection || !ReferenceEquals(boundInspection, inspection) || !ReferenceEquals(segment, inspection.SelectedSegment)) return;
+            // Containers are created lazily. Restore each realized depth after layout,
+            // without scrolling or retaining containers from an old Dock view.
+            for (var depth = 0; depth < 4; depth++)
+            {
+                Inspector.UpdateLayout();
+                foreach (var item in Inspector.GetVisualDescendants().OfType<TreeViewItem>().ToArray())
+                    if (item.DataContext is InspectionNode node && inspection.ExpandedInspectorPaths.Contains(node.Path)) item.IsExpanded = true;
+            }
+        }, DispatcherPriority.Loaded);
+    }
     public async Task LoadPreviewAsync(long offset)
     {
         if (!HasCurrentInspection) return;
@@ -379,11 +509,12 @@ public sealed class InspectionPanes : Grid
         if (node is null || document?.Source is null) { ValueStatus.Text = ""; return; }
         if (node.Range64 is not { } range || offset < 0 || offset > range.Length) { ValueStatus.Text = "Offset outside value."; return; }
         var version = ++previewRequest;
+        var boundInspection = inspection;
         previewCancellation?.Cancel(); previewCancellation?.Dispose(); previewCancellation = new();
         try
         {
-            var text = await document.ReadAsync(_ => inspection.ReadPreview(node, offset), previewCancellation.Token);
-            if (version != previewRequest || !subscribed || !ReferenceEquals(node, inspection.SelectedNode) || text is null) return;
+            var text = await document.ReadAsync(_ => boundInspection.ReadPreview(node, offset), previewCancellation.Token);
+            if (version != previewRequest || !subscribed || !HasCurrentInspection || !ReferenceEquals(boundInspection, inspection) || !ReferenceEquals(node, inspection.SelectedNode) || text is null) return;
             ValueOffset = offset; PreviewOffset.Maximum = range.Length; PreviewOffset.Value = offset;
             inspection.PreviewOffset = offset;
             rawValue.Text = text;
@@ -402,7 +533,7 @@ public sealed class InspectionPanes : Grid
         {
             parent.UpdateLayout();
             if (parent.ContainerFromItem(value) is not TreeViewItem container) break;
-            if (!ReferenceEquals(value, branch[^1])) container.IsExpanded = true;
+            if (!ReferenceEquals(value, branch[^1]) || value.Path.Repetition is null) container.IsExpanded = true;
             else container.BringIntoView();
             parent = container;
         }

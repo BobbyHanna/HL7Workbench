@@ -68,8 +68,12 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public bool IsExporting { get; private set; }
     public bool CanExport => !disposed && !IsBusy && !IsExporting && Reports.Count > 0;
     private readonly string? preferencesPath;
-    public int FontSizePoints { get; private set; } = ScriptEditorPreferences.DefaultPoints;
-    public double FontSize => ScriptEditorPreferences.ToDevicePixels(FontSizePoints);
+    private readonly ApplicationPreferences? contentPreferences;
+    private int legacyFontSizePoints = ScriptEditorPreferences.DefaultPoints;
+    public int FontSizePoints => contentPreferences is null || contentPreferences.Current.ContentFonts is null ? legacyFontSizePoints :
+        ScriptEditorPreferences.BoundPoints((int)Math.Round(12 * contentPreferences.Current.ContentFonts.For("tool.script-editor") / ContentFontPreferences.Default));
+    public double FontSize => contentPreferences?.Current.ContentFonts is { } fonts ? Math.Clamp(16 * fonts.For("tool.script-editor") / ContentFontPreferences.Default, 12, 32) :
+        ScriptEditorPreferences.ToDevicePixels(FontSizePoints);
     public string SettingsStatus { get; private set; } = "";
     public ScriptEditorSession Session { get; }
     public ScriptScope Scope { get => scope; set { if (!CanManage || scope == value) return; scope = value; Changed(this, new(nameof(Scope))); } }
@@ -94,7 +98,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action<string>? ReviewRequested;
     public Func<Task<UnsavedChangesDecision>> PromptUnsavedAsync { get; set; } = () => Task.FromResult(UnsavedChangesDecision.Cancel);
-    public ScriptEditorViewModel(DocumentManager documents, ScriptLibrary library, ScriptExecutionOptions? options = null, string? preferencesPath = null)
+    public ScriptEditorViewModel(DocumentManager documents, ScriptLibrary library, ScriptExecutionOptions? options = null, string? preferencesPath = null, ApplicationPreferences? contentPreferences = null)
     {
         this.documents = documents; execution = new(documents, options); Session = new(library);
         NewCommand = new(() => ManageAsync(async () => { if (await Session.NewAsync(PromptUnsavedAsync)) OpenEditorRequested?.Invoke(); }), () => CanManage);
@@ -110,18 +114,30 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
         ApiReferenceCommand = new(() => { ApiReferenceRequested?.Invoke(); return Task.CompletedTask; }, () => !disposed);
         commands = [NewCommand, OpenCommand, SaveCommand, DuplicateCommand, RenameCommand, DeleteCommand, RunCommand, CancelCommand, ReviewCommand, ReportsCommand, ApiReferenceCommand];
         this.preferencesPath = preferencesPath;
+        this.contentPreferences = contentPreferences;
+        if (contentPreferences is not null) contentPreferences.PropertyChanged += ContentPreferencesChanged;
         if (preferencesPath is not null)
         {
-            try { FontSizePoints = ScriptEditorPreferences.Load(preferencesPath).FontSizePoints; }
+            try { legacyFontSizePoints = ScriptEditorPreferences.Load(preferencesPath).FontSizePoints; }
             catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException or ArgumentException)
             { SettingsStatus = "Font settings unavailable; using 12 pt. Change font size to save a new preference."; }
         }
+        // Migrate a pre-existing explicit code-size preference once. New installations
+        // inherit shared defaults; later Ctrl+0 deliberately removes the override.
+        if (contentPreferences?.Current.ContentFonts is null && contentPreferences is not null && preferencesPath is not null && File.Exists(preferencesPath))
+            contentPreferences.SetContentFont("tool.script-editor", ContentFontPreferences.Default * legacyFontSizePoints / 12);
         Session.PropertyChanged += Changed; documents.PropertyChanged += Changed;
         ((INotifyCollectionChanged)documents.Documents).CollectionChanged += DocumentsChanged;
     }
     public void SetFontSizePoints(int points)
     {
-        FontSizePoints = ScriptEditorPreferences.BoundPoints(points);
+        if (contentPreferences is not null)
+        {
+            if (!contentPreferences.SetContentFont("tool.script-editor", ContentFontPreferences.Default * ScriptEditorPreferences.BoundPoints(points) / 12))
+                SettingsStatus = contentPreferences.Status;
+            return;
+        }
+        legacyFontSizePoints = ScriptEditorPreferences.BoundPoints(points);
         if (preferencesPath is not null)
         {
             try { new ScriptEditorPreferences(FontSizePoints).Save(preferencesPath); SettingsStatus = ""; }
@@ -131,6 +147,12 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
         Changed(this, new(nameof(FontSize)));
     }
     public void Zoom(int direction) => SetFontSizePoints(FontSizePoints + Math.Sign(direction));
+    public void ResetFontSize()
+    {
+        if (contentPreferences is not null) contentPreferences.SetContentFont("tool.script-editor", null);
+        else SetFontSizePoints(ScriptEditorPreferences.DefaultPoints);
+    }
+    private void ContentPreferencesChanged(object? sender, PropertyChangedEventArgs e) => Changed(this, new(nameof(FontSize)));
     private void Changed(object? sender, PropertyChangedEventArgs e)
     { foreach (var command in commands) command.Refresh(); PropertyChanged?.Invoke(this, new(null)); }
     private void DocumentsChanged(object? sender, NotifyCollectionChangedEventArgs e) => Changed(this, new(null));
@@ -244,6 +266,7 @@ public sealed class ScriptEditorViewModel : INotifyPropertyChanged, IDisposable
     }
     public void Dispose()
     {
+        if (contentPreferences is not null) contentPreferences.PropertyChanged -= ContentPreferencesChanged;
         if (disposed) return; disposed = true; lifetime.Cancel(); EditorState.Close();
         reports?.Dispose(); reports = null; ReportOrigin = OutputOrigin = null; DiagnosticInput = null;
         Session.PropertyChanged -= Changed; documents.PropertyChanged -= Changed;

@@ -23,10 +23,17 @@ public sealed class DeidentificationReportRequestEventArgs(MessageDocument docum
 {
     public MessageDocument Document { get; } = document;
 }
+public sealed class InspectionActionRequestEventArgs(InspectionActionContext context, InspectorAction action) : RoutedEventArgs(ViewerRequests.InspectionActionEvent)
+{
+    public InspectionActionContext Context { get; } = context;
+    public InspectorAction Action { get; } = action;
+}
 
 /// <summary>View-to-shell intent, without coupling viewer controls to Dock.</summary>
 public static class ViewerRequests
 {
+    public static readonly RoutedEvent<InspectionActionRequestEventArgs> InspectionActionEvent =
+        RoutedEvent.Register<Control, InspectionActionRequestEventArgs>("InspectionAction", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<DeidentificationReportRequestEventArgs> DeidentificationReportEvent =
         RoutedEvent.Register<Control, DeidentificationReportRequestEventArgs>("DeidentificationReport", RoutingStrategies.Bubble);
     public static readonly RoutedEvent<GenerationReportRequestEventArgs> GenerationReportEvent =

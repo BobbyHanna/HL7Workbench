@@ -29,7 +29,11 @@ public sealed class InspectionViewTests
             {
                 view.Navigator.SelectedItem = document.Inspection.Segments[1];
                 Assert.Equal("PID||\"\"|Alpha^Beta&Gamma~Delta", view.Editor.SelectedText);
+                Assert.Equal(document.Inspection.Fields.Where(n => n.State != Hl7ValueState.Empty), view.Inspector.Items.Cast<InspectionNode>());
+                var panes = Assert.IsType<InspectionPanes>(view.LowerPane);
+                panes.ShowBlankFields.IsChecked = true;
                 Assert.Same(document.Inspection.Fields, view.Inspector.ItemsSource);
+                panes.ShowBlankFields.IsChecked = false;
                 var field = document.Inspection.Fields[2];
                 view.Inspector.SelectedItem = field;
                 Assert.Equal("Alpha^Beta&Gamma~Delta", view.Editor.SelectedText);

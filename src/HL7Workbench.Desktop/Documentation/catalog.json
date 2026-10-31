@@ -1793,7 +1793,7 @@
     {
       "id": "inspect-and-edit",
       "source": "docs/user/inspect-and-edit.md",
-      "sourceHash": "e7842101d076a59d418a1438b1f614bfc620b84e26781dbd1e5675ea96a917bb",
+      "sourceHash": "57990a48b732d7fd4b8d1b8e5c3004fcac17f2c86292ab7922d06573e19bb307",
       "title": "Inspect, edit and preserve HL7",
       "keywords": "HL7 original draft encoding inspector navigator undo source",
       "blocks": [
@@ -1962,7 +1962,7 @@
         },
         {
           "kind": "list",
-          "text": "Hover raw text for coordinates; double-click a value to reveal the deepest displayed structural node. Copy Path in Field Inspector copies a search-compatible path without a value or occurrence/repetition restriction.",
+          "text": "Hover raw text for coordinates; double-click a value to reveal the deepest displayed structural node. Copy HL7 Path copies its exact occurrence/repetition location; Copy Path copies the reusable, unindexed search path.",
           "spans": [
             {
               "kind": "text",
@@ -1970,11 +1970,19 @@
             },
             {
               "kind": "strong",
+              "text": "Copy HL7 Path"
+            },
+            {
+              "kind": "text",
+              "text": " copies its exact occurrence/repetition location; "
+            },
+            {
+              "kind": "strong",
               "text": "Copy Path"
             },
             {
               "kind": "text",
-              "text": " in Field Inspector copies a search-compatible path without a value or occurrence/repetition restriction."
+              "text": " copies the reusable, unindexed search path."
             }
           ],
           "marker": "2."
@@ -2059,6 +2067,227 @@
             {
               "kind": "text",
               "text": ") values remain distinct."
+            }
+          ]
+        },
+        {
+          "kind": "heading",
+          "text": "Navigate the hierarchical Field Inspector",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Navigate the hierarchical Field Inspector"
+            }
+          ],
+          "level": 2,
+          "anchor": "navigate-the-hierarchical-field-inspector"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Select a segment in Segment Navigator or raw text. Field Inspector follows that exact occurrence, such as the second PID, and lists its fields with structural paths, descriptions and raw encoded previews. Expand a field, repetition, component or subcomponent using its arrow or the keyboard. The selected field expands by default; other branches stay compact. Selecting a row reveals its source range where one exists. Inspection remains read-only; use raw Edit Mode for changes.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Select a segment in Segment Navigator or raw text. Field Inspector follows that exact occurrence, such as the second PID, and lists its fields with structural paths, descriptions and raw encoded previews. Expand a field, repetition, component or subcomponent using its arrow or the keyboard. The selected field expands by default; other branches stay compact. Selecting a row reveals its source range where one exists. Inspection remains read-only; use raw Edit Mode for changes."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Show Blank Fields includes represented empty fields and fields declared by the explicitly applied schema. An Absent row has no source span; it does not imply that trailing separators exist. Empty rows have a real zero-length range; explicit HL7 null remains distinct. With the toggle off, empty rows are hidden except when needed for the current structural selection. No unlimited trailing fields appear.",
+          "spans": [
+            {
+              "kind": "strong",
+              "text": "Show Blank Fields"
+            },
+            {
+              "kind": "text",
+              "text": " includes represented empty fields and fields declared by the explicitly applied schema. An "
+            },
+            {
+              "kind": "strong",
+              "text": "Absent"
+            },
+            {
+              "kind": "text",
+              "text": " row has no source span; it does not imply that trailing separators exist. Empty rows have a real zero-length range; explicit HL7 null remains distinct. With the toggle off, empty rows are hidden except when needed for the current structural selection. No unlimited trailing fields appear."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Current schema metadata supplies datatypes/constraints rather than friendly field names. Descriptions therefore use labels such as Field 5 and its known datatype; custom/unknown definitions fall back to structural labels. Applying a profile is explicit and separate from inspection. Long values remain bounded previews; attachments are never decoded automatically.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Current schema metadata supplies datatypes/constraints rather than friendly field names. Descriptions therefore use labels such as Field 5 and its known datatype; custom/unknown definitions fall back to structural labels. Applying a profile is explicit and separate from inspection. Long values remain bounded previews; attachments are never decoded automatically."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Right-click the actual row for these actions:",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Right-click the actual row for these actions:"
+            }
+          ]
+        },
+        {
+          "kind": "table",
+          "text": "Action | Result and scope\nCopy Value | Complete raw encoded value within 128 Ki UTF-16 units, without decoding escapes. Oversized values are unavailable; use original-source viewing/export. A preview is never copied as a full value.\nCopy HL7 Path | Exact location, for example `PID[2]-5[1].2`, including occurrence and repetition where applicable.\nCopy Path | Reusable search path, for example `PID-5.2`; searches examine all occurrences/repetitions.\nFind Occurrences… | Runs structural path presence in the entire active file, including unsaved edits. This is not literal-value search.\nFilter by This Value… | Runs case-sensitive raw equality at the selected structural path and filters navigation using all matching messages. Select one repetition of a repeated whole field first. Values must fit the 1,024-character search bound; represented empty values are supported.\nExtract Field to Table… | Prepares the existing extraction tool with an occurrence-specific path and raw decoding off. Review scope, then run explicitly. Whole fields expand their repetitions into rows; explicit repetition/component indexes stay fixed.",
+          "spans": [],
+          "rows": [
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Action"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Result and scope"
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Copy Value"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Complete raw encoded value within 128 Ki UTF-16 units, without decoding escapes. Oversized values are unavailable; use original-source viewing/export. A preview is never copied as a full value."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Copy HL7 Path"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Exact location, for example "
+                },
+                {
+                  "kind": "code",
+                  "text": "PID[2]-5[1].2"
+                },
+                {
+                  "kind": "text",
+                  "text": ", including occurrence and repetition where applicable."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Copy Path"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Reusable search path, for example "
+                },
+                {
+                  "kind": "code",
+                  "text": "PID-5.2"
+                },
+                {
+                  "kind": "text",
+                  "text": "; searches examine all occurrences/repetitions."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Find Occurrences…"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Runs structural path presence in the entire active file, including unsaved edits. This is not literal-value search."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Filter by This Value…"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Runs case-sensitive raw equality at the selected structural path and filters navigation using all matching messages. Select one repetition of a repeated whole field first. Values must fit the 1,024-character search bound; represented empty values are supported."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Extract Field to Table…"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Prepares the existing extraction tool with an occurrence-specific path and raw decoding off. Review scope, then run explicitly. Whole fields expand their repetitions into rows; explicit repetition/component indexes stay fixed."
+                }
+              ]
+            ]
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Actions reject edited, replaced, closed or changed selections. Search/filter uses all occurrences and repetitions in one active file; extraction keeps exact indexes. No unique-value command is added in this milestone. There is no structured editing or bulk mutation. See search/filter and extraction for capture, cancellation and output rules.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Actions reject edited, replaced, closed or changed selections. Search/filter uses all occurrences and repetitions in one active file; extraction keeps exact indexes. No unique-value command is added in this milestone. There is no structured editing or bulk mutation. See "
+            },
+            {
+              "kind": "link",
+              "text": "search/filter",
+              "link": {
+                "kind": "topic",
+                "target": "search-and-filter",
+                "anchor": ""
+              }
+            },
+            {
+              "kind": "text",
+              "text": " and "
+            },
+            {
+              "kind": "link",
+              "text": "extraction",
+              "link": {
+                "kind": "topic",
+                "target": "extract-fields",
+                "anchor": ""
+              }
+            },
+            {
+              "kind": "text",
+              "text": " for capture, cancellation and output rules."
             }
           ]
         },
@@ -2266,7 +2495,7 @@
     {
       "id": "search-and-filter",
       "source": "docs/user/search-and-filter.md",
-      "sourceHash": "f191042054bfc1178d3b1b1d9021d407e2f830781c341a269726f0d6b94475c0",
+      "sourceHash": "c87597639493c485b3442ecd67e87427642443e2dcd3d85c4a754ad50127ea43",
       "title": "Find messages and filter navigation",
       "keywords": "find messages filter search library ALL ANY",
       "blocks": [
@@ -2592,6 +2821,42 @@
           ],
           "level": 2,
           "anchor": "cancellation-freshness-and-limits"
+        },
+        {
+          "kind": "paragraph",
+          "text": "From Field Inspector, Find Occurrences… runs structural path presence, while Filter by This Value… runs case-sensitive raw equality. The tool shows the matching semantics and entire-active-file scope. Both examine all applicable segment occurrences and repetitions, not only the visible message/page. A component row targets that component. For a repeated whole field, select an individual repetition before filtering; combining its raw repetitions into one search term would change the comparison's meaning.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "From Field Inspector, "
+            },
+            {
+              "kind": "strong",
+              "text": "Find Occurrences…"
+            },
+            {
+              "kind": "text",
+              "text": " runs structural path presence, while "
+            },
+            {
+              "kind": "strong",
+              "text": "Filter by This Value…"
+            },
+            {
+              "kind": "text",
+              "text": " runs case-sensitive raw equality. The tool shows the matching semantics and entire-active-file scope. Both examine all applicable segment occurrences and repetitions, not only the visible message/page. A component row targets that component. For a repeated whole field, select an individual repetition before filtering; combining its raw repetitions into one search term would change the comparison's meaning."
+            }
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Advanced structural Equals/Does Not Equal supports an empty or whitespace-only literal. Empty means a represented zero-length value, not an absent field/component. Simple blank searches and blank Contains terms remain unavailable. No escape decoding, regex or numeric coercion is introduced.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Advanced structural Equals/Does Not Equal supports an empty or whitespace-only literal. Empty means a represented zero-length value, not an absent field/component. Simple blank searches and blank Contains terms remain unavailable. No escape decoding, regex or numeric coercion is introduced."
+            }
+          ]
         },
         {
           "kind": "paragraph",
@@ -3032,7 +3297,7 @@
     {
       "id": "extract-fields",
       "source": "docs/user/extract-fields.md",
-      "sourceHash": "60d070c556ef60db268fd25e6a8a91e3df2a2fc63ba8e8063db6dcab447beff5",
+      "sourceHash": "3180d39102ed87542fa86e6e62d7ea88831ac93acc44eb366b1971202522148c",
       "title": "Extract fields into a table and CSV",
       "keywords": "extraction table CSV columns repeats",
       "blocks": [
@@ -3390,6 +3655,24 @@
           ],
           "level": 2,
           "anchor": "cancellation-freshness-and-limits"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Field Inspector's Extract Field to Table… prepares a new draft in this same tool after the existing unsaved-configuration prompt. It prepopulates the selected occurrence-specific path, turns escape decoding off and selects Expand Matches. Explicit repetition/component indexes remain fixed; a whole field expands its repetitions. Review Current Message/Whole Document and choose Extract explicitly. Changing selection or source while the prompt is open cancels preparation. It does not run a second extraction engine or modify HL7.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Field Inspector's "
+            },
+            {
+              "kind": "strong",
+              "text": "Extract Field to Table…"
+            },
+            {
+              "kind": "text",
+              "text": " prepares a new draft in this same tool after the existing unsaved-configuration prompt. It prepopulates the selected occurrence-specific path, turns escape decoding off and selects Expand Matches. Explicit repetition/component indexes remain fixed; a whole field expands its repetitions. Review Current Message/Whole Document and choose Extract explicitly. Changing selection or source while the prompt is open cancels preparation. It does not run a second extraction engine or modify HL7."
+            }
+          ]
         },
         {
           "kind": "paragraph",
@@ -6643,7 +6926,7 @@
     {
       "id": "preferences-and-shortcuts",
       "source": "docs/user/preferences-and-shortcuts.md",
-      "sourceHash": "4ee475ea883ab5c3ba64e21ad4bbbcac2027960f96ea4412f2b2e20076ea2285",
+      "sourceHash": "61d2c7c8ceb37ad55e72bde26b949e1851ee135e73e5ddcad9827aca1024f083",
       "title": "Preferences and keyboard shortcuts",
       "keywords": "settings keyboard focus theme light dark DPI",
       "blocks": [
@@ -6780,6 +7063,33 @@
         },
         {
           "kind": "list",
+          "text": "In Appearance, set Default Content Font Size, labelled in DIP. The default is 14 DIP; 12–32 DIP is approximately 9–24 points. Apply updates open content tools immediately, with existing code/heading typography scaled proportionally. Reset Content Size restores 14; Apply saves it. Ribbon/menu sizing is unchanged.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "In Appearance, set "
+            },
+            {
+              "kind": "strong",
+              "text": "Default Content Font Size"
+            },
+            {
+              "kind": "text",
+              "text": ", labelled in DIP. The default is 14 DIP; 12–32 DIP is approximately 9–24 points. Apply updates open content tools immediately, with existing code/heading typography scaled proportionally. "
+            },
+            {
+              "kind": "strong",
+              "text": "Reset Content Size"
+            },
+            {
+              "kind": "text",
+              "text": " restores 14; Apply saves it. Ribbon/menu sizing is unchanged."
+            }
+          ],
+          "marker": "4."
+        },
+        {
+          "kind": "list",
           "text": "In Validation, choose auto-detection or a default profile for the explicit picker. This never enables validation on open or rewrites MSH-12.",
           "spans": [
             {
@@ -6787,7 +7097,7 @@
               "text": "In Validation, choose auto-detection or a default profile for the explicit picker. This never enables validation on open or rewrites MSH-12."
             }
           ],
-          "marker": "4."
+          "marker": "5."
         },
         {
           "kind": "list",
@@ -6822,7 +7132,7 @@
               "text": "/closing discards only changes since the last successful Apply."
             }
           ],
-          "marker": "5."
+          "marker": "6."
         },
         {
           "kind": "paragraph",
@@ -6861,7 +7171,7 @@
         },
         {
           "kind": "table",
-          "text": "Keys | Focus/context | Action\nCtrl+F | Main or floating workbench shell | Reveal Find Messages and focus its applicable input; does not run search.\nCtrl+S | HL7 document context | Save HL7 through the existing document workflow.\nCtrl+Shift+S | HL7 document context | Save HL7 As. Use the File menu explicitly if focus makes the target unclear.\nCtrl+S | Script Editor tool | Save Script, not HL7.\nCtrl+S | SQL Query tool | Save the named query, not HL7.\nCtrl+Z / Ctrl+Y / Ctrl+Shift+Z | Raw HL7/document context | Document Undo / Redo / Redo, including retained history with Edit Mode off.\nCtrl+Z / Ctrl+Y | Independent text input/editor | Its own text history. Search fields, numeric inputs, C# and SQL editors do not become HL7 document history targets.\nEnter | Message-number input | Go to that logical message.\nEnter | Find Messages value input | Run Search. In the results list, follows the selected retained message identity.\nCtrl+Enter | SQL Query tool | Run query.\nCtrl+C | SQL results | Copy selected complete bounded values; paging/sorting clears selection.\nF7 / Shift+F7 | Message Comparison | Next / Previous difference.\nF8 / Shift+F8 | Raw editor with retained validation findings | Next / Previous issue. Ribbon issue commands are another entry point.\nF1 | C# code editor | Context-sensitive Script API help; no execution.\nCtrl+Space / Ctrl+Shift+Space | C# code editor | Explicit facade completion / invocation signatures.\nCtrl+mouse wheel, Ctrl+plus/minus, Ctrl+0 | C# code editor | Change font zoom / reset. These preferences are separate from application theme.\nEnter / Escape | Script rename input | Confirm valid draft name / cancel rename; Save Script persists it.\nLeft/Right/Home/End; Down; Escape | Ribbon tabs/commands | Select tab; enter commands; dismiss temporary ribbon. Tab follows normal focus order.",
+          "text": "Keys | Focus/context | Action\nCtrl+F | Main or floating workbench shell | Reveal Find Messages and focus its applicable input; does not run search.\nCtrl+S | HL7 document context | Save HL7 through the existing document workflow.\nCtrl+Shift+S | HL7 document context | Save HL7 As. Use the File menu explicitly if focus makes the target unclear.\nCtrl+S | Script Editor tool | Save Script, not HL7.\nCtrl+S | SQL Query tool | Save the named query, not HL7.\nCtrl+Z / Ctrl+Y / Ctrl+Shift+Z | Raw HL7/document context | Document Undo / Redo / Redo, including retained history with Edit Mode off.\nCtrl+Z / Ctrl+Y | Independent text input/editor | Its own text history. Search fields, numeric inputs, C# and SQL editors do not become HL7 document history targets.\nEnter | Message-number input | Go to that logical message.\nEnter | Find Messages value input | Run Search. In the results list, follows the selected retained message identity.\nCtrl+Enter | SQL Query tool | Run query.\nCtrl+C | SQL results | Copy selected complete bounded values; paging/sorting clears selection.\nF7 / Shift+F7 | Message Comparison | Next / Previous difference.\nF8 / Shift+F8 | Raw editor with retained validation findings | Next / Previous issue. Ribbon issue commands are another entry point.\nF1 | C# code editor | Context-sensitive Script API help; no execution.\nCtrl+Space / Ctrl+Shift+Space | C# code editor | Explicit facade completion / invocation signatures.\nCtrl+plus/minus, Ctrl+0 | Focused content tool, docked or floating | Save a local font override / remove it and inherit the global default. Includes raw HL7, inspection, search, SQL, extraction, Help, API reference and other registered content tools.\nCtrl+mouse wheel | C# code editor | Existing code-only font zoom; ordinary wheel scrolling elsewhere is unchanged.\nEnter / Escape | Script rename input | Confirm valid draft name / cancel rename; Save Script persists it.\nLeft/Right/Home/End; Down; Escape | Ribbon tabs/commands | Select tab; enter commands; dismiss temporary ribbon. Tab follows normal focus order.",
           "spans": [],
           "rows": [
             [
@@ -7188,7 +7498,27 @@
               [
                 {
                   "kind": "text",
-                  "text": "Ctrl+mouse wheel, Ctrl+plus/minus, Ctrl+0"
+                  "text": "Ctrl+plus/minus, Ctrl+0"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Focused content tool, docked or floating"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Save a local font override / remove it and inherit the global default. Includes raw HL7, inspection, search, SQL, extraction, Help, API reference and other registered content tools."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Ctrl+mouse wheel"
                 }
               ],
               [
@@ -7200,7 +7530,7 @@
               [
                 {
                   "kind": "text",
-                  "text": "Change font zoom / reset. These preferences are separate from application theme."
+                  "text": "Existing code-only font zoom; ordinary wheel scrolling elsewhere is unchanged."
                 }
               ]
             ],
@@ -7270,11 +7600,11 @@
         },
         {
           "kind": "paragraph",
-          "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Script code font preferences are separate as well. Workspace layouts store geometry/visibility, not documents/results/network state. See workspace recovery before resetting.",
+          "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Content font defaults and keyed per-tool overrides are saved separately from Dock geometry. An existing Script Editor font preference migrates once into the shared settings, clamped to supported bounds; its default 12-point code appearance is retained. Ctrl+0 deliberately removes that override. The content tooltip reports the effective reference size and shortcuts. Raw HL7 tabs share one raw-viewer override, rather than saving document-specific settings. Fonts use native text layout and Windows DPI scaling; no restart is needed. Modal configuration/export/About dialogs and application chrome keep normal sizing. Workspace layouts store geometry/visibility, not documents/results/network state. See workspace recovery before resetting.",
           "spans": [
             {
               "kind": "text",
-              "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Script code font preferences are separate as well. Workspace layouts store geometry/visibility, not documents/results/network state. See "
+              "text": "The Find Messages Advanced builder/results split is separate from Dock placement; Simple keeps its compact layout. Content font defaults and keyed per-tool overrides are saved separately from Dock geometry. An existing Script Editor font preference migrates once into the shared settings, clamped to supported bounds; its default 12-point code appearance is retained. Ctrl+0 deliberately removes that override. The content tooltip reports the effective reference size and shortcuts. Raw HL7 tabs share one raw-viewer override, rather than saving document-specific settings. Fonts use native text layout and Windows DPI scaling; no restart is needed. Modal configuration/export/About dialogs and application chrome keep normal sizing. Workspace layouts store geometry/visibility, not documents/results/network state. See "
             },
             {
               "kind": "link",
@@ -7919,7 +8249,7 @@
     {
       "id": "troubleshooting",
       "source": "docs/user/troubleshooting.md",
-      "sourceHash": "cae37fe611c3bfb70d730344e8328f4352c176aca566b9980094ad64ae0a2964",
+      "sourceHash": "7c5314b02afad02b1af30a74730f8d2f80b70c2786707c05b027b054f77c12dc",
       "title": "Troubleshooting and supported limits",
       "keywords": "errors limits recovery failure unavailable",
       "blocks": [
@@ -8016,7 +8346,7 @@
         },
         {
           "kind": "table",
-          "text": "Symptom | Check and safe next step\nApplication or worker unavailable | Keep the whole approved extraction/build, including ScriptHost and (for current source) QueryHost. Check SDK/build for source runs. Do not download loose DLLs or disable security software. See [installation](installation.md).\nHidden/off-screen tool | Reopen through View; Restore Layout or Reset Layout / Recover Windows from Home → Workspace. Save valuable tool drafts first; never delete all settings/documents as a shortcut.\nEdit Mode on but no editor access | Message may exceed complete editor/line limits, lack safe decoding or use unsupported editing encoding. Inspect through source-backed tools; choose a smaller supported message.\nInspector temporarily shows previous data | Wait for debounced parsing. Pending/Stale labels prevent old coordinates from being used as current structure. Malformed drafts remain retained.\nSave refused or failed | Keep draft/history. Check incomplete inserted messages, unsafe framing/boundaries, strict encoding, access, disk space and external destination changes. Complete/undo the draft or choose a safe Save As destination.\nFull Source Viewer unavailable or closes | Edited/inserted messages lack usable original ranges. Save/reopen for a new original; same-file message navigation ends the borrowed viewer session. Reopen for the intended message.\nSearch finds nothing | Clear navigator filters, check active document/path/case/raw escape spelling and skipped counts. Search has no bracket indexes, regex or numeric coercion; rerun after edits/tab switches.\nCSV has more rows than the page/highlight | SQL exports all journal rows; extraction exports its complete applied selection. Highlighting is not an export filter. Check scope before writing.\nLong cell is abbreviated | Table ellipses are previews. SQL offers Inspect full value/copy within bounds; CSV reads complete stored values. A diagnosed/limited value is not a verified empty value.\nSQL limit or unavailable value | Try a narrower source or Messages/header query. Structural imports can hit budgets before WHERE/LIMIT; substr does not bypass materialization. No partial result is published.\nSQL Go to source disabled | Require authoritative document/message identity and an unchanged open source. Stale captures can still export/extract captured bytes; they cannot navigate a replacement document.\nScript fails or is read-only | Duplicate a built-in before editing; check Main/Complete phase rules, scope and diagnostics in the [API reference](../script-api-reference.md). Run only trusted code; arbitrary side effects are not rolled back.\nGenerator repeats data | Explicit seed/settings/style/version/base time intentionally replay. Blank synthetic seed gets a fresh operation seed; Copy seed exposes the actual value. FHIR seed only affects transport IDs.\nValidation has zero errors but Incomplete | Coverage/budget gaps remain. Built-ins are scoped v2.5.1 models, not conformance certification. Select/reapply the appropriate profile and review notices.\nProfile import/update fails | Use the supported JSON/XML subset, valid inheritance and current saved revision. Keep existing definitions and review status; import does not automatically apply.\nFHIR generation disabled/omits events | Check scope, explicit selections, eligible dates/statuses, resolved relationships and preview limits. Empty Selected Events never falls back to all records.\nMLLP write completes but no accepted outcome | Inspect ACK phase/correlation, timeout and receiver state. TCP completion/CA/ACK silence are not application AA. Do not automatically retry uncertain sends.\nListener rejects/retains fewer receipts | Review its separate client/history/byte caps and wire/framing status. Clear history explicitly for an authorized longer test, rather than removing bounds.",
+          "text": "Symptom | Check and safe next step\nApplication or worker unavailable | Keep the whole approved extraction/build, including ScriptHost and (for current source) QueryHost. Check SDK/build for source runs. Do not download loose DLLs or disable security software. See [installation](installation.md).\nHidden/off-screen tool | Reopen through View; Restore Layout or Reset Layout / Recover Windows from Home → Workspace. Save valuable tool drafts first; never delete all settings/documents as a shortcut.\nEdit Mode on but no editor access | Message may exceed complete editor/line limits, lack safe decoding or use unsupported editing encoding. Inspect through source-backed tools; choose a smaller supported message.\nInspector temporarily shows previous data | Wait for debounced parsing. Pending/Stale labels prevent old coordinates from being used as current structure. Malformed drafts remain retained.\nInspector field missing from the tree | Enable Show Blank Fields. Absent schema fields have no source span; unknown/custom segments have structural labels rather than invented clinical definitions.\nInspector Copy Value or Filter unavailable | Select a current row. Copy requires a complete value within 128 Ki characters; filtering requires at most 1,024 characters and one repetition. Use source viewing/export for oversized originals.\nContent font does not follow the global setting | Focus that tool and press Ctrl+0 to remove its saved local override. Apply Appearance changes; modal configuration dialogs and ribbon/menu chrome keep normal sizing.\nSave refused or failed | Keep draft/history. Check incomplete inserted messages, unsafe framing/boundaries, strict encoding, access, disk space and external destination changes. Complete/undo the draft or choose a safe Save As destination.\nFull Source Viewer unavailable or closes | Edited/inserted messages lack usable original ranges. Save/reopen for a new original; same-file message navigation ends the borrowed viewer session. Reopen for the intended message.\nSearch finds nothing | Clear navigator filters, check active document/path/case/raw escape spelling and skipped counts. Search has no bracket indexes, regex or numeric coercion; rerun after edits/tab switches.\nCSV has more rows than the page/highlight | SQL exports all journal rows; extraction exports its complete applied selection. Highlighting is not an export filter. Check scope before writing.\nLong cell is abbreviated | Table ellipses are previews. SQL offers Inspect full value/copy within bounds; CSV reads complete stored values. A diagnosed/limited value is not a verified empty value.\nSQL limit or unavailable value | Try a narrower source or Messages/header query. Structural imports can hit budgets before WHERE/LIMIT; substr does not bypass materialization. No partial result is published.\nSQL Go to source disabled | Require authoritative document/message identity and an unchanged open source. Stale captures can still export/extract captured bytes; they cannot navigate a replacement document.\nScript fails or is read-only | Duplicate a built-in before editing; check Main/Complete phase rules, scope and diagnostics in the [API reference](../script-api-reference.md). Run only trusted code; arbitrary side effects are not rolled back.\nGenerator repeats data | Explicit seed/settings/style/version/base time intentionally replay. Blank synthetic seed gets a fresh operation seed; Copy seed exposes the actual value. FHIR seed only affects transport IDs.\nValidation has zero errors but Incomplete | Coverage/budget gaps remain. Built-ins are scoped v2.5.1 models, not conformance certification. Select/reapply the appropriate profile and review notices.\nProfile import/update fails | Use the supported JSON/XML subset, valid inheritance and current saved revision. Keep existing definitions and review status; import does not automatically apply.\nFHIR generation disabled/omits events | Check scope, explicit selections, eligible dates/statuses, resolved relationships and preview limits. Empty Selected Events never falls back to all records.\nMLLP write completes but no accepted outcome | Inspect ACK phase/correlation, timeout and receiver state. TCP completion/CA/ACK silence are not application AA. Do not automatically retry uncertain sends.\nListener rejects/retains fewer receipts | Review its separate client/history/byte caps and wire/framing status. Clear history explicitly for an authorized longer test, rather than removing bounds.",
           "spans": [],
           "rows": [
             [
@@ -8099,6 +8429,48 @@
                 {
                   "kind": "text",
                   "text": "Wait for debounced parsing. Pending/Stale labels prevent old coordinates from being used as current structure. Malformed drafts remain retained."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Inspector field missing from the tree"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Enable Show Blank Fields. Absent schema fields have no source span; unknown/custom segments have structural labels rather than invented clinical definitions."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Inspector Copy Value or Filter unavailable"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Select a current row. Copy requires a complete value within 128 Ki characters; filtering requires at most 1,024 characters and one repetition. Use source viewing/export for oversized originals."
+                }
+              ]
+            ],
+            [
+              [
+                {
+                  "kind": "text",
+                  "text": "Content font does not follow the global setting"
+                }
+              ],
+              [
+                {
+                  "kind": "text",
+                  "text": "Focus that tool and press Ctrl+0 to remove its saved local override. Apply Appearance changes; modal configuration dialogs and ribbon/menu chrome keep normal sizing."
                 }
               ]
             ],
@@ -10257,7 +10629,7 @@
     {
       "id": "storage-and-formats",
       "source": "docs/reference/storage-and-formats.md",
-      "sourceHash": "b0e76eca6404b3f8f3990d9a301059bc70b72933c12d62f1287caa50f82fb45b",
+      "sourceHash": "e096a0fd44b5b481e9476d5b820ef72469972084b9d545ce6fde8a884458c656",
       "title": "Storage, formats and compatibility",
       "keywords": "storage formats versions compatibility persistence",
       "blocks": [
@@ -10331,7 +10703,7 @@
         },
         {
           "kind": "table",
-          "text": "Record | Default location / format | Compatibility and sensitivity\nEditor/application preferences | `editor-preferences.json`, bounded 4 KiB | General/theme/schema-default/SearchLayout metadata. Valid unknown fields are retained; invalid enums/split data use documented defaults. Missing record does not cause an implicit write. No message contents.\nScript code font | `script-editor-preferences.json`, bounded 4 KiB | Current version 2 stores point size; version 1 pixel-size input is handled by the existing migration reader. Separate from app theme/layout.\nWorkspace layout | `workspace-layout.json`, bounded 256 KiB | Reader accepts versions 1/2; application-owned IDs/groups/visibility/geometry/current session placement. No file reopening, script/query text, patient results or network authority.\nUser scripts | `Scripts/<guid>.json`, current library version 3 | Name/source/ID/migration status, not script kind. Obsolete v1/2 records remain on disk/reviewable until explicit rewrite/save; trusted source/literals can be sensitive.\nSaved searches | `Searches/<guid>.json`, schema/query version 2 | Nested ordered condition tree. Version-1 flat definitions load compatibly; listing/loading does not rewrite them. Names/literals are unencrypted user content.\nSaved SQL | `SqlQueries/<guid>.json`, version 1 | ID/name/SQL only; no results/document paths/history. Names/literals can be sensitive. 256 records / 512 KiB each, with SQL/string constraints.\nExtraction configurations | `Extractions/<guid>.json`, version 1 | Ordered column paths/labels, matching/decoding/filter/sort preferences. No filter literal, captured values or source selection.\nImported validation profiles | `ValidationProfiles/<hashed-profile-id>.json`, storage version 1 | ImportedAt, bounded source-file label and canonical native-profile JSON bytes. Native profile formatVersion 1; IDs/definitions/constraints can contain user text. Built-in reserved IDs cannot be replaced.\nEndpoint profiles | `transport-endpoints.json`, version 1, bounded 64 KiB | Whitelisted endpoint/security/encoding/timeouts/notes only; no payload, credentials, live connection or start authority. Never put secrets/PHI in notes.",
+          "text": "Record | Default location / format | Compatibility and sensitivity\nEditor/application preferences | `editor-preferences.json`, bounded 4 KiB | General/theme/schema-default/SearchLayout and ContentFonts metadata. ContentFonts stores a bounded global DIP reference size and overrides for known feature keys, never document IDs. Valid unknown fields are retained; invalid enums/split/font data use documented defaults/bounds. No message contents.\nLegacy script code font | `script-editor-preferences.json`, bounded 4 KiB | Version 2 point size and version 1 pixel-size inputs remain readable. An existing explicit preference migrates once into shared ContentFonts when absent, clamped to supported bounds; the original file is retained. New UI changes use shared application preferences.\nWorkspace layout | `workspace-layout.json`, bounded 256 KiB | Reader accepts versions 1/2; application-owned IDs/groups/visibility/geometry/current session placement. No file reopening, script/query text, patient results or network authority.\nUser scripts | `Scripts/<guid>.json`, current library version 3 | Name/source/ID/migration status, not script kind. Obsolete v1/2 records remain on disk/reviewable until explicit rewrite/save; trusted source/literals can be sensitive.\nSaved searches | `Searches/<guid>.json`, schema/query version 2 | Nested ordered condition tree. Version-1 flat definitions load compatibly; listing/loading does not rewrite them. Names/literals are unencrypted user content.\nSaved SQL | `SqlQueries/<guid>.json`, version 1 | ID/name/SQL only; no results/document paths/history. Names/literals can be sensitive. 256 records / 512 KiB each, with SQL/string constraints.\nExtraction configurations | `Extractions/<guid>.json`, version 1 | Ordered column paths/labels, matching/decoding/filter/sort preferences. No filter literal, captured values or source selection.\nImported validation profiles | `ValidationProfiles/<hashed-profile-id>.json`, storage version 1 | ImportedAt, bounded source-file label and canonical native-profile JSON bytes. Native profile formatVersion 1; IDs/definitions/constraints can contain user text. Built-in reserved IDs cannot be replaced.\nEndpoint profiles | `transport-endpoints.json`, version 1, bounded 64 KiB | Whitelisted endpoint/security/encoding/timeouts/notes only; no payload, credentials, live connection or start authority. Never put secrets/PHI in notes.",
           "spans": [],
           "rows": [
             [
@@ -10374,7 +10746,7 @@
               [
                 {
                   "kind": "text",
-                  "text": "General/theme/schema-default/SearchLayout metadata. Valid unknown fields are retained; invalid enums/split data use documented defaults. Missing record does not cause an implicit write. No message contents."
+                  "text": "General/theme/schema-default/SearchLayout and ContentFonts metadata. ContentFonts stores a bounded global DIP reference size and overrides for known feature keys, never document IDs. Valid unknown fields are retained; invalid enums/split/font data use documented defaults/bounds. No message contents."
                 }
               ]
             ],
@@ -10382,7 +10754,7 @@
               [
                 {
                   "kind": "text",
-                  "text": "Script code font"
+                  "text": "Legacy script code font"
                 }
               ],
               [
@@ -10398,7 +10770,7 @@
               [
                 {
                   "kind": "text",
-                  "text": "Current version 2 stores point size; version 1 pixel-size input is handled by the existing migration reader. Separate from app theme/layout."
+                  "text": "Version 2 point size and version 1 pixel-size inputs remain readable. An existing explicit preference migrates once into shared ContentFonts when absent, clamped to supported bounds; the original file is retained. New UI changes use shared application preferences."
                 }
               ]
             ],

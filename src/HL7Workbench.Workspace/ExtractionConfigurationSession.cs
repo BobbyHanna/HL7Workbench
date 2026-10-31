@@ -76,9 +76,9 @@ public sealed class ExtractionConfigurationSession : INotifyPropertyChanged
         }
         catch (Exception error) when (error is ArgumentException or FormatException) { Status = "Fix invalid columns before duplicating; draft retained."; Changed(); return false; }
     }
-    public async Task<bool> NewAsync(Func<Task<UnsavedChangesDecision>> prompt)
+    public async Task<bool> NewAsync(Func<Task<UnsavedChangesDecision>> prompt, Func<bool>? stillCurrent = null)
     {
-        if (IsBusy || !await ConfirmChangesAsync(prompt)) return false;
+        if (IsBusy || !await ConfirmChangesAsync(prompt, discardImmediately: false) || stillCurrent?.Invoke() == false) return false;
         Apply(new(Guid.NewGuid(), "New extraction", new([new("Patient Identifier", "PID-3")]), "")); IsDirty = true; Changed(); return true;
     }
     public async Task<bool> OpenAsync(Guid id, Func<Task<UnsavedChangesDecision>> prompt)

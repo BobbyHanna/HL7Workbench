@@ -91,7 +91,7 @@ public sealed class ComparisonView : Grid
         Navigator.SelectionChanged += (_, _) => { if (!updating) model.Select(Navigator.SelectedItem as Hl7Difference); };
         Navigator.ContextMenu = new ContextMenu { ItemsSource = CopyItems() };
         var summary = new Grid(); summary.Children.Add(Navigator);
-        emptyState.Children.Add(new TextBlock { Text = "Compare HL7 messages", FontSize = 21, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center });
+        emptyState.Children.Add(new TextBlock { Text = "Compare HL7 messages", [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.21"), FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center });
         emptyState.Children.Add(emptyText);
         emptyState.Children.Add(new WrapPanel { HorizontalAlignment = HorizontalAlignment.Center, Children =
         { ActionButton("Paste HL7 into A", () => ClipboardTask = SourceA.PasteAsync()), ActionButton("Paste HL7 into B", () => ClipboardTask = SourceB.PasteAsync()) } });
@@ -159,13 +159,13 @@ public sealed class ComparisonView : Grid
                 location.Repetition is not null ? "Repetition value" : location.Field is not null ? "Field value" : "Segment source"
         };
         row.Children.Add(new TextBlock { Text = $"{d.Kind} · {PathDisplay(d)}", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
-        row.Children.Add(new TextBlock { Text = description, FontSize = 11 });
+        row.Children.Add(new TextBlock { Text = description, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11") });
         var values = new Grid { ColumnDefinitions = new("*,*"), ColumnSpacing = 12 };
         var before = new TextBlock { Text = "Before: " + Value(d.BeforeValue, d.BeforeAbbreviated), TextWrapping = TextWrapping.Wrap, MaxHeight = 100 };
         var after = new TextBlock { Text = "After: " + Value(d.AfterValue, d.AfterAbbreviated), TextWrapping = TextWrapping.Wrap, MaxHeight = 100 };
         values.Children.Add(before); SetColumn(after, 1); values.Children.Add(after); row.Children.Add(values);
         if (d.BeforeAbbreviated || d.AfterAbbreviated)
-            row.Children.Add(new TextBlock { Text = "Preview · expand selected details or use Copy for the complete value.", FontSize = 11, TextWrapping = TextWrapping.Wrap });
+            row.Children.Add(new TextBlock { Text = "Preview · expand selected details or use Copy for the complete value.", [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11"), TextWrapping = TextWrapping.Wrap });
         return row;
     }
     private void Changed(object? sender, PropertyChangedEventArgs e) => Refresh();

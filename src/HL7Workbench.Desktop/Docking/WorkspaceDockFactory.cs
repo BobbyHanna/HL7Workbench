@@ -39,6 +39,7 @@ public sealed class WorkspaceDockFactory : Factory, IDisposable
     private IReadOnlyList<ScreenArea> screens = [];
     public IRootDock Root { get; private set; } = null!;
     public bool HasInspectionTools => items.ContainsKey(NavigatorId) && items.ContainsKey(FieldInspectorId);
+    public ApplicationPreferences? ContentPreferences { get; set; }
     internal bool HasReplaceableContent(string id) => tools.Definitions.Any(t => t.Id == id && (t.Optional || t.ReleaseOnClose));
     private bool disposed;
     private readonly HashSet<MessageDocument> observedDocuments = [];

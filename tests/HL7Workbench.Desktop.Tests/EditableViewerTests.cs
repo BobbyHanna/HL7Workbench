@@ -29,7 +29,7 @@ public sealed class EditableViewerTests
             try
             {
                 Assert.True(view.Editor.IsReadOnly);
-                var toggle = Assert.Single(view.GetVisualDescendants().OfType<CheckBox>());
+                var toggle = Assert.Single(view.GetVisualDescendants().OfType<CheckBox>(), box => Equals(box.Content, "Edit Mode"));
                 toggle.IsChecked = true; Assert.True(document.IsEditMode); Assert.False(view.Editor.IsReadOnly);
                 view.Editor.Select(text.IndexOf("Alpha", StringComparison.Ordinal), 0);
                 view.Editor.TextArea.PerformTextInput("Long");

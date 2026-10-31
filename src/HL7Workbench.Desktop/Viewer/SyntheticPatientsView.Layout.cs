@@ -15,7 +15,7 @@ public sealed partial class SyntheticPatientsView
     public Button EmptyImport { get; } = new() { Content = "Import FHIR" };
     public Button More { get; } = new() { Content = "More actions ▾" };
     public TextBlock SessionSummary { get; } = Text();
-    public TextBlock EmptyTitle { get; } = new() { Text = "No patients loaded", FontSize = 18, FontWeight = FontWeight.SemiBold };
+    public TextBlock EmptyTitle { get; } = new() { Text = "No patients loaded", [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.18"), FontWeight = FontWeight.SemiBold };
     public StackPanel EmptyState { get; } = new() { Spacing = ToolLayoutMetrics.SectionGap, VerticalAlignment = VerticalAlignment.Top, Margin = new(4, 16) };
     public TextBlock PatientEmpty { get; } = Text();
     public TextBlock SelectionPrompt { get; } = new() { Text = "Select a patient to inspect demographics, encounters and clinical timeline.", TextWrapping = TextWrapping.Wrap, Margin = new(0, 12) };
@@ -56,7 +56,7 @@ public sealed partial class SyntheticPatientsView
         EmptyState.Children.Add(EmptyImport); Add(1, EmptyState); Add(1, WorkspaceBody);
 
         var search = new StackPanel { Spacing = ToolLayoutMetrics.Gap, Children =
-        { new TextBlock { Text = "Patients", FontSize = 16, FontWeight = FontWeight.SemiBold }, new AdaptiveActionBar(Search, Find) } };
+        { new TextBlock { Text = "Patients", [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.16"), FontWeight = FontWeight.SemiBold }, new AdaptiveActionBar(Search, Find) } };
         Search.Width = 170; Find.Content = "Find"; PatientBrowser.Children.Add(search);
         PatientBrowser.RowDefinitions[1].MinHeight = ToolLayoutMetrics.ListHeight;
         SetRow(Patients, 1); PatientBrowser.Children.Add(Patients); SetRow(PatientEmpty, 1); PatientBrowser.Children.Add(PatientEmpty);

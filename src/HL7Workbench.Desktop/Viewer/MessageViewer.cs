@@ -47,7 +47,7 @@ public static class MessageViewer
         var editor = new TextEditor
         {
             Document = new TextDocument(text), IsReadOnly = true,
-            ShowLineNumbers = true, WordWrap = false, FontFamily = new("Consolas, monospace"), FontSize = 14,
+            ShowLineNumbers = true, WordWrap = false, FontFamily = new("Consolas, monospace"), [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.14"),
             HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto
         };

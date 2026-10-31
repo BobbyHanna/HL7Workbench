@@ -35,6 +35,19 @@ There is no automatic query history. Loading/searching does not save a definitio
 
 ## Cancellation, freshness and limits
 
+From Field Inspector, **Find Occurrences…** runs structural path presence, while
+**Filter by This Value…** runs case-sensitive raw equality. The tool shows the
+matching semantics and entire-active-file scope. Both examine all applicable
+segment occurrences and repetitions, not only the visible message/page. A component
+row targets that component. For a repeated whole field, select an individual
+repetition before filtering; combining its raw repetitions into one search term
+would change the comparison's meaning.
+
+Advanced structural Equals/Does Not Equal supports an empty or whitespace-only
+literal. Empty means a represented zero-length value, not an absent field/component.
+Simple blank searches and blank Contains terms remain unavailable. No escape
+decoding, regex or numeric coercion is introduced.
+
 **Cancel** stops scanning without publishing partial results/filtering. Query edits,
 source edits/undo/redo/insertion and tab switching invalidate old results/filtering;
 rerun for the desired document/revision. Opening the tool alone does not execute.

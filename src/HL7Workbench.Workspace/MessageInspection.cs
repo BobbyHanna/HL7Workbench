@@ -110,12 +110,25 @@ public sealed class MessageInspection
     private readonly long textLength;
     public DecodedMessageSource? Source { get; }
     private readonly Dictionary<SegmentEntry, IReadOnlyList<InspectionNode>> fieldCache = [];
+    private readonly Dictionary<Hl7Path, InspectionNode> absentFields = [];
+    internal InspectionNode AbsentField(SegmentEntry segment, int number)
+    {
+        var path = new Hl7Path(segment.Identifier, number, segment.Occurrence);
+        // Imported schema declarations stop at 1,000. Keep arbitrary manual lookups
+        // compatible without retaining an unbounded cache of absent field numbers.
+        if (number > 1000) return new(segment, path, (Hl7Element?)null);
+        if (!absentFields.TryGetValue(path, out var node)) absentFields.Add(path, node = new(segment, path, (Hl7Element?)null));
+        return node;
+    }
     public IReadOnlyList<SegmentEntry> Segments { get; }
     public SegmentEntry? SelectedSegment { get; private set; }
     public IReadOnlyList<InspectionNode> Fields { get; private set; } = [];
     public InspectionNode? SelectedNode { get; private set; }
     /// <summary>Session-only bounded value position, retained with structural selection across view reconstruction.</summary>
     public long PreviewOffset { get; set; }
+    /// <summary>Session-only inspector presentation; contains paths, never retained source offsets.</summary>
+    public bool ShowBlankFields { get; set; }
+    public HashSet<Hl7Path> ExpandedInspectorPaths { get; } = [];
     /// <summary>Visible ancestors to select/reveal. SelectedNode keeps its original canonical identity even when suppressed.</summary>
     public IReadOnlyList<InspectionNode> SelectedVisibleBranch => SelectedNode is { HasContent: true } node ? VisibleBranch(node) : [];
     public InspectionNode? SelectedVisibleNode => SelectedVisibleBranch.LastOrDefault();
@@ -172,6 +185,7 @@ public sealed class MessageInspection
 
     private void SetSegment(SegmentEntry? segment)
     {
+        if (!ReferenceEquals(SelectedSegment, segment)) { ExpandedInspectorPaths.Clear(); absentFields.Clear(); }
         SelectedSegment = segment;
         SelectedNode = null;
         PreviewOffset = 0;
@@ -184,6 +198,8 @@ public sealed class MessageInspection
         var selected = previous.SelectedSegment;
         var segment = selected is null ? null : Segments.FirstOrDefault(s => s.Identifier == selected.Identifier && s.Occurrence == selected.Occurrence);
         SetSegment(segment);
+        ShowBlankFields = previous.ShowBlankFields;
+        ExpandedInspectorPaths.UnionWith(previous.ExpandedInspectorPaths.Where(p => segment is not null && p.Segment == segment.Identifier && p.Occurrence == segment.Occurrence));
         if (segment is null || previous.SelectedNode is not { } old) return;
         InspectionNode? node = Fields.FirstOrDefault(f => f.Path.Field == old.Path.Field);
         foreach (var index in new[] { old.Path.Repetition, old.Path.Component, old.Path.Subcomponent })
@@ -318,8 +334,7 @@ public sealed class MessageInspection
         if (number < 1) throw new ArgumentOutOfRangeException(nameof(number));
         if (SelectedSegment is not { HasFieldPaths: true } segment) return null;
         if (SelectedNode is { HasContent: false } missing && missing.Path.Field == number) return missing;
-        var node = Fields.FirstOrDefault(f => f.Path.Field == number) ?? new InspectionNode(segment,
-            new(segment.Identifier, number, segment.Occurrence), (Hl7Element?)null);
+        var node = Fields.FirstOrDefault(f => f.Path.Field == number) ?? AbsentField(segment, number);
         SelectNode(node);
         return node;
     }

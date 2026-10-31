@@ -42,7 +42,7 @@ internal sealed class DocumentationView : Grid
         Topics.ItemTemplate = new FuncDataTemplate<HelpSearchResult>((result, _) => new StackPanel { Spacing = 3, Margin = new(3), Children =
         {
             new TextBlock { Text = result?.Topic.Title, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap },
-            new TextBlock { Text = result?.Snippet, FontSize = 12, TextWrapping = TextWrapping.Wrap }
+            new TextBlock { Text = result?.Snippet, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12"), TextWrapping = TextWrapping.Wrap }
         } });
         Topics.ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel());
         Headings.ItemTemplate = new FuncDataTemplate<HelpBlock>((heading, _) => new TextBlock { Text = heading?.Text, TextWrapping = TextWrapping.Wrap });
@@ -139,7 +139,11 @@ internal sealed class DocumentationView : Grid
             return new ScrollViewer { Content = grid, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
         }
         var text = Rich(block.Spans);
-        if (block.Kind == "heading") { text.FontWeight = FontWeight.SemiBold; text.FontSize = block.Level == 1 ? 23 : block.Level == 2 ? 19 : 16; }
+        if (block.Kind == "heading")
+        {
+            text.FontWeight = FontWeight.SemiBold;
+            text.Bind(TextBlock.FontSizeProperty, new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension(block.Level == 1 ? "ContentFont.23" : block.Level == 2 ? "ContentFont.19" : "ContentFont.16"));
+        }
         var panel = new StackPanel { Spacing = 4 };
         if (block.Kind == "list")
         {

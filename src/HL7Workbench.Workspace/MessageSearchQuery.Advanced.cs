@@ -25,7 +25,8 @@ public sealed record SearchCondition(SearchTarget Target, SearchOperator Operato
     {
         if (!Enum.IsDefined(Target) || !Enum.IsDefined(Operator)) return "Choose a supported target and operator.";
         if (!OperatorsFor(Target).Contains(Operator)) return "Choose an operator supported by this target.";
-        if (NeedsValue && (string.IsNullOrWhiteSpace(Value) || Value.Length > MessageSearchQuery.MaximumQueryCharacters))
+        var exactField = Target == SearchTarget.Field && Operator is SearchOperator.Equals or SearchOperator.DoesNotEqual;
+        if (NeedsValue && (Value is null || !exactField && string.IsNullOrWhiteSpace(Value) || Value.Length > MessageSearchQuery.MaximumQueryCharacters))
             return "Enter a nonblank literal value of at most 1,024 characters.";
         if (Target == SearchTarget.MessageText) return null;
         try

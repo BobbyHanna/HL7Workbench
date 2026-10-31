@@ -63,6 +63,16 @@ moving caret/selection/scroll or starting search/scripts/source reads.
 
 ## Editor and application palette foundation
 
+Stage 20A adds Appearance → Default Content Font Size: a 14 DIP reference default,
+bounded 12–32 DIP, with existing typography scaled proportionally. Apply changes open
+content tools without recreating editors or transforming visuals. Ctrl+Plus/Minus
+saves a focused-feature override; Ctrl+0 removes it. Overrides use known feature keys
+in editor-preferences.json, outside Dock placement, and cover docked/floating tools.
+The existing C# wheel shortcut remains code-local. Legacy script sizes migrate once
+with bounds; modal configuration/export dialogs and normal chrome keep their sizing.
+See the [current shortcuts](user/preferences-and-shortcuts.md) and
+[implementation/native checklist](stage20a-field-inspector-and-fonts.md).
+
 The selected preference remains Follow System/Light/Dark. Avalonia resolves the effective
 Light/Dark variant. Dynamic resources then resolve **Hl7EditorPalette** for the existing
 materialized and source-backed colorizers. WorkbenchThemeResources/WorkbenchStyles reuse

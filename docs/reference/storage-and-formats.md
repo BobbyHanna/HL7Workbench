@@ -11,8 +11,8 @@ and [developer lifecycle](../developer/workspace-lifecycle.md).
 
 | Record | Default location / format | Compatibility and sensitivity |
 | --- | --- | --- |
-| Editor/application preferences | `editor-preferences.json`, bounded 4 KiB | General/theme/schema-default/SearchLayout metadata. Valid unknown fields are retained; invalid enums/split data use documented defaults. Missing record does not cause an implicit write. No message contents. |
-| Script code font | `script-editor-preferences.json`, bounded 4 KiB | Current version 2 stores point size; version 1 pixel-size input is handled by the existing migration reader. Separate from app theme/layout. |
+| Editor/application preferences | `editor-preferences.json`, bounded 4 KiB | General/theme/schema-default/SearchLayout and ContentFonts metadata. ContentFonts stores a bounded global DIP reference size and overrides for known feature keys, never document IDs. Valid unknown fields are retained; invalid enums/split/font data use documented defaults/bounds. No message contents. |
+| Legacy script code font | `script-editor-preferences.json`, bounded 4 KiB | Version 2 point size and version 1 pixel-size inputs remain readable. An existing explicit preference migrates once into shared ContentFonts when absent, clamped to supported bounds; the original file is retained. New UI changes use shared application preferences. |
 | Workspace layout | `workspace-layout.json`, bounded 256 KiB | Reader accepts versions 1/2; application-owned IDs/groups/visibility/geometry/current session placement. No file reopening, script/query text, patient results or network authority. |
 | User scripts | `Scripts/<guid>.json`, current library version 3 | Name/source/ID/migration status, not script kind. Obsolete v1/2 records remain on disk/reviewable until explicit rewrite/save; trusted source/literals can be sensitive. |
 | Saved searches | `Searches/<guid>.json`, schema/query version 2 | Nested ordered condition tree. Version-1 flat definitions load compatibly; listing/loading does not rewrite them. Names/literals are unencrypted user content. |

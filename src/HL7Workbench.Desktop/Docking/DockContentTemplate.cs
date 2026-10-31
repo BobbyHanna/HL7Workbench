@@ -24,6 +24,13 @@ public sealed class DockContentTemplate : IDataTemplate
     }
     private Control BuildContext(object? context, IDockable dockable)
     {
+        var content = CreateContext(context, dockable);
+        if (dockable.Factory is WorkspaceDockFactory { ContentPreferences: { } preferences })
+            _ = new Viewer.ContentFontScope(content, preferences, context is MessageDocument ? "document.hl7" : dockable.Id!);
+        return content;
+    }
+    private Control CreateContext(object? context, IDockable dockable)
+    {
         if (context is MessageDocument document)
             return Viewer.MessageViewer.Create(document, DockedInspection && dockable.Factory is WorkspaceDockFactory { HasInspectionTools: true });
         if (context is FullRawInspectorViewModel raw) return new Viewer.FullRawInspectorHost(raw);

@@ -34,7 +34,7 @@ public sealed class SqlQueryView : Grid
     private int displayedSort = -2;
     private bool displayedDescending;
     private Guid? displayedSavedId;
-    public TextEditor Editor { get; } = new() { ShowLineNumbers = true, FontFamily = new("Consolas, monospace"), FontSize = 14 };
+    public TextEditor Editor { get; } = new() { ShowLineNumbers = true, FontFamily = new("Consolas, monospace"), [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.14") };
     public Button Run { get; } = new() { Content = "Run · Ctrl+Enter" };
     public Button Cancel { get; } = new() { Content = "Cancel" };
     public ComboBox Scope { get; } = new() { ItemsSource = new[] { "Current document", "Selected open documents" }, Width = 205 };
@@ -52,7 +52,7 @@ public sealed class SqlQueryView : Grid
     public Button OpenHistory { get; } = new() { Content = "Open history" };
     public TextBlock Status { get; } = new() { TextWrapping = TextWrapping.Wrap, MaxHeight = 58 };
     public TextBlock ResultStatus { get; } = new() { TextWrapping = TextWrapping.Wrap, MaxHeight = 55 };
-    public TextBlock LibraryStatus { get; } = new() { TextWrapping = TextWrapping.Wrap, FontSize = 11, MaxHeight = 46 };
+    public TextBlock LibraryStatus { get; } = new() { TextWrapping = TextWrapping.Wrap, [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11"), MaxHeight = 46 };
     public TextBlock DraftStatus { get; } = new() { VerticalAlignment = VerticalAlignment.Center };
     public ListBox Results { get; } = new() { HorizontalAlignment = HorizontalAlignment.Stretch, SelectionMode = SelectionMode.Multiple, Focusable = true };
     public Button Previous { get; } = new() { Content = "Previous" };
@@ -63,7 +63,7 @@ public sealed class SqlQueryView : Grid
     public Button Navigate { get; } = new() { Content = "Go to source" };
     public Button Export { get; } = new() { Content = "Export all results to CSV…" };
     public Button Extract { get; } = new() { Content = "Open Matching Messages in New Document" };
-    public TextEditor FullValue { get; } = new() { IsReadOnly = true, ShowLineNumbers = false, FontFamily = new("Consolas, monospace"), FontSize = 13, Height = 135 };
+    public TextEditor FullValue { get; } = new() { IsReadOnly = true, ShowLineNumbers = false, FontFamily = new("Consolas, monospace"), [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.13"), Height = 135 };
     public TextBlock FullValueKind { get; } = new() { TextWrapping = TextWrapping.Wrap };
     public Expander FullValuePanel { get; } = new() { Header = "Complete selected value", HorizontalAlignment = HorizontalAlignment.Stretch };
     public Task ActionTask { get; private set; } = Task.CompletedTask;
@@ -84,7 +84,7 @@ public sealed class SqlQueryView : Grid
         Add(6, new ScrollViewer { Content = table, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled });
         Add(7, new StackPanel { Spacing = 3, Children = { ResultStatus, Toolbar(Previous, PageStatus, Next, Copy, Inspect, Navigate), Toolbar(Export, Extract) } });
         FullValuePanel.Content = new StackPanel { Spacing = 3, Children = { FullValueKind, FullValue } }; Add(8, FullValuePanel);
-        Add(9, new TextBlock { Text = "Click a cell; Shift-click selects a rectangle; Ctrl-click adds cells. Click # to select a row. Headers sort all rows. Double-click deliberately opens the source.", FontSize = 11, TextWrapping = TextWrapping.Wrap });
+        Add(9, new TextBlock { Text = "Click a cell; Shift-click selects a rectangle; Ctrl-click adds cells. Click # to select a row. Headers sort all rows. Double-click deliberately opens the source.", [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.11"), TextWrapping = TextWrapping.Wrap });
         // Reuse AvaloniaEdit's lexical highlighter; no Roslyn analysis or additional dependency.
         Hl7EditorTheme.Attach(Editor); Hl7EditorTheme.Attach(FullValue);
         SqlHighlighting.Attach(Editor);
@@ -224,7 +224,7 @@ public sealed class SqlQueryView : Grid
         {
             var column = i; var cell = row.Cells[i];
             var text = new TextBlock { Text = Preview(cell), TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center,
-                FontFamily = new("Consolas, monospace"), FontSize = 12, FontStyle = cell.Kind == QueryValueKind.Null ? FontStyle.Italic : FontStyle.Normal };
+                FontFamily = new("Consolas, monospace"), [!Avalonia.Controls.Documents.TextElement.FontSizeProperty] = new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension("ContentFont.12"), FontStyle = cell.Kind == QueryValueKind.Null ? FontStyle.Italic : FontStyle.Normal };
             var border = new Border { Child = text, Padding = new(6, 4), BorderThickness = new(0, 0, 1, 1), ClipToBounds = true, Background = Brushes.Transparent };
             border.Bind(Border.BorderBrushProperty, new DynamicResourceExtension(WorkbenchThemeResources.Border));
             AutomationProperties.SetAutomationId(border, $"sql-cell-{row.RowNumber}-{column}");

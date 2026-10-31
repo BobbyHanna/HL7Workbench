@@ -9,6 +9,7 @@ public static class ApplicationTheme
 {
     public static void InitializeResources(Application application)
     {
+        ContentFontScope.DefineResources(application.Resources, 1);
         application.Resources.MergedDictionaries.Add(new WorkbenchThemeResources());
         application.Styles.Add(new Avalonia.Markup.Xaml.Styling.StyleInclude(new Uri("avares://HL7Workbench.Desktop/"))
             { Source = new Uri("avares://HL7Workbench.Desktop/Viewer/WorkbenchStyles.axaml") });
