@@ -28,13 +28,22 @@ def digest(path):
 def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+def relative_to_root(path, root):
+    """Canonical relative name and containment for existing filesystem inputs.
+
+    Windows traversal can return long names when the caller's root uses an 8.3
+    alias. Resolve both sides through the filesystem before lexical containment;
+    callers must still reject symlinks/junctions before resolving traversed inputs.
+    """
+    return path.resolve(strict=True).relative_to(root.resolve(strict=True))
+
 def checked_files(root):
     root = root.resolve()
     for path in sorted(root.rglob("*")):
         if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
             raise ValueError("Links are not portable candidate inputs")
         if path.is_file():
-            path.resolve().relative_to(root)
+            relative_to_root(path, root)
             yield path
 
 def reject_private_build_paths(root):
@@ -46,11 +55,11 @@ def reject_private_build_paths(root):
     for path in checked_files(root):
         data = path.read_bytes().lower()
         if any(needle in data for needle in needles):
-            raise ValueError("Private build path embedded in " + path.relative_to(root).as_posix())
+            raise ValueError("Private build path embedded in " + relative_to_root(path, root).as_posix())
 
 def copy_publish(source, destination, desktop):
     for path in checked_files(source):
-        relative = path.relative_to(source)
+        relative = relative_to_root(path, source)
         # Symbols and the optional runtime dump utility are explicitly excluded.
         if path.suffix.lower() == ".pdb" or path.name.lower() == "createdump.exe":
             continue
@@ -91,10 +100,10 @@ def copy_notices(destination, cache, upstream_root, dependencies, scope="legacy"
         upstream_records = []
         for path in checked_files(package):
             if re.search(r"licen[cs]e|notice|copying", path.name, re.I):
-                relative = path.relative_to(package)
+                relative = relative_to_root(path, package)
                 target = directory / "package" / relative
                 target.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(path, target)
-                notices.append(target.relative_to(destination).as_posix())
+                notices.append(relative_to_root(target, destination).as_posix())
         for entry in upstream:
             if key not in entry["packages"]:
                 continue
@@ -103,7 +112,7 @@ def copy_notices(destination, cache, upstream_root, dependencies, scope="legacy"
                 raise ValueError("Pinned upstream notice hash mismatch")
             target = directory / "upstream" / entry["file"]
             target.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(source, target)
-            notices.append(target.relative_to(destination).as_posix())
+            notices.append(relative_to_root(target, destination).as_posix())
             upstream_records.append({"path": notices[-1], **{key: entry[key] for key in
                                     ("source", "revision", "component", "sha256", "sourceSha256", "sourceSelection") if key in entry}})
         if not notices:
@@ -154,7 +163,7 @@ def dependency_inventory(desktop, worker, query=None):
     return result
 
 def validate_legacy_tree(root, require_checksums=True):
-    paths = {p.relative_to(root).as_posix(): p for p in checked_files(root)}
+    paths = {relative_to_root(p, root).as_posix(): p for p in checked_files(root)}
     required = {"MessageWorkbench.exe", "HL7Workbench.Desktop.dll", "HL7Workbench.Desktop.deps.json",
                 "HL7Workbench.Desktop.runtimeconfig.json", "coreclr.dll", "hostfxr.dll", "hostpolicy.dll",
                 "ScriptHost/HL7Workbench.ScriptHost.exe", "ScriptHost/HL7Workbench.ScriptHost.dll",
@@ -170,7 +179,7 @@ def validate_legacy_tree(root, require_checksums=True):
     for relative, path in paths.items():
         if relative.startswith("ThirdPartyNotices/"):
             continue  # Preserve original license filenames, including extensionless COPYING/LICENSE.
-        if path.suffix.lower() not in ALLOWED or any(part.lower() in FORBIDDEN_PARTS for part in path.relative_to(root).parts):
+        if path.suffix.lower() not in ALLOWED or any(part.lower() in FORBIDDEN_PARTS for part in relative_to_root(path, root).parts):
             raise ValueError("Excluded file in candidate: " + relative)
         if path.suffix.lower() == ".json" and not (path.name.endswith((".deps.json", ".runtimeconfig.json")) or relative in {"BUILD-PROVENANCE.json", "dependency-licenses.json"}):
             raise ValueError("Unexpected configuration or data file")
@@ -255,7 +264,7 @@ def accepted_binary_provenance(desktop, worker, archive_path, expected_sha256, i
             for path in checked_files(source):
                 if path.suffix.lower() == ".pdb" or path.name.lower() == "createdump.exe":
                     continue
-                name = path.relative_to(source).as_posix()
+                name = relative_to_root(path, source).as_posix()
                 if not prefix and name == "HL7Workbench.Desktop.exe":
                     name = "MessageWorkbench.exe"
                 actual[prefix + name] = path
@@ -339,7 +348,7 @@ def validate_tree(root, require_checksums=True, scope="current"):
         return validate_legacy_tree(root, require_checksums)
     if scope != "current":
         raise ValueError("Unknown release scope")
-    paths = {p.relative_to(root).as_posix(): p for p in checked_files(root)}
+    paths = {relative_to_root(p, root).as_posix(): p for p in checked_files(root)}
     required = {CURRENT_MARKER, "BUILD-PROVENANCE.json", "dependency-licenses.json", "THIRD-PARTY-NOTICES.md",
                 *CURRENT_DOCUMENTS.values(), *COVERED_FILES.values()}
     allowed = set(required)
