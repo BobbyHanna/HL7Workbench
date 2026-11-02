@@ -6,7 +6,7 @@
     <!-- Keep scripting/execution dependencies in the worker directory; Desktop uses compiler-only Roslyn for editor colors. -->
     <ProjectReference Include="$(MSBuildThisFileDirectory)../src/HL7Workbench.ScriptHost/HL7Workbench.ScriptHost.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
-  <Target Name="CopyScriptHost" AfterTargets="Build">
+  <Target Name="CopyScriptHost" AfterTargets="Build" Condition="'$(PublishScriptHostSeparately)' != 'true'">
     <ItemGroup>
       <!-- Copy this target's root files and satellites, not unrelated RID/publish trees. -->
       <_ScriptHostFiles Include="$(_WorkbenchWorkerBuildRoot)*;$(_WorkbenchWorkerBuildRoot)**/*.resources.dll"

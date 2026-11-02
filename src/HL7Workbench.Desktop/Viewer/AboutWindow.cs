@@ -1,4 +1,3 @@
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -10,6 +9,7 @@ internal sealed class AboutWindow : Window
 {
     internal AboutWindow()
     {
+        var identity = BuildIdentity.Current;
         Title = "About " + ProductBranding.Name;
         Width = 480; SizeToContent = SizeToContent.Height; CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -21,7 +21,8 @@ internal sealed class AboutWindow : Window
             Children =
             {
                 new TextBlock { Text = ProductBranding.Name, FontSize = 24, FontWeight = FontWeight.SemiBold },
-                new TextBlock { Text = "Version " + typeof(AboutWindow).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0] },
+                new TextBlock { Text = "Version " + identity.Version },
+                new TextBlock { Text = "Build " + identity.Build, Name = "BuildIdentifier" },
                 new TextBlock { Text = ProductBranding.Description, TextWrapping = TextWrapping.Wrap },
                 new TextBlock { Text = "HL7 v2 viewing and editing, search and extraction, scripting, de-identification, synthetic generation, FHIR R4 import and conversion, and TCP/MLLP testing.", TextWrapping = TextWrapping.Wrap },
                 new Expander { Header = "Data handling and privacy", Content = new ScrollViewer { MaxHeight = 260, Content = new TextBlock

@@ -4,6 +4,9 @@ Start with the tool's status, source freshness and Activity Log. Prerequisites f
 reproduction: note public version/provenance, operation, Windows version, theme and
 scaling; use synthetic input. Do not include patient values, files, screenshots,
 dumps or paths containing sensitive information in feedback.
+About displays a short Build when reliable commit metadata exists; otherwise it says
+unavailable. Include that and the supplied provenance/build identifier in the manual
+FEEDBACK.md template. Never guess a commit or attach raw dumps/temporary storage.
 
 ## Recover safely
 

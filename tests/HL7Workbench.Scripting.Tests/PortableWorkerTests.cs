@@ -4,6 +4,22 @@ namespace HL7Workbench.Scripting.Tests;
 
 public sealed class PortableWorkerTests
 {
+    [Theory]
+    [InlineData("path with spaces")] [InlineData("Unicode-雪")]
+    public void ApphostResolutionUsesTheProvidedAbsoluteLayoutWithoutShellQuoting(string folder)
+    {
+        var parent = Path.Combine(Path.GetTempPath(), "synthetic-script-layout-" + Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(parent, folder); Directory.CreateDirectory(root);
+        try
+        {
+            var dll = Path.Combine(root, "HL7Workbench.ScriptHost.dll"); File.WriteAllBytes(dll, []);
+            var native = Path.ChangeExtension(dll, OperatingSystem.IsWindows() ? ".exe" : null); File.WriteAllBytes(native, []);
+            var start = ScriptWorkerSession.CreateStartInfo(dll, "synthetic-pipe");
+            Assert.Equal(native, start.FileName); Assert.Equal(new[] { "synthetic-pipe" }, start.ArgumentList);
+            Assert.False(start.UseShellExecute); Assert.True(start.CreateNoWindow);
+        }
+        finally { Directory.Delete(parent, true); }
+    }
     [Fact]
     public void DefaultDllSelectsOnlyItsAdjacentApphostWithoutInstalledDotnetOrPayloadArguments()
     {

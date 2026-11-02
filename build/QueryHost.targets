@@ -1,14 +1,20 @@
 <Project>
   <PropertyGroup>
-    <_QueryHostBuildRoot Condition="'$(_QueryHostBuildRoot)' == ''">$(MSBuildThisFileDirectory)../src/HL7Workbench.QueryHost/bin/$(Configuration)/net10.0/</_QueryHostBuildRoot>
+    <_QueryHostBuildRoot Condition="'$(_QueryHostBuildRoot)' == ''">$(MSBuildThisFileDirectory)../src/HL7Workbench.QueryHost/bin/$(Configuration)/net10.0/$(RuntimeIdentifier)/</_QueryHostBuildRoot>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(MSBuildThisFileDirectory)../src/HL7Workbench.QueryHost/HL7Workbench.QueryHost.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
-  <Target Name="CopyQueryHost" AfterTargets="Build">
+  <!-- Verification/publishing owns a separately published complete worker. Never
+       substitute a development build tree (or another RID) for that deployment. -->
+  <Target Name="CopyQueryHost" AfterTargets="Build" Condition="'$(PublishQueryHostSeparately)' != 'true'">
     <ItemGroup>
-      <_QueryHostFiles Include="$(_QueryHostBuildRoot)**/*" Exclude="$(_QueryHostBuildRoot)**/publish/**" />
+      <_QueryHostFiles Include="$(_QueryHostBuildRoot)**/*" Exclude="$(_QueryHostBuildRoot)**/publish/**;$(_QueryHostBuildRoot)win-*/**;$(_QueryHostBuildRoot)linux-*/**;$(_QueryHostBuildRoot)osx-*/**" />
     </ItemGroup>
     <Copy SourceFiles="@(_QueryHostFiles)" DestinationFiles="@(_QueryHostFiles->'$(TargetDir)QueryHost/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="RequireSeparatePortableQueryHost" BeforeTargets="ComputeFilesToPublish"
+          Condition="'$(SelfContained)' == 'true' and '$(PublishQueryHostSeparately)' != 'true'">
+    <Error Text="Self-contained deployment requires a separately published QueryHost. Use BuildPortableCandidate.ps1 -VerificationOnly; a Desktop publish alone is incomplete." />
   </Target>
 </Project>

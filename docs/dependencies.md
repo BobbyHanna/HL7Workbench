@@ -1,5 +1,16 @@
 # Dependency inventory
 
+Stage 21B.1 current preparation inventories all three published executable graphs.
+SQLitePCLRaw 3.0.5 Apache license/NOTICE are pinned to upstream tag commit
+`ed046114d5a30534e13294d94d78eb73de896ad4`, retaining exact vendor bytes and hashes.
+Native SQLite 3.53.4's exact package file license is checked explicitly. The adapted
+validation JSON, source/change NOTICE and MPL text are staged byte-for-byte separately
+from NuGet notices. The old 35-entry preview inventory remains historical; current
+runtime scopes derive from actual published deps, not every platform in the cache.
+See [current preparation](portable-release.md#current-source--stage-21b1-preparation-only)
+and the [human redistribution checklist](redistribution-review-checklist.md). No package
+versions changed, and technical verification does not grant legal/distribution approval.
+
 ## Adapted validation metadata (current source)
 
 Stage 17 embeds adapted pinned nHapi v2.5.1 model declarations as a JSON resource

@@ -27,3 +27,7 @@ jobs:
       - run: python -B -m unittest build/test_documentation_catalog.py
       - run: python build/WriteDocumentationCatalog.py --check
       - run: python build/WriteScriptApiReference.py --check
+      # Synthetic fixture trees/archives and temporary compiler checkouts only.
+      # This does not publish, stage, upload or distribute application binaries.
+      - run: python -B -m unittest discover -s build -p 'test_portable*.py'
+      - run: python -B -m unittest discover -s build -p 'test_release_compilation.py'

@@ -3,8 +3,8 @@
 Message Workbench opens and analyzes local HL7 v2 data, edits bounded messages,
 runs trusted C# scripts, generates synthetic HL7, validates against explicit profiles,
 imports supported local FHIR R4 Bundles and tests TCP/MLLP interfaces.
-Use authorized data and test destinations. Start with the repository's
-[reviewed synthetic fixtures](../../samples/synthetic-only/README.md).
+Use authorized data and test destinations. Start with the bundled
+[synthetic generation walkthrough](getting-started.md); repository fixtures are optional.
 
 ## Start here
 

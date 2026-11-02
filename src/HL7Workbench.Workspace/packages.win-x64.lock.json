@@ -5,6 +5,9 @@
       "hl7workbench.core": {
         "type": "Project"
       },
+      "hl7workbench.querying": {
+        "type": "Project"
+      },
       "hl7workbench.scripting": {
         "type": "Project",
         "dependencies": {

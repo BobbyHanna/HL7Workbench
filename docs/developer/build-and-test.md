@@ -52,6 +52,11 @@ Desktop/test build targets deploy separate `ScriptHost/` and `QueryHost/` trees.
 Keep those intact. Building the source application is not packaging it or approving
 distribution. The older [portable procedure](../portable-release.md) is scoped to
 its accepted binaries and separate provenance/license gates.
+Current Stage 21B.1 adds a verification-only three-process recipe in that same guide;
+it removes isolated publish outputs after worker/integrity checks and creates no archive.
+CI runs synthetic legacy/current preparation tests and real compiler privacy checks,
+without staging or publishing recipient binaries. Do not confuse those with clean-machine
+native acceptance or distribution permission.
 
 ## Focused and opt-in runs
 

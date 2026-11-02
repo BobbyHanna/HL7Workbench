@@ -93,7 +93,7 @@ class ReleaseCompilationTests(unittest.TestCase):
     def test_desktop_pe_has_no_physical_pdb_reference_after_fresh_xaml_compile_and_warm_reuse(self):
         with tempfile.TemporaryDirectory(prefix="synthetic-desktop-compiler-") as temporary:
             root = pathlib.Path(temporary)
-            for project in ("Core", "Transport", "Scripting", "ScriptHost", "Workspace", "Desktop"):
+            for project in ("Core", "Transport", "Scripting", "ScriptHost", "Querying", "QueryHost", "Workspace", "Desktop"):
                 shutil.copytree(portable.ROOT / f"src/HL7Workbench.{project}",
                                 root / f"src/HL7Workbench.{project}",
                                 ignore=shutil.ignore_patterns("bin", "obj"))
@@ -102,6 +102,7 @@ class ReleaseCompilationTests(unittest.TestCase):
                     shutil.copyfile(portable.ROOT / name, root / name)
             (root / "build").mkdir(); (root / "docs").mkdir()
             shutil.copyfile(portable.ROOT / "build/ScriptHost.targets", root / "build/ScriptHost.targets")
+            shutil.copyfile(portable.ROOT / "build/QueryHost.targets", root / "build/QueryHost.targets")
             shutil.copyfile(portable.ROOT / "docs/script-api-reference.json", root / "docs/script-api-reference.json")
             # Compare Csc's PE with Avalonia's rewritten PE. Merely checking source
             # document mappings misses the physical PDB reference the rewriter adds.

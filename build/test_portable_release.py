@@ -37,7 +37,7 @@ class PortableReleaseTests(unittest.TestCase):
 
     def test_archive_is_byte_identical_with_fixed_order_and_timestamps(self):
         a = pathlib.Path(self.temp.name) / "one.zip"; b = pathlib.Path(self.temp.name) / "two.zip"
-        portable.deterministic_zip(self.root, a); portable.deterministic_zip(self.root, b)
+        portable.deterministic_zip(self.root, a, scope="legacy"); portable.deterministic_zip(self.root, b, scope="legacy")
         self.assertEqual(portable.digest(a), portable.digest(b))
         with portable.zipfile.ZipFile(a) as archive:
             self.assertEqual(sorted(archive.namelist()), archive.namelist())
@@ -50,7 +50,7 @@ class PortableReleaseTests(unittest.TestCase):
                 # Even a caller updating checksums cannot legitimize excluded artifacts.
                 self.checksums()
                 with self.assertRaises(ValueError):
-                    portable.validate_tree(self.root)
+                    portable.validate_legacy_tree(self.root)
                 path.unlink()
         self.checksums()
 
@@ -60,36 +60,36 @@ class PortableReleaseTests(unittest.TestCase):
             with self.subTest(name=name):
                 path = self.root / name; content = path.read_bytes(); path.unlink(); self.checksums()
                 with self.assertRaisesRegex(ValueError, "Incomplete"):
-                    portable.validate_tree(self.root)
+                    portable.validate_legacy_tree(self.root)
                 path.write_bytes(content)
         self.checksums()
         (self.root / "coreclr.dll").write_bytes(b"synthetic tamper")
         with self.assertRaisesRegex(ValueError, "integrity"):
-            portable.validate_tree(self.root)
+            portable.validate_legacy_tree(self.root)
         self.checksums(); (self.root / "SHA256SUMS.txt").unlink()
         with self.assertRaisesRegex(ValueError, "Incomplete"):
-            portable.validate_tree(self.root)
+            portable.validate_legacy_tree(self.root)
 
     def test_worker_leak_and_framework_dependent_runtime_cannot_pass(self):
         (self.root / "Microsoft.CodeAnalysis.Scripting.dll").write_bytes(b"synthetic")
-        with self.assertRaises(ValueError): portable.validate_tree(self.root)
+        with self.assertRaises(ValueError): portable.validate_legacy_tree(self.root)
         (self.root / "Microsoft.CodeAnalysis.Scripting.dll").unlink()
         portable.write_json(self.root / "HL7Workbench.Desktop.runtimeconfig.json", {"runtimeOptions": {"framework": {"name": "Microsoft.NETCore.App", "version": "10.0.12"}}})
         self.checksums()
-        with self.assertRaisesRegex(ValueError, "self-contained"): portable.validate_tree(self.root)
+        with self.assertRaisesRegex(ValueError, "self-contained"): portable.validate_legacy_tree(self.root)
 
     def test_notices_and_original_x64_assembly_binding_are_required(self):
         (self.root / "ThirdPartyNotices/synthetic/LICENSE").unlink(); self.checksums()
-        with self.assertRaisesRegex(ValueError, "notice"): portable.validate_tree(self.root)
+        with self.assertRaisesRegex(ValueError, "notice"): portable.validate_legacy_tree(self.root)
         (self.root / "ThirdPartyNotices/synthetic/LICENSE").write_bytes(b"synthetic notice")
         (self.root / "MessageWorkbench.exe").write_bytes(b"synthetic renamed assembly"); self.checksums()
-        with self.assertRaisesRegex(ValueError, "binding"): portable.validate_tree(self.root)
+        with self.assertRaisesRegex(ValueError, "binding"): portable.validate_legacy_tree(self.root)
 
     def test_links_are_rejected_and_existing_output_is_never_overwritten(self):
         with patch.object(pathlib.Path, "is_symlink", return_value=True):
             with self.assertRaises(ValueError): list(portable.checked_files(self.root))
         with self.assertRaises(FileExistsError):
-            portable.assemble(self.root, self.root, self.root, self.root, {})
+            portable.assemble_legacy(self.root, self.root, self.root, self.root, {})
 
     def test_unknown_licenses_and_missing_copyright_text_fail_closed(self):
         cache = pathlib.Path(self.temp.name) / "cache"; package = cache / "synthetic" / "1.0"; package.mkdir(parents=True)
@@ -115,26 +115,26 @@ class PortableReleaseTests(unittest.TestCase):
         portable.write_json(self.root / "dependency-licenses.json", [{"notices": [name], "upstreamNotices": [
             {"path": name, "sha256": portable.digest(self.root / name)}]}])
         self.checksums()
-        portable.validate_tree(self.root)
+        portable.validate_legacy_tree(self.root)
         (self.root / name).write_bytes(b"synthetic altered license")
         self.checksums()
         with self.assertRaisesRegex(ValueError, "Pinned packaged notice"):
-            portable.validate_tree(self.root)
+            portable.validate_legacy_tree(self.root)
 
     def test_archive_roundtrip_rejects_extra_entries_or_changed_content(self):
         archive = pathlib.Path(self.temp.name) / "verified.zip"
-        portable.deterministic_zip(self.root, archive); portable.verify_archive(self.root, archive)
+        portable.deterministic_zip(self.root, archive, scope="legacy"); portable.verify_archive(self.root, archive, scope="legacy")
         with portable.zipfile.ZipFile(archive, "a") as changed:
             changed.writestr("unexpected.txt", "synthetic")
         with self.assertRaisesRegex(ValueError, "inventory"):
-            portable.verify_archive(self.root, archive)
+            portable.verify_archive(self.root, archive, scope="legacy")
         changed = pathlib.Path(self.temp.name) / "changed.zip"
         with portable.zipfile.ZipFile(changed, "w") as output:
             for path in self.root.rglob("*"):
                 if path.is_file():
                     output.writestr(path.relative_to(self.root).as_posix(), b"synthetic tamper" if path.name == "USER-GUIDE.md" else path.read_bytes())
         with self.assertRaisesRegex(ValueError, "content"):
-            portable.verify_archive(self.root, changed)
+            portable.verify_archive(self.root, changed, scope="legacy")
 
     def test_private_build_roots_in_utf8_or_utf16_are_not_packaged(self):
         for name in ("USER-GUIDE.md", "HL7Workbench.Core.dll"):
@@ -146,7 +146,7 @@ class PortableReleaseTests(unittest.TestCase):
                         try:
                             path.write_bytes(str(location).encode(encoding)); self.checksums()
                             with self.assertRaisesRegex(ValueError, "Private build path"):
-                                portable.validate_tree(self.root)
+                                portable.validate_legacy_tree(self.root)
                         finally:
                             if original is None:
                                 path.unlink()
@@ -172,7 +172,7 @@ class PortableReleaseTests(unittest.TestCase):
 
     def test_assembly_includes_approved_preview_without_superseded_agreement(self):
         desktop, worker, cache = self.published_inputs()
-        tree, archive = portable.assemble(desktop, worker, pathlib.Path(self.temp.name) / "assembled", cache,
+        tree, archive = portable.assemble_legacy(desktop, worker, pathlib.Path(self.temp.name) / "assembled", cache,
                                           {"version": portable.VERSION, "candidateOnly": True})
         with portable.zipfile.ZipFile(archive) as zipped:
             self.assertEqual((portable.ROOT / "docs/PRIVATE-PREVIEW.txt").read_bytes(), zipped.read("PRIVATE-PREVIEW.txt"))
@@ -210,7 +210,7 @@ class PortableReleaseTests(unittest.TestCase):
         desktop, worker, cache = self.published_inputs()
         inputs = {"src/Synthetic.cs": "unchanged", "Directory.Build.props": "unchanged"}
         origin = {"version": portable.VERSION, "candidateOnly": True, "dirty": False, "sourceCommit": "a" * 40, "inputsSha256": inputs}
-        _, archive = portable.assemble(desktop, worker, pathlib.Path(self.temp.name) / "accepted", cache, origin)
+        _, archive = portable.assemble_legacy(desktop, worker, pathlib.Path(self.temp.name) / "accepted", cache, origin)
         provenance = portable.accepted_binary_provenance(desktop, worker, archive, portable.digest(archive), inputs)
         self.assertEqual("a" * 40, provenance["binarySourceCommit"])
         self.assertEqual(portable.digest(archive), provenance["binarySourceArchive"]["sha256"])
@@ -218,7 +218,7 @@ class PortableReleaseTests(unittest.TestCase):
             portable.accepted_binary_provenance(desktop, worker, archive, "0" * 64, inputs)
         with self.assertRaisesRegex(ValueError, "compilation inputs"):
             portable.accepted_binary_provenance(desktop, worker, archive, portable.digest(archive), {**inputs, "src/New.cs": "new"})
-        _, dirty_archive = portable.assemble(desktop, worker, pathlib.Path(self.temp.name) / "dirty", cache, {**origin, "dirty": True})
+        _, dirty_archive = portable.assemble_legacy(desktop, worker, pathlib.Path(self.temp.name) / "dirty", cache, {**origin, "dirty": True})
         with self.assertRaisesRegex(ValueError, "clean binary source"):
             portable.accepted_binary_provenance(desktop, worker, dirty_archive, portable.digest(dirty_archive), inputs)
         (worker / "HL7Workbench.ScriptHost.dll").write_bytes(b"synthetic changed worker")

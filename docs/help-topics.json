@@ -1,7 +1,7 @@
 [
   { "id": "contents", "source": "docs/user/index.md", "keywords": "start contents tutorials workflows analysis help" },
   { "id": "installation", "source": "docs/user/installation.md", "keywords": "install launch source build release preview version" },
-  { "id": "getting-started", "source": "docs/user/getting-started.md", "keywords": "first task synthetic sample open save" },
+  { "id": "getting-started", "source": "docs/user/getting-started.md", "keywords": "first task generate synthetic bulk result preview build feedback open save" },
   { "id": "workspace", "source": "docs/user/workspace.md", "keywords": "dock float layout recover ribbon navigation" },
   { "id": "inspect-and-edit", "source": "docs/user/inspect-and-edit.md", "keywords": "HL7 original draft encoding inspector navigator undo source bulk unique assign replace preview" },
   { "id": "search-and-filter", "source": "docs/user/search-and-filter.md", "keywords": "find messages filter search library ALL ANY" },

@@ -320,6 +320,9 @@
       "hl7workbench.core": {
         "type": "Project"
       },
+      "hl7workbench.querying": {
+        "type": "Project"
+      },
       "hl7workbench.scripting": {
         "type": "Project",
         "dependencies": {
@@ -336,6 +339,7 @@
         "type": "Project",
         "dependencies": {
           "HL7Workbench.Core": "[0.1.0-beta, )",
+          "HL7Workbench.Querying": "[0.1.0-beta, )",
           "HL7Workbench.Scripting": "[0.1.0-beta, )",
           "HL7Workbench.Transport": "[0.1.0-beta, )"
         }

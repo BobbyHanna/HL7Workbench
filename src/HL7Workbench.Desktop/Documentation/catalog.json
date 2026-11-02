@@ -4,7 +4,7 @@
     {
       "id": "contents",
       "source": "docs/user/index.md",
-      "sourceHash": "6ba6d5972145d91e6a1dfb95eb21020e3fcf58075c7b95a0c9b0cd4225a7b41e",
+      "sourceHash": "f1b57bc9f2d75a72baddb6c3374f468f096fc6bc4063cbce3666b573eb844e75",
       "title": "User guide",
       "keywords": "start contents tutorials workflows analysis help",
       "blocks": [
@@ -22,24 +22,24 @@
         },
         {
           "kind": "paragraph",
-          "text": "Message Workbench opens and analyzes local HL7 v2 data, edits bounded messages, runs trusted C# scripts, generates synthetic HL7, validates against explicit profiles, imports supported local FHIR R4 Bundles and tests TCP/MLLP interfaces. Use authorized data and test destinations. Start with the repository's reviewed synthetic fixtures.",
+          "text": "Message Workbench opens and analyzes local HL7 v2 data, edits bounded messages, runs trusted C# scripts, generates synthetic HL7, validates against explicit profiles, imports supported local FHIR R4 Bundles and tests TCP/MLLP interfaces. Use authorized data and test destinations. Start with the bundled synthetic generation walkthrough; repository fixtures are optional.",
           "spans": [
             {
               "kind": "text",
-              "text": "Message Workbench opens and analyzes local HL7 v2 data, edits bounded messages, runs trusted C# scripts, generates synthetic HL7, validates against explicit profiles, imports supported local FHIR R4 Bundles and tests TCP/MLLP interfaces. Use authorized data and test destinations. Start with the repository's "
+              "text": "Message Workbench opens and analyzes local HL7 v2 data, edits bounded messages, runs trusted C# scripts, generates synthetic HL7, validates against explicit profiles, imports supported local FHIR R4 Bundles and tests TCP/MLLP interfaces. Use authorized data and test destinations. Start with the bundled "
             },
             {
               "kind": "link",
-              "text": "reviewed synthetic fixtures",
+              "text": "synthetic generation walkthrough",
               "link": {
-                "kind": "repository",
-                "target": "samples/synthetic-only/README.md",
+                "kind": "topic",
+                "target": "getting-started",
                 "anchor": ""
               }
             },
             {
               "kind": "text",
-              "text": "."
+              "text": "; repository fixtures are optional."
             }
           ]
         },
@@ -628,7 +628,7 @@
     {
       "id": "installation",
       "source": "docs/user/installation.md",
-      "sourceHash": "420e0c3f0cf1f3efdf11dc7217711ebb28a2ebc0e20b90fcc1b734302fc12334",
+      "sourceHash": "61ef21706a94ad14513ce7f019bf584f224e3bcb477c09dc4755df0896114e85",
       "title": "Install or run Message Workbench",
       "keywords": "install launch source build release preview version",
       "blocks": [
@@ -646,11 +646,11 @@
         },
         {
           "kind": "paragraph",
-          "text": "Use Windows as the supported acceptance platform. Choose either an approved portable artifact supplied by its owner or a local source build. These are different version baselines; this documentation does not offer a new public download.",
+          "text": "Use Windows as the supported acceptance platform. Choose either an approved portable artifact supplied by its owner or a local source build. These are different version baselines; this documentation does not offer a new public download. Current-source portable preparation is verification-only; no new recipient artifact is approved. When an approved current build is supplied, follow the bundled generated-data walkthrough without repository fixtures and record Version/Build from About.",
           "spans": [
             {
               "kind": "text",
-              "text": "Use Windows as the supported acceptance platform. Choose either an approved portable artifact supplied by its owner or a local source build. These are different version baselines; this documentation does not offer a new public download."
+              "text": "Use Windows as the supported acceptance platform. Choose either an approved portable artifact supplied by its owner or a local source build. These are different version baselines; this documentation does not offer a new public download. Current-source portable preparation is verification-only; no new recipient artifact is approved. When an approved current build is supplied, follow the bundled generated-data walkthrough without repository fixtures and record Version/Build from About."
             }
           ]
         },
@@ -993,48 +993,89 @@
     {
       "id": "getting-started",
       "source": "docs/user/getting-started.md",
-      "sourceHash": "cba23b9f131823fbca852bce09cbe46ce7325ba22fa797ee5a2edc9b18d6f34d",
-      "title": "First task: inspect, edit and save a synthetic message",
-      "keywords": "first task synthetic sample open save",
+      "sourceHash": "0e1f5252b215d7d0e19f704c661e2224f9777d547e5cf13ec23cf42274d26275",
+      "title": "First task: generate, inspect and save synthetic HL7",
+      "keywords": "first task generate synthetic bulk result preview build feedback open save",
       "blocks": [
         {
           "kind": "heading",
-          "text": "First task: inspect, edit and save a synthetic message",
+          "text": "First task: generate, inspect and save synthetic HL7",
           "spans": [
             {
               "kind": "text",
-              "text": "First task: inspect, edit and save a synthetic message"
+              "text": "First task: generate, inspect and save synthetic HL7"
             }
           ],
           "level": 1,
-          "anchor": "first-task-inspect-edit-and-save-a-synthetic-message"
+          "anchor": "first-task-generate-inspect-and-save-synthetic-hl7"
         },
         {
           "kind": "paragraph",
-          "text": "Prerequisites: a running application and the reviewed adt-a01.hl7 fixture in your repository checkout. It is entirely invented data. Keep this fixture unchanged by saving to a different destination.",
+          "text": "Use an owner-approved complete Windows x64 extraction. This exercise needs no repository, sample download, installed SDK or internet connection. Initial private preview use is synthetic-only; do not open real patient data.",
           "spans": [
             {
               "kind": "text",
-              "text": "Prerequisites: a running application and the reviewed "
+              "text": "Use an owner-approved complete Windows x64 extraction. This exercise needs no repository, sample download, installed SDK or internet connection. Initial private preview use is "
             },
             {
-              "kind": "link",
-              "text": "adt-a01.hl7",
-              "link": {
-                "kind": "repository",
-                "target": "samples/synthetic-only/adt-a01.hl7",
-                "anchor": ""
-              }
+              "kind": "strong",
+              "text": "synthetic-only"
             },
             {
               "kind": "text",
-              "text": " fixture in your repository checkout. It is entirely invented data. Keep this fixture unchanged by saving to a different destination."
+              "text": "; do not open real patient data."
             }
           ]
         },
         {
           "kind": "list",
-          "text": "Choose File → Open File… and select the fixture. Its HL7 appears in a document tab.",
+          "text": "Verify the owner's supplied archive checksum, extract the whole ZIP, and launch MessageWorkbench.exe. Keep ScriptHost/, QueryHost/ and all notices. A source build uses its existing desktop executable instead.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Verify the owner's supplied archive checksum, extract the "
+            },
+            {
+              "kind": "strong",
+              "text": "whole ZIP"
+            },
+            {
+              "kind": "text",
+              "text": ", and launch "
+            },
+            {
+              "kind": "strong",
+              "text": "MessageWorkbench.exe"
+            },
+            {
+              "kind": "text",
+              "text": ". Keep ScriptHost/, QueryHost/ and all notices. A source build uses its existing desktop executable instead."
+            }
+          ],
+          "marker": "1."
+        },
+        {
+          "kind": "list",
+          "text": "Open Help → About Message Workbench… and note Version and Build for feedback. Build may say unavailable when reliable source metadata was not supplied.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Open "
+            },
+            {
+              "kind": "strong",
+              "text": "Help → About Message Workbench…"
+            },
+            {
+              "kind": "text",
+              "text": " and note Version and Build for feedback. Build may say unavailable when reliable source metadata was not supplied."
+            }
+          ],
+          "marker": "2."
+        },
+        {
+          "kind": "list",
+          "text": "Choose File → Generate Messages…, then standalone ADT^A01, quantity 3, Realistic Synthetic, and a new document. Leave Seed blank for new data or enter 42 for replay; keep the other defaults. Choose Generate.",
           "spans": [
             {
               "kind": "text",
@@ -1042,22 +1083,73 @@
             },
             {
               "kind": "strong",
-              "text": "File → Open File…"
+              "text": "File → Generate Messages…"
             },
             {
               "kind": "text",
-              "text": " and select the fixture. Its HL7 appears in a document tab."
+              "text": ", then standalone "
+            },
+            {
+              "kind": "strong",
+              "text": "ADT^A01"
+            },
+            {
+              "kind": "text",
+              "text": ", quantity "
+            },
+            {
+              "kind": "strong",
+              "text": "3"
+            },
+            {
+              "kind": "text",
+              "text": ", "
+            },
+            {
+              "kind": "strong",
+              "text": "Realistic Synthetic"
+            },
+            {
+              "kind": "text",
+              "text": ", and a "
+            },
+            {
+              "kind": "strong",
+              "text": "new document"
+            },
+            {
+              "kind": "text",
+              "text": ". Leave Seed blank for new data or enter "
+            },
+            {
+              "kind": "strong",
+              "text": "42"
+            },
+            {
+              "kind": "text",
+              "text": " for replay; keep the other defaults. Choose Generate."
             }
           ],
-          "marker": "1."
+          "marker": "3."
         },
         {
           "kind": "list",
-          "text": "Open View → HL7 Inspection → Segment Navigator and Field Inspector if hidden. Select PID, then inspect field 5. The sample's patient name is Example^Avery; PID-3 contains repeated synthetic identifiers.",
+          "text": "The generated batch opens in an unsaved document tab. Use First/Previous/Next/Last or the message index/Go controls to inspect all three messages. Generation Report shows the actual seed; it does not establish clinical conformance.",
           "spans": [
             {
               "kind": "text",
-              "text": "Open "
+              "text": "The generated batch opens in an unsaved document tab. Use First/Previous/Next/Last or the message index/Go controls to inspect all three messages. Generation Report shows the actual seed; it does not establish clinical conformance."
+            }
+          ],
+          "marker": "4."
+        },
+        {
+          "kind": "list",
+          "text": "If hidden, open View → HL7 Inspection → Segment Navigator and Field Inspector. Select PID, expand field 5 and its first repetition, then select component 2 (given name). Read the raw encoded value and structural path.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "If hidden, open "
             },
             {
               "kind": "strong",
@@ -1073,37 +1165,18 @@
             },
             {
               "kind": "text",
-              "text": " if hidden. Select PID, then inspect field 5. The sample's patient name is "
-            },
-            {
-              "kind": "code",
-              "text": "Example^Avery"
-            },
-            {
-              "kind": "text",
-              "text": "; PID-3 contains repeated synthetic identifiers."
+              "text": ". Select PID, expand field 5 and its first repetition, then select component 2 (given name). Read the raw encoded value and structural path."
             }
           ],
-          "marker": "2."
+          "marker": "5."
         },
         {
           "kind": "list",
-          "text": "Hover a raw value for its structural path, or double-click it to reveal its structure. Inspectors describe existing syntax; they do not edit values directly.",
+          "text": "Enable the owning document's Edit Mode if needed. Right-click the existing component and choose Edit Value…. Enter the synthetic given name Rowan, review and confirm. Raw text and Inspector should agree after refresh.",
           "spans": [
             {
               "kind": "text",
-              "text": "Hover a raw value for its structural path, or double-click it to reveal its structure. Inspectors describe existing syntax; they do not edit values directly."
-            }
-          ],
-          "marker": "3."
-        },
-        {
-          "kind": "list",
-          "text": "Enable Edit Mode in the document. In the raw HL7, change Example^Avery to Example^Rowan, leaving delimiters and the remaining fields intact.",
-          "spans": [
-            {
-              "kind": "text",
-              "text": "Enable "
+              "text": "Enable the owning document's "
             },
             {
               "kind": "strong",
@@ -1111,34 +1184,34 @@
             },
             {
               "kind": "text",
-              "text": " in the document. In the raw HL7, change "
+              "text": " if needed. Right-click the existing component and choose "
             },
             {
-              "kind": "code",
-              "text": "Example^Avery"
-            },
-            {
-              "kind": "text",
-              "text": " to "
-            },
-            {
-              "kind": "code",
-              "text": "Example^Rowan"
+              "kind": "strong",
+              "text": "Edit Value…"
             },
             {
               "kind": "text",
-              "text": ", leaving delimiters and the remaining fields intact."
+              "text": ". Enter the synthetic given name "
+            },
+            {
+              "kind": "strong",
+              "text": "Rowan"
+            },
+            {
+              "kind": "text",
+              "text": ", review and confirm. Raw text and Inspector should agree after refresh."
             }
           ],
-          "marker": "4."
+          "marker": "6."
         },
         {
           "kind": "list",
-          "text": "Wait for inspection to refresh. A pending/previous-inspection label is temporary; the document's modified indicator remains until saved. Try Undo, then Redo.",
+          "text": "Try Undo, then Redo. The document remains an unsaved working copy; turning Edit Mode off does not discard changes. Structured editing targets existing values; it does not create absent fields or change MSH separators.",
           "spans": [
             {
               "kind": "text",
-              "text": "Wait for inspection to refresh. A pending/previous-inspection label is temporary; the document's modified indicator remains until saved. Try "
+              "text": "Try "
             },
             {
               "kind": "strong",
@@ -1154,14 +1227,114 @@
             },
             {
               "kind": "text",
-              "text": "."
+              "text": ". The document remains an unsaved working copy; turning Edit Mode off does not discard changes. Structured editing targets existing values; it does not create absent fields or change MSH separators."
             }
           ],
-          "marker": "5."
+          "marker": "7."
         },
         {
           "kind": "list",
-          "text": "Choose File → Save As… and a new filename outside the fixture folder. Review any replacement confirmation; use a new file for this walkthrough.",
+          "text": "Right-click the component and choose List Unique Values…. Use Active file, Analyze, and inspect counts/values. This read-only action does not edit the batch; close the review when done.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Right-click the component and choose "
+            },
+            {
+              "kind": "strong",
+              "text": "List Unique Values…"
+            },
+            {
+              "kind": "text",
+              "text": ". Use "
+            },
+            {
+              "kind": "strong",
+              "text": "Active file"
+            },
+            {
+              "kind": "text",
+              "text": ", Analyze, and inspect counts/values. This read-only action does not edit the batch; close the review when done."
+            }
+          ],
+          "marker": "8."
+        },
+        {
+          "kind": "list",
+          "text": "On the same component, choose Search & Replace…. Find value should contain its current complete raw value. Enter Morgan in Replace with. Keep Active file and the selected PID occurrence, then Analyze / Preview.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "On the same component, choose "
+            },
+            {
+              "kind": "strong",
+              "text": "Search & Replace…"
+            },
+            {
+              "kind": "text",
+              "text": ". Find value should contain its current complete raw value. Enter "
+            },
+            {
+              "kind": "strong",
+              "text": "Morgan"
+            },
+            {
+              "kind": "text",
+              "text": " in Replace with. Keep Active file and the selected PID occurrence, then "
+            },
+            {
+              "kind": "strong",
+              "text": "Analyze / Preview"
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ],
+          "marker": "9."
+        },
+        {
+          "kind": "list",
+          "text": "Review the exact raw matches, affected messages and every proposed change. Other generated names need not match. Before Apply the input tab and its Inspector must still show Rowan. Confirm the preview, then Apply all to new document.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Review the exact raw matches, affected messages and every proposed change. Other generated names need not match. Before Apply the input tab and its Inspector must still show Rowan. Confirm the preview, then "
+            },
+            {
+              "kind": "strong",
+              "text": "Apply all to new document"
+            },
+            {
+              "kind": "text",
+              "text": "."
+            }
+          ],
+          "marker": "10."
+        },
+        {
+          "kind": "list",
+          "text": "Exactly one separate Bulk Result.hl7 tab opens and activates. Raw text and Inspector show Morgan for the changed message. All three messages remain, including messages outside the modification scope. Switch back to the starting generated tab: its values/history are unchanged by Apply. Return to the result.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Exactly one separate "
+            },
+            {
+              "kind": "strong",
+              "text": "Bulk Result.hl7"
+            },
+            {
+              "kind": "text",
+              "text": " tab opens and activates. Raw text and Inspector show Morgan for the changed message. All three messages remain, including messages outside the modification scope. Switch back to the starting generated tab: its values/history are unchanged by Apply. Return to the result."
+            }
+          ],
+          "marker": "11."
+        },
+        {
+          "kind": "list",
+          "text": "Choose File → Save As…, select a new destination/name and explicitly save the result. Reopen that saved file with File → Open File… to check the persisted output. Nothing was automatically written to a source file or transmitted.",
           "spans": [
             {
               "kind": "text",
@@ -1173,234 +1346,183 @@
             },
             {
               "kind": "text",
-              "text": " and a new filename outside the fixture folder. Review any replacement confirmation; use a new file for this walkthrough."
+              "text": ", select a new destination/name and explicitly save the result. Reopen that saved file with "
+            },
+            {
+              "kind": "strong",
+              "text": "File → Open File…"
+            },
+            {
+              "kind": "text",
+              "text": " to check the persisted output. Nothing was automatically written to a source file or transmitted."
             }
           ],
-          "marker": "6."
+          "marker": "12."
         },
         {
           "kind": "list",
-          "text": "Open the saved file separately to inspect its persisted output.",
+          "text": "Open Help → Documentation to search the bundled guides offline. Use the existing Script API Reference for trusted C# contracts. No repository is required.",
           "spans": [
             {
               "kind": "text",
-              "text": "Open the saved file separately to inspect its persisted output."
+              "text": "Open "
+            },
+            {
+              "kind": "strong",
+              "text": "Help → Documentation"
+            },
+            {
+              "kind": "text",
+              "text": " to search the bundled guides offline. Use the existing Script API Reference for trusted C# contracts. No repository is required."
             }
           ],
-          "marker": "7."
+          "marker": "13."
+        },
+        {
+          "kind": "heading",
+          "text": "Know which document you are using",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Know which document you are using"
+            }
+          ],
+          "level": 2,
+          "anchor": "know-which-document-you-are-using"
+        },
+        {
+          "kind": "list",
+          "text": "An original source is the captured input bytes of an opened file. Its editable document has separate working text/history; authorized Save can replace the file, while Save As chooses another destination.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "An "
+            },
+            {
+              "kind": "strong",
+              "text": "original source"
+            },
+            {
+              "kind": "text",
+              "text": " is the captured input bytes of an opened file. Its "
+            },
+            {
+              "kind": "strong",
+              "text": "editable document"
+            },
+            {
+              "kind": "text",
+              "text": " has separate working text/history; authorized Save can replace the file, while Save As chooses another destination."
+            }
+          ],
+          "marker": "-"
+        },
+        {
+          "kind": "list",
+          "text": "A generated document is new unsaved synthetic output. In this exercise it is the input to the bulk operation; it is not an existing original file on disk.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "A "
+            },
+            {
+              "kind": "strong",
+              "text": "generated document"
+            },
+            {
+              "kind": "text",
+              "text": " is new unsaved synthetic output. In this exercise it is the input to the bulk operation; it is not an existing original file on disk."
+            }
+          ],
+          "marker": "-"
+        },
+        {
+          "kind": "list",
+          "text": "An independent bulk result copies the complete captured working dataset and applies only the reviewed changes. It does not edit its input document. Its dirty indicator denotes new unsaved output; Apply does not add dirty state to the input.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "An "
+            },
+            {
+              "kind": "strong",
+              "text": "independent bulk result"
+            },
+            {
+              "kind": "text",
+              "text": " copies the complete captured working dataset and applies only the reviewed changes. It does not edit its input document. Its dirty indicator denotes new unsaved output; Apply does not add dirty state to the input."
+            }
+          ],
+          "marker": "-"
+        },
+        {
+          "kind": "list",
+          "text": "A saved output file exists only after an explicit successful save/export. Closing or changing a tab does not automatically save it.",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "A "
+            },
+            {
+              "kind": "strong",
+              "text": "saved output file"
+            },
+            {
+              "kind": "text",
+              "text": " exists only after an explicit successful save/export. Closing or changing a tab does not automatically save it."
+            }
+          ],
+          "marker": "-"
+        },
+        {
+          "kind": "heading",
+          "text": "Cancel or recover",
+          "spans": [
+            {
+              "kind": "text",
+              "text": "Cancel or recover"
+            }
+          ],
+          "level": 2,
+          "anchor": "cancel-or-recover"
         },
         {
           "kind": "paragraph",
-          "text": "Expected result: the original fixture stays unchanged, the new file contains the chosen edit, and untouched bytes/formatting are preserved by the save workflow. The original open document still distinguishes its initial source from its working and saved state. Inspect and edit explains that distinction.",
+          "text": "Changing Find/Replace parameters invalidates preview and confirmation; analyze again. An intentionally empty Replace with clears matching existing values. Matching uses exact, case-sensitive raw HL7 encoded values, not substrings or decoded text.",
           "spans": [
             {
               "kind": "text",
-              "text": "Expected result: the original fixture stays unchanged, the new file contains the chosen edit, and untouched bytes/formatting are preserved by the save workflow. The original open document still distinguishes its initial source from its working and saved state. "
-            },
-            {
-              "kind": "link",
-              "text": "Inspect and edit",
-              "link": {
-                "kind": "topic",
-                "target": "inspect-and-edit",
-                "anchor": "understand-the-four-kinds-of-content"
-              }
-            },
-            {
-              "kind": "text",
-              "text": " explains that distinction."
+              "text": "Changing Find/Replace parameters invalidates preview and confirmation; analyze again. An intentionally empty Replace with clears matching existing values. Matching uses exact, case-sensitive raw HL7 encoded values, not substrings or decoded text."
             }
           ]
         },
         {
-          "kind": "heading",
-          "text": "Recover or cancel",
-          "spans": [
-            {
-              "kind": "text",
-              "text": "Recover or cancel"
-            }
-          ],
-          "level": 2,
-          "anchor": "recover-or-cancel"
-        },
-        {
           "kind": "paragraph",
-          "text": "While opening/indexing, Cancel opening stops publication. Closing a dirty document offers Save / Discard / Cancel; Cancel retains work. A canceled or rejected save does not publish a partial replacement and keeps the draft/history. Turning Edit Mode off does not discard edits. If editing is disabled, check the status and editing limits, not just the checkbox.",
+          "text": "Cancel before confirmation to retain the input without output. A rejected/canceled save retains working text/history and does not publish a partial replacement. Dirty close offers Save / Discard / Cancel. If the result cannot open, the review reports no result retained; review and confirm again to retry.",
           "spans": [
             {
               "kind": "text",
-              "text": "While opening/indexing, "
-            },
-            {
-              "kind": "strong",
-              "text": "Cancel opening"
-            },
-            {
-              "kind": "text",
-              "text": " stops publication. Closing a dirty document offers "
-            },
-            {
-              "kind": "strong",
-              "text": "Save / Discard / Cancel"
-            },
-            {
-              "kind": "text",
-              "text": "; Cancel retains work. A canceled or rejected save does not publish a partial replacement and keeps the draft/history. Turning Edit Mode off does not discard edits. If editing is disabled, check the status and "
-            },
-            {
-              "kind": "link",
-              "text": "editing limits",
-              "link": {
-                "kind": "topic",
-                "target": "troubleshooting",
-                "anchor": "limits-and-coverage"
-              }
-            },
-            {
-              "kind": "text",
-              "text": ", not just the checkbox."
+              "text": "Cancel before confirmation to retain the input without output. A rejected/canceled save retains working text/history and does not publish a partial replacement. Dirty close offers Save / Discard / Cancel. If the result cannot open, the review reports no result retained; review and confirm again to retry."
             }
           ]
         },
         {
-          "kind": "heading",
-          "text": "Continue with another task",
+          "kind": "paragraph",
+          "text": "Large/ambiguous messages, missing nodes, unsafe delimiters or unsupported encoding can disable editing. Inspect the status and Help's limits instead of bypassing a guard. Keep desired work saved before exit; placement restoration does not recover drafts.",
           "spans": [
             {
               "kind": "text",
-              "text": "Continue with another task"
+              "text": "Large/ambiguous messages, missing nodes, unsafe delimiters or unsupported encoding can disable editing. Inspect the status and Help's limits instead of bypassing a guard. Keep desired work saved before exit; placement restoration does not recover drafts."
             }
-          ],
-          "level": 2,
-          "anchor": "continue-with-another-task"
-        },
-        {
-          "kind": "list",
-          "text": "Find the synthetic identifier.",
-          "spans": [
-            {
-              "kind": "link",
-              "text": "Find the synthetic identifier",
-              "link": {
-                "kind": "topic",
-                "target": "search-and-filter",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": "."
-            }
-          ],
-          "marker": "-"
-        },
-        {
-          "kind": "list",
-          "text": "Compare the draft with its original.",
-          "spans": [
-            {
-              "kind": "link",
-              "text": "Compare the draft with its original",
-              "link": {
-                "kind": "topic",
-                "target": "compare-messages",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": "."
-            }
-          ],
-          "marker": "-"
-        },
-        {
-          "kind": "list",
-          "text": "Extract a table or query it with SQL.",
-          "spans": [
-            {
-              "kind": "link",
-              "text": "Extract a table",
-              "link": {
-                "kind": "topic",
-                "target": "extract-fields",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": " or "
-            },
-            {
-              "kind": "link",
-              "text": "query it with SQL",
-              "link": {
-                "kind": "topic",
-                "target": "query-with-sql",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": "."
-            }
-          ],
-          "marker": "-"
-        },
-        {
-          "kind": "list",
-          "text": "Generate a fresh synthetic batch.",
-          "spans": [
-            {
-              "kind": "link",
-              "text": "Generate a fresh synthetic batch",
-              "link": {
-                "kind": "topic",
-                "target": "generate-synthetic-hl7",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": "."
-            }
-          ],
-          "marker": "-"
+          ]
         },
         {
           "kind": "paragraph",
-          "text": "See parser preservation and save/export safety for exact limits. These sample messages exercise syntax/preservation and do not promise profile conformance or clinical validity.",
+          "text": "Use the supplied FEEDBACK.md template privately with a synthetic reproduction. Do not send real HL7, PHI, credentials, endpoint secrets, production filenames, temporary storage, raw logs or crash dumps. Review screenshots manually. Plaintext snapshots and clipboard history can retain content; local-first is not a privacy or de-identification guarantee. Trusted C# has your account permissions and TCP/MLLP is unencrypted and unauthenticated. No clinical/production use is approved.",
           "spans": [
             {
               "kind": "text",
-              "text": "See "
-            },
-            {
-              "kind": "link",
-              "text": "parser preservation",
-              "link": {
-                "kind": "repository",
-                "target": "docs/parser-api.md",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": " and "
-            },
-            {
-              "kind": "link",
-              "text": "save/export safety",
-              "link": {
-                "kind": "repository",
-                "target": "docs/save-and-export-safety.md",
-                "anchor": ""
-              }
-            },
-            {
-              "kind": "text",
-              "text": " for exact limits. These sample messages exercise syntax/preservation and do not promise profile conformance or clinical validity."
+              "text": "Use the supplied FEEDBACK.md template privately with a synthetic reproduction. Do not send real HL7, PHI, credentials, endpoint secrets, production filenames, temporary storage, raw logs or crash dumps. Review screenshots manually. Plaintext snapshots and clipboard history can retain content; local-first is not a privacy or de-identification guarantee. Trusted C# has your account permissions and TCP/MLLP is unencrypted and unauthenticated. No clinical/production use is approved."
             }
           ]
         }
@@ -9040,7 +9162,7 @@
     {
       "id": "troubleshooting",
       "source": "docs/user/troubleshooting.md",
-      "sourceHash": "5edfaf34565331d14ef6dda36635a85024e5760813895c5a71a2b2e9727f08fe",
+      "sourceHash": "22ebc9ed47e2f3638553ec0bb883ab75b1476b6dad0b1a3b1cbc8d6ddf2b7835",
       "title": "Troubleshooting and supported limits",
       "keywords": "errors limits recovery failure unavailable",
       "blocks": [
@@ -9058,11 +9180,11 @@
         },
         {
           "kind": "paragraph",
-          "text": "Start with the tool's status, source freshness and Activity Log. Prerequisites for reproduction: note public version/provenance, operation, Windows version, theme and scaling; use synthetic input. Do not include patient values, files, screenshots, dumps or paths containing sensitive information in feedback.",
+          "text": "Start with the tool's status, source freshness and Activity Log. Prerequisites for reproduction: note public version/provenance, operation, Windows version, theme and scaling; use synthetic input. Do not include patient values, files, screenshots, dumps or paths containing sensitive information in feedback. About displays a short Build when reliable commit metadata exists; otherwise it says unavailable. Include that and the supplied provenance/build identifier in the manual FEEDBACK.md template. Never guess a commit or attach raw dumps/temporary storage.",
           "spans": [
             {
               "kind": "text",
-              "text": "Start with the tool's status, source freshness and Activity Log. Prerequisites for reproduction: note public version/provenance, operation, Windows version, theme and scaling; use synthetic input. Do not include patient values, files, screenshots, dumps or paths containing sensitive information in feedback."
+              "text": "Start with the tool's status, source freshness and Activity Log. Prerequisites for reproduction: note public version/provenance, operation, Windows version, theme and scaling; use synthetic input. Do not include patient values, files, screenshots, dumps or paths containing sensitive information in feedback. About displays a short Build when reliable commit metadata exists; otherwise it says unavailable. Include that and the supplied provenance/build identifier in the manual FEEDBACK.md template. Never guess a commit or attach raw dumps/temporary storage."
             }
           ]
         },

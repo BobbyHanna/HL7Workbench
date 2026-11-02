@@ -192,5 +192,35 @@
     "packages": [
       "SkiaSharp.NativeAssets.Win32/3.119.4"
     ]
+  },
+  {
+    "file": "ericsink-SQLitePCL.raw-LICENSE.TXT",
+    "source": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ed046114d5a30534e13294d94d78eb73de896ad4/LICENSE.TXT",
+    "revision": "ed046114d5a30534e13294d94d78eb73de896ad4",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "sourceSha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "packages": [
+      "SQLitePCLRaw.bundle_e_sqlite3/3.0.5",
+      "SQLitePCLRaw.config.e_sqlite3/3.0.5",
+      "SQLitePCLRaw.core/3.0.5",
+      "SQLitePCLRaw.provider.e_sqlite3/3.0.5"
+    ],
+    "formatting": "Exact upstream bytes.",
+    "component": "SQLitePCLRaw 3.0.5; Apache-2.0 license and original attribution NOTICE."
+  },
+  {
+    "file": "ericsink-SQLitePCL.raw-NOTICE.TXT",
+    "source": "https://raw.githubusercontent.com/ericsink/SQLitePCL.raw/ed046114d5a30534e13294d94d78eb73de896ad4/NOTICE.TXT",
+    "revision": "ed046114d5a30534e13294d94d78eb73de896ad4",
+    "sha256": "5a1ab2f670f86dd2f8d42e40a8459cc278ca6d5225a7e2a5fa3ea0184396a6d9",
+    "sourceSha256": "5a1ab2f670f86dd2f8d42e40a8459cc278ca6d5225a7e2a5fa3ea0184396a6d9",
+    "packages": [
+      "SQLitePCLRaw.bundle_e_sqlite3/3.0.5",
+      "SQLitePCLRaw.config.e_sqlite3/3.0.5",
+      "SQLitePCLRaw.core/3.0.5",
+      "SQLitePCLRaw.provider.e_sqlite3/3.0.5"
+    ],
+    "formatting": "Exact upstream bytes.",
+    "component": "SQLitePCLRaw 3.0.5; Apache-2.0 license and original attribution NOTICE."
   }
 ]

@@ -8,6 +8,29 @@ All committed examples and tests must be synthetic. The existing MW logo is the
 approved artwork; its former informal nickname was an inside joke with no brand,
 publisher, company or product status.
 
+## Stage 21B.1 — portable distribution preparation
+
+The owner authorizes preparation after the Stage 21A audit on cd71c48, preserving
+the untracked audit report and all protected artifacts. The current release format
+is schema 2 / current-three-process: isolated self-contained net10.0 win-x64 Release
+publishes of Desktop, ScriptHost and QueryHost, with runtime 10.0.12 and no single-file,
+trimming, AOT or ReadyToRun. BuildPortableCandidate requires -VerificationOnly;
+staging produces no archive and finally removes owned temporary binaries. Historical
+two-process manifests/accepted-binary reuse require explicit legacy scope and retain
+their original proofs; absence of current fields never selects legacy implicitly.
+
+Current inventories derive from all three selected deps graphs, require executable/
+runtime/native/resource completeness, and retain exact MIT/native/SQLitePCLRaw Apache
+notices. Covered validation source, source/change NOTICE and MPL text are delivered
+separately with source/embedded-payload hash proof. Human redistribution clearance,
+exact-artifact clean-machine acceptance and owner transfer approval remain blockers.
+About exposes a safe short commit or unavailable; identity/settings/storage/engine
+behavior remain unchanged. Getting Started now uses Generate Messages, independent
+bulk output and manual synthetic-only feedback. See the
+[Stage 21B.1 report](stage21b1-portable-distribution-preparation.md) for results.
+No commit, push, final ZIP/candidate, upload, publication, distribution, Stage 21B.2
+or Stage 21C is authorized in this milestone.
+
 ## Stage 20C — bulk fields and unique analysis (current work)
 
 The owner authorizes Stage 20C after committed Stage 20B at

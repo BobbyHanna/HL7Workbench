@@ -3,6 +3,9 @@
 Use Windows as the supported acceptance platform. Choose either an approved
 portable artifact supplied by its owner or a local source build. These are
 different version baselines; this documentation does not offer a new public download.
+Current-source portable preparation is verification-only; no new recipient artifact
+is approved. When an approved current build is supplied, follow the bundled generated-data
+walkthrough without repository fixtures and record Version/Build from About.
 
 ## Use an approved portable preview
 

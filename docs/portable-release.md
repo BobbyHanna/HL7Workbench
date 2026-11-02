@@ -1,5 +1,63 @@
 # Message Workbench portable release preparation
 
+## Current source — Stage 21B.1 preparation only
+
+The current format is **schema 2 / current-three-process**: Desktop, ScriptHost and
+QueryHost each publish self-contained net10.0 / win-x64 / Release with runtime
+10.0.12, no single-file, trimming, AOT or ReadyToRun. It requires all three apphosts,
+runtimeconfigs/deps and selected runtime/native/resource assets, including native
+SQLite. Only the existing optional createdump utility and symbols are deliberately
+excluded. Worker's adjacent-apphost resolvers and all application engines are unchanged.
+
+Build-machine prerequisites are the repository-selected SDK, PowerShell 7.2+, Python
+3.11+ standard library and restored pinned packages. Recipients need none of those
+development tools. There is no new approved current-source ZIP yet.
+
+```powershell
+./build/BuildPortableCandidate.ps1 -VerificationOnly -OutputDirectory "$PWD/artifacts/my-new-verification"
+```
+
+The output directory must be new, under artifacts and outside protected private-preview
+paths. The script locks all three executable restore graphs, uses isolated intermediate
+outputs, publishes/stages a **NON-DISTRIBUTABLE verification tree**, runs both worker
+lifecycles from a write-denied spaces/Unicode path with SDK/runtime lookup disabled,
+and verifies integrity again. Finally it restores the test ACL and removes the owned
+temporary binaries/intermediates. Logs, marker and tested-provenance.json remain for
+review. It creates **no ZIP or candidate archive**; omitting -VerificationOnly fails
+before publishing. This is automated developer-machine evidence, not native clean-machine
+desktop acceptance. Stage 21B.2 remains separately gated.
+
+Current provenance includes source commit/short build ID, dirty flag, input hashes,
+SDK/runtime/RID/configuration, dependency-inventory hash, covered-source hashes and
+file-checksum scope. It does not invent a source commit: published metadata must match
+the checkout. About displays only a bounded short revision, or unavailable when reliable
+metadata is absent. Assembly/settings identity and public version properties are retained.
+
+The selected three-process deps graphs drive the package inventory. Exact reviewed
+SQLitePCLRaw 3.0.5 Apache declarations and SQLite 3.53.4 file license supplement the
+existing MIT/native policy; unknown declarations still fail. The exact adapted validation
+JSON, its original source/change NOTICE and MPL text are staged under covered-source/.
+Hashes match the repo inputs and embedded payloads in both Core-carrying assemblies.
+No arbitrary resource/fixture allowlist or dependency upgrade is introduced.
+
+Recipient inputs are preview-readme.md, the repository-free generated-data first task,
+PRIVATE-PREVIEW.txt, the manual feedback template and
+[Redistribution Review Checklist](redistribution-review-checklist.md). Automated checks
+do not establish legal clearance or approve recipients, signing, transfer or sharing.
+
+Use `portable_release.py --verify <tree> --scope current` for a surviving owned test tree.
+The current CLI requires --verification-only and --query; there is no current archive
+creation path. Historical validation uses **explicit --scope legacy**, never inference
+from a missing current manifest field. Historical CLI assembly additionally requires
+the accepted archive/hash and original binary/input proofs. All 2,384 protected files
+remain untouched.
+
+## Historical Stage 14 scope
+
+The remainder records the older accepted two-process preview and its original
+procedures. It is not a current-source publishing instruction or authorization.
+The present BuildPortableCandidate.ps1 is verification-only as described above.
+
 Target: **v0.1.0-beta**, Windows 10/11 x64, portable self-contained ZIP. Stage 14
 is checkpointed, with accepted application binaries from
 af06e576a0a761f092db6ea7047b488570c0ee06. The current follow-up authorizes one local
@@ -25,6 +83,7 @@ Use the pinned accepted archive and hash to gate reuse, with a new output direct
 
 ```powershell
 python -B build/portable_release.py `
+  --scope legacy `
   --desktop artifacts/deidentification-checkpoint/portable-1/publish/Desktop `
   --worker artifacts/deidentification-checkpoint/portable-1/publish/ScriptHost `
   --output artifacts/private-preview/final-checkpoint/CANDIDATE `

@@ -5,3 +5,6 @@
 /build/third-party/* text eol=lf
 # Generated catalog is compared byte-for-byte with the compiler's UTF-8/LF output.
 /src/HL7Workbench.Desktop/Documentation/catalog.json text eol=lf
+# Exact pinned vendor texts, including original NOTICE whitespace.
+/build/third-party/ericsink-SQLitePCL.raw-LICENSE.TXT -text whitespace=-blank-at-eol
+/build/third-party/ericsink-SQLitePCL.raw-NOTICE.TXT -text whitespace=-blank-at-eol
